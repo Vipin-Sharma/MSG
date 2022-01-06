@@ -19,9 +19,10 @@ public class MsgSqlParser {
         PlainSelect plainSelect = (PlainSelect) selectStatement.getSelectBody();
         return plainSelect.getSelectItems()
                 .stream()
-                .map(selectItem -> selectItem.getASTNode().jjtGetFirstToken().toString())
+                .map(selectItem -> selectItem.getASTNode().jjtGetLastToken().toString())
+                .sorted()
                 .collect(Collectors.toCollection(ArrayList::new));
-                /*.collect(ArrayList::new, (list, selectItem) -> list.add(selectItem.getASTNode().jjtGetFirstToken().toString()), ArrayList::addAll);*/
+                /*.collect(ArrayList::new, (list, selectItem) -> list.add(selectItem.getASTNode().jjtGetLastToken().toString()), ArrayList::addAll);*/
     }
 
     public static List<String> getTablesFromSQL(String sql) throws JSQLParserException {
