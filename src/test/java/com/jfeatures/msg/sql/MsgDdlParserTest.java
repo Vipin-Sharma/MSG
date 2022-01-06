@@ -1,10 +1,12 @@
 package com.jfeatures.msg.sql;
 
 import net.sf.jsqlparser.JSQLParserException;
+import net.sf.jsqlparser.statement.create.table.ColDataType;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -14,9 +16,12 @@ class MsgDdlParserTest {
 
     @Test
     public void testParseDDL() throws JSQLParserException {
-        List<ColumnDefinition> columnDefinitions = MsgDdlParser.parseDdl(DDL);
+        Map<String, ColDataType> columnNameTypeMap = MsgDdlParser.parseDdl(DDL);
 
-        assertEquals(3, columnDefinitions.size());
+        //todo print should be removed once we have all types
+        columnNameTypeMap.forEach( (column, colDataType) -> System.out.println(colDataType.getDataType()));
+
+        assertEquals(3, columnNameTypeMap.size());
     }
 
     @Test
