@@ -70,7 +70,7 @@ public class GenerateDTO {
             MethodSpec methodSpec = MethodSpec.methodBuilder("get" + CaseUtils.toCamelCase(selectColumn, true))
                     .addModifiers(Modifier.PUBLIC)
                     //, Modifier.valueOf(TypeEnum.getClassForType(columnNameToTypeMapping.get(selectColumn).getDataType()).getName()))
-                    .returns(TypeEnum.getClassForType(columnNameToTypeMapping.get(selectColumn).getDataType()))
+                    .returns(SQLServerDataTypeEnum.getClassForType(columnNameToTypeMapping.get(selectColumn).getDataType()))
                     .addStatement("return $L", CaseUtils.toCamelCase(selectColumn, false))
                     .build();
             methodSpecList.add(methodSpec);
@@ -82,7 +82,7 @@ public class GenerateDTO {
     private static List<FieldSpec> generateFieldSpecs(Map<String, ColDataType> columnNameTypeMap, List<String> selectColumns) {
         ArrayList<FieldSpec> fieldSpecList = new ArrayList<>();
         for (String columnName : selectColumns) {
-            FieldSpec fieldSpec = FieldSpec.builder(TypeEnum.getClassForType(columnNameTypeMap.get(columnName).getDataType()), CaseUtils.toCamelCase(columnName, false))
+            FieldSpec fieldSpec = FieldSpec.builder(SQLServerDataTypeEnum.getClassForType(columnNameTypeMap.get(columnName).getDataType()), CaseUtils.toCamelCase(columnName, false))
                     .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                     .build();
             fieldSpecList.add(fieldSpec);
