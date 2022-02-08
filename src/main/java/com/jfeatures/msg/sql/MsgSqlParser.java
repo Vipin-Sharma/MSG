@@ -22,7 +22,6 @@ public class MsgSqlParser {
                 .map(selectItem -> selectItem.getASTNode().jjtGetLastToken().toString())
                 .sorted()
                 .collect(Collectors.toCollection(ArrayList::new));
-                /*.collect(ArrayList::new, (list, selectItem) -> list.add(selectItem.getASTNode().jjtGetLastToken().toString()), ArrayList::addAll);*/
     }
 
     public static List<String> getTablesFromSQL(String sql) throws JSQLParserException {

@@ -8,7 +8,6 @@ import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class MsgDdlParser {
@@ -30,9 +29,7 @@ public class MsgDdlParser {
                 .stream()
                 .filter(columnDefinition -> columnDefinition.getColumnName().equalsIgnoreCase(columnName))
                 .findAny()
-                .get();
-                /*.collect(Collectors.toList())
-                .get(0);*/
+                .orElseThrow(() -> new RuntimeException(columnName + " does not exist in ddl"));
 
     }
 }
