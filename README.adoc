@@ -1,0 +1,8 @@
+Roadmap to finish MVP
+
+High Priority:
+1. Read multiple table SQL and Map Select column with corresponding table so that we can find out column data type accurately.
+
+Low Priority:
+1. Implement JSQLParser as per recommendation, find if current approach has any limitations.
+2. Add support for SQL Server data types in SQLServerDataTypeEnum class.
