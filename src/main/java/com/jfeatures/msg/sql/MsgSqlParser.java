@@ -29,7 +29,6 @@ public class MsgSqlParser {
     }
 
     public static Map<String, ColumnDefinition> dataTypePerColumn(String sql, Map<String, String> ddlPerTableName) throws JSQLParserException
-    //public static Map<String, ColDataType> dataTypePerColumn(String sql)
     {
         Statement sqlStatement = CCJSqlParserUtil.parse(sql);
         Select selectStatement = (Select) sqlStatement;
