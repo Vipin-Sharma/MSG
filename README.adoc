@@ -1,8 +1,15 @@
 Roadmap to finish MVP
 
-High Priority:
+Top Priority:
+
 1. Read multiple table SQL and Map Select column with corresponding table so that we can find out column data type accurately.
+Done with limitation: For now we assume alias is same name as of table name.
+
+2. Test SubQuery that is treated as table with alias.
+
+3. Table ddl should be defined in a file and when application starts it should create a map of table name vs CreateTable object.
 
 Low Priority:
+
 1. Implement JSQLParser as per recommendation, find if current approach has any limitations.
 2. Add support for SQL Server data types in SQLServerDataTypeEnum class.

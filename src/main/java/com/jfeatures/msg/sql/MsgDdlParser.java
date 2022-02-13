@@ -9,6 +9,7 @@ import net.sf.jsqlparser.statement.create.table.CreateTable;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class MsgDdlParser {
     public static Map<String, ColDataType> parseDdl(String ddl) throws JSQLParserException {
@@ -21,15 +22,20 @@ public class MsgDdlParser {
                 .collect(HashMap::new, (map, columnDefinition) -> map.put(columnDefinition.getColumnName(), columnDefinition.getColDataType()) , HashMap::putAll);
     }
 
-    public static ColumnDefinition getColumnDefinition(String columnName, String ddl) throws JSQLParserException {
-        Statement sqlStatement = CCJSqlParserUtil.parse(ddl);
+    public static Optional<ColumnDefinition> getColumnDefinition(String columnName, String ddl) {
+        Statement sqlStatement;
+        try {
+            sqlStatement = CCJSqlParserUtil.parse(ddl);
+        } catch (JSQLParserException e) {
+            System.out.println(e.getMessage());
+            throw new RuntimeException("Exception " + e.getMessage());
+        }
         CreateTable createTableStatement = (CreateTable) sqlStatement;
 
         return createTableStatement.getColumnDefinitions()
                 .stream()
                 .filter(columnDefinition -> columnDefinition.getColumnName().equalsIgnoreCase(columnName))
-                .findAny()
-                .orElseThrow(() -> new RuntimeException(columnName + " does not exist in ddl"));
+                .findAny();
 
     }
 }

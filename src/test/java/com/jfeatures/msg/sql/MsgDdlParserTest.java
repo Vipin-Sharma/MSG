@@ -6,6 +6,7 @@ import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -24,8 +25,8 @@ class MsgDdlParserTest {
     }
 
     @Test
-    public void testGetColumnDefinition() throws JSQLParserException {
-        ColumnDefinition columnDefinition = MsgDdlParser.getColumnDefinition("id", DDL);
-        assertEquals("id", columnDefinition.getColumnName());
+    public void testGetColumnDefinition() {
+        Optional<ColumnDefinition> columnDefinition = MsgDdlParser.getColumnDefinition("id", DDL);
+        assertEquals("id", columnDefinition.get().getColumnName());
     }
 }
