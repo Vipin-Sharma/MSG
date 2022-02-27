@@ -3,11 +3,19 @@ Roadmap to finish MVP
 Top Priority:
 
 1. Read multiple table SQL and Map Select column with corresponding table so that we can find out column data type accurately.
-Done with limitation: For now we assume alias is same name as of table name.
+DONE with limitation: For now we assume alias is same name as of table name.
 
-2. Test SubQuery that is treated as table with alias.
+2. Add support to generate DTO for multiple tables, need to create a method that takes SQL and ddls and can provide column name vs datatype mapping.
+DONE
 
-3. Table ddl should be defined in a file and when application starts it should create a map of table name vs CreateTable object.
+3. Generate Spring boot application classes
+    SpringBootApplication.
+    Controller
+    DAO with springjdbc.
+
+4. Test SubQuery that is treated as table with alias.
+
+5. Table ddl should be defined in a file and when application starts it should create a map of table name vs CreateTable object.
 
 Low Priority:
 
