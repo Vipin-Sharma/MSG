@@ -53,9 +53,9 @@ class MsgSqlParserTest {
     void dataTypePerColumn() throws JSQLParserException {
         String sql = "Select tableC.a, tableC.b, tableD.c, tableD.d, e from tableC as tableC, tableD as tableD, tableE";
         Map<String, String> ddlPerTableName = new HashMap<>();
-        ddlPerTableName.put("tableC", tableC);
-        ddlPerTableName.put("tableD", tableD);
-        ddlPerTableName.put("tableE", tableE);
+        ddlPerTableName.put("tableC", "CREATE TABLE tableC (a INT, b NVARCHAR(50))");
+        ddlPerTableName.put("tableD", "CREATE TABLE tableD (c INT, d NVARCHAR(50))");
+        ddlPerTableName.put("tableE", "CREATE TABLE tableD (e INT)");
         Map<String, ColumnDefinition> dataTypePerColumn = MsgSqlParser.dataTypePerColumn(sql, ddlPerTableName);
 
         System.out.println(dataTypePerColumn);
