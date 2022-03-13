@@ -4,9 +4,10 @@ import com.jfeatures.msg.codegen.maven.PomGenerator;
 import com.squareup.javapoet.JavaFile;
 import net.sf.jsqlparser.JSQLParserException;
 
+import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,6 +25,14 @@ public class JavaServiceGenerator {
         String businessPurposeOfSQL = "BusinessData";
 
         JavaFile dtoForMultiTableSQL = GenerateDTO.getDTOForMultiTableSQL(sql, ddlPerTableName, businessPurposeOfSQL);
+
+        Path javaFilesSrcPath = Paths.get( System.getProperty("java.io.tmpdir")
+                + File.separator + "generated"
+                + File.separator + "src"
+                + File.separator + "main"
+                + File.separator + "java");
+
+        dtoForMultiTableSQL.writeTo(javaFilesSrcPath);
 
     }
 }
