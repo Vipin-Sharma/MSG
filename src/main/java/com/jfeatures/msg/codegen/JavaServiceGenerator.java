@@ -25,6 +25,7 @@ public class JavaServiceGenerator {
         String businessPurposeOfSQL = "BusinessData";
 
         JavaFile dtoForMultiTableSQL = GenerateDTO.getDTOForMultiTableSQL(sql, ddlPerTableName, businessPurposeOfSQL);
+        JavaFile springBootMainClass = GenerateSpringBootApp.createSpringBootApp(sql, ddlPerTableName, businessPurposeOfSQL);
 
         Path javaFilesSrcPath = Paths.get( System.getProperty("java.io.tmpdir")
                 + File.separator + "generated"
@@ -33,6 +34,7 @@ public class JavaServiceGenerator {
                 + File.separator + "java");
 
         dtoForMultiTableSQL.writeTo(javaFilesSrcPath);
+        springBootMainClass.writeTo(javaFilesSrcPath);
 
     }
 }
