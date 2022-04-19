@@ -87,7 +87,7 @@ public class GenerateDTO {
 
         for (String columnName : selectColumns) {
             codeblock = codeblock.toBuilder()
-                    .addStatement("This.$L = $L", CaseUtils.toCamelCase(columnName, false),
+                    .addStatement("this.$L = $L", CaseUtils.toCamelCase(columnName, false),
                             CaseUtils.toCamelCase(columnName, false))
                     .build();
         }

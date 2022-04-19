@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 public class GenerateSpringBootApp {
-    public static JavaFile createSpringBootApp(String sql, Map<String, String> ddlPerTableName, String businessPurposeOfSQL) throws IOException {
+    public static JavaFile createSpringBootApp(String businessPurposeOfSQL) throws IOException {
 
         MethodSpec methodSpec = MethodSpec.methodBuilder("main")
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
@@ -35,18 +35,4 @@ public class GenerateSpringBootApp {
         return javaFile;
     }
 
-    private static List<MethodSpec> generateMethodSpecsForColumnDefinition(Map<String, ColumnDefinition> columnNameToTypeMapping, List<String> selectColumns) {
-        ArrayList<MethodSpec> methodSpecList = new ArrayList<>();
-
-        for (String selectColumn : selectColumns) {
-            MethodSpec methodSpec = MethodSpec.methodBuilder("get" + CaseUtils.toCamelCase(selectColumn, true))
-                    .addModifiers(Modifier.PUBLIC)
-                    .returns(SQLServerDataTypeEnum.getClassForType(columnNameToTypeMapping.get(selectColumn).getColDataType().getDataType()))
-                    .addStatement("return $L", CaseUtils.toCamelCase(selectColumn, false))
-                    .build();
-            methodSpecList.add(methodSpec);
-        }
-
-        return methodSpecList;
-    }
 }
