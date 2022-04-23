@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 public enum SQLServerDataTypeEnum {
 
+    //todo utilize int rather than Integer
     Integer("INT", Integer.class),
     String("NVARCHAR", String.class);
     //todo add more types on basis of all possible type for SQL server, use a ddl which has all types that can help to print all such values.

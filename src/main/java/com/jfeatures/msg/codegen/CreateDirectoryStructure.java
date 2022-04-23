@@ -15,16 +15,14 @@ public class CreateDirectoryStructure {
                 + File.separator + "main"
                 + File.separator + "java"
                 + File.separator + "com"
-                + File.separator + "jfeatures"
-                + File.separator + "service");
+                + File.separator + "jfeatures");
         Path testPath = Paths.get(System.getProperty("java.io.tmpdir")
                 + File.separator + "generated"
                 + File.separator + "src"
                 + File.separator + "test"
                 + File.separator + "java"
                 + File.separator + "com"
-                + File.separator + "jfeatures"
-                + File.separator + "service");
+                + File.separator + "jfeatures");
 
         Path resourcesPath = Paths.get(System.getProperty("java.io.tmpdir")
                 + File.separator + "generated"

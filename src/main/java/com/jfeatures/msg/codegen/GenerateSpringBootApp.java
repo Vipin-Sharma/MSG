@@ -6,6 +6,8 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import org.apache.commons.text.CaseUtils;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
@@ -18,13 +20,15 @@ public class GenerateSpringBootApp {
 
         MethodSpec methodSpec = MethodSpec.methodBuilder("main")
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                .addParameter(String[].class, "args")
                 .returns(TypeName.VOID)
-                .addStatement("SpringApplication.run(" + businessPurposeOfSQL + "SpringBootApplication.class, args)")
+                .addStatement("$T.run(" + businessPurposeOfSQL + "SpringBootApplication.class, args)", SpringApplication.class)
                 .build();
 
         TypeSpec mainClass = TypeSpec.classBuilder(businessPurposeOfSQL + "SpringBootApplication").
                 addModifiers(Modifier.PUBLIC).
                 addMethod(methodSpec).
+                addAnnotation(SpringBootApplication.class).
                 build();
 
         JavaFile javaFile = JavaFile.builder("com.jfeatures.msg", mainClass)
