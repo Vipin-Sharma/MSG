@@ -9,11 +9,13 @@ DONE with limitation: For now we assume alias is same name as of table name.
 DONE
 
 3. Generate Spring boot application classes
+
     directory structure     DONE
     pom.xml                 DONE
     SpringBootApplication.  DONE
     Controller              DONE
-    DAO with spring-jdbc.
+    DAO with spring-jdbc.   WIP
+    Check Rest Annotations.
 
 4. Test SubQuery that is treated as table with alias.
 
