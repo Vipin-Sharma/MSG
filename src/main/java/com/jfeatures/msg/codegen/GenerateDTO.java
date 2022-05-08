@@ -1,5 +1,6 @@
 package com.jfeatures.msg.codegen;
 
+import com.jfeatures.msg.codegen.domain.TableColumn;
 import com.jfeatures.msg.codegen.util.NameUtil;
 import com.jfeatures.msg.sql.MsgSqlParser;
 import com.squareup.javapoet.CodeBlock;
@@ -28,16 +29,15 @@ public class GenerateDTO {
      * @param ddlPerTableName      DDL per Table.
      * @param businessPurposeOfSQL It can be a string like productCatalog
      * @throws JSQLParserException This is standard RuntimeException from SQL parser
-     * todo check support needs to be provided for same name column or not
+     *                             todo check support needs to be provided for same name column or not
      */
     public static JavaFile getDTOForMultiTableSQL(String sql, Map<String, String> ddlPerTableName, String businessPurposeOfSQL) throws JSQLParserException, IOException {
-        Map<String, ColumnDefinition> columnNameToTypeMapping = MsgSqlParser.dataTypePerColumn(sql, ddlPerTableName);
-        //List<String> tables = MsgSqlParser.getTablesFromSQL(sql);
+        Map<TableColumn, ColumnDefinition> columnNameToTypeMapping = MsgSqlParser.dataTypePerColumnWithTableInfo(sql, ddlPerTableName);
         List<String> selectColumns = MsgSqlParser.getSelectColumns(sql);
 
-        List<FieldSpec> fieldSpecList = generateFieldSpecsForColumnDefinition(columnNameToTypeMapping, selectColumns);
-        List<MethodSpec> methodSpecList = generateMethodSpecsForColumnDefinition(columnNameToTypeMapping, selectColumns);
-        MethodSpec constructorSpec = generateConstructorSpec(selectColumns, columnNameToTypeMapping);
+        List<FieldSpec> fieldSpecList = generateFieldSpecsForColumnDefinition(columnNameToTypeMapping);
+        List<MethodSpec> methodSpecList = generateMethodSpecsForColumnDefinition(columnNameToTypeMapping);
+        MethodSpec constructorSpec = generateConstructorSpec(columnNameToTypeMapping);
 
         TypeSpec dao = TypeSpec.classBuilder(businessPurposeOfSQL + "DTO").
                 addModifiers(Modifier.PUBLIC, Modifier.FINAL).
@@ -54,17 +54,17 @@ public class GenerateDTO {
         return javaFile;
     }
 
-    private static MethodSpec generateConstructorSpec(List<String> selectColumns, Map<String, ColumnDefinition> columnNameToTypeMapping) {
+    private static MethodSpec generateConstructorSpec(Map<TableColumn, ColumnDefinition> columnNameToTypeMapping) {
         CodeBlock codeblock = CodeBlock.builder().build();
         List<ParameterSpec> parameterSpecList = new ArrayList<>();
 
-        for (String columnName : selectColumns) {
+        for (TableColumn tableColumn : columnNameToTypeMapping.keySet()) {
             codeblock = codeblock.toBuilder()
-                    .addStatement("this.$L = $L", CaseUtils.toCamelCase(columnName, false),
-                            CaseUtils.toCamelCase(columnName, false))
+                    .addStatement("this.$L = $L", tableColumn.tableName() + CaseUtils.toCamelCase(tableColumn.columnName(), true),
+                            tableColumn.tableName() + CaseUtils.toCamelCase(tableColumn.columnName(), true))
                     .build();
-            parameterSpecList.add(ParameterSpec.builder(getClassForType(StringUtils.substringBefore(columnNameToTypeMapping.get(columnName).getColDataType().toString(), "(").trim()),
-                    CaseUtils.toCamelCase(columnName, false)).build());
+            parameterSpecList.add(ParameterSpec.builder(getClassForType(StringUtils.substringBefore(columnNameToTypeMapping.get(tableColumn).getColDataType().toString(), "(").trim()),
+                    tableColumn.tableName() + CaseUtils.toCamelCase(tableColumn.columnName(), true)).build());
         }
 
         return MethodSpec.constructorBuilder()
@@ -73,14 +73,14 @@ public class GenerateDTO {
                 .build();
     }
 
-    private static List<MethodSpec> generateMethodSpecsForColumnDefinition(Map<String, ColumnDefinition> columnNameToTypeMapping, List<String> selectColumns) {
+    private static List<MethodSpec> generateMethodSpecsForColumnDefinition(Map<TableColumn, ColumnDefinition> columnNameToTypeMapping) {
         ArrayList<MethodSpec> methodSpecList = new ArrayList<>();
 
-        for (String selectColumn : selectColumns) {
-            MethodSpec methodSpec = MethodSpec.methodBuilder("get" + CaseUtils.toCamelCase(selectColumn, true))
+        for (TableColumn tableColumn : columnNameToTypeMapping.keySet()) {
+            MethodSpec methodSpec = MethodSpec.methodBuilder("get" + StringUtils.capitalize(tableColumn.tableName()) + CaseUtils.toCamelCase(tableColumn.columnName(),true))
                     .addModifiers(Modifier.PUBLIC)
-                    .returns(getClassForType(columnNameToTypeMapping.get(selectColumn).getColDataType().getDataType()))
-                    .addStatement("return $L", CaseUtils.toCamelCase(selectColumn, false))
+                    .returns(getClassForType(columnNameToTypeMapping.get(tableColumn).getColDataType().getDataType()))
+                    .addStatement("return $L", tableColumn.tableName() + CaseUtils.toCamelCase(tableColumn.columnName(), true))
                     .build();
             methodSpecList.add(methodSpec);
         }
@@ -88,10 +88,11 @@ public class GenerateDTO {
         return methodSpecList;
     }
 
-    private static List<FieldSpec> generateFieldSpecsForColumnDefinition(Map<String, ColumnDefinition> columnNameTypeMap, List<String> selectColumns) {
+    private static List<FieldSpec> generateFieldSpecsForColumnDefinition(Map<TableColumn, ColumnDefinition> columnNameToTypeMapping) {
         ArrayList<FieldSpec> fieldSpecList = new ArrayList<>();
-        for (String columnName : selectColumns) {
-            FieldSpec fieldSpec = FieldSpec.builder(getClassForType(columnNameTypeMap.get(columnName).getColDataType().getDataType()), CaseUtils.toCamelCase(columnName, false))
+        for (TableColumn tableColumn : columnNameToTypeMapping.keySet()) {
+            FieldSpec fieldSpec = FieldSpec.builder(getClassForType(columnNameToTypeMapping.get(tableColumn).getColDataType().getDataType()),
+                            tableColumn.tableName() + CaseUtils.toCamelCase(tableColumn.columnName(), true))
                     .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                     .build();
             fieldSpecList.add(fieldSpec);

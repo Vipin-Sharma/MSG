@@ -17,13 +17,13 @@ class GenerateDTOTest {
     private static final String sql = "Select id, name, quantity from Inventory";
 
 
-    @Test
+    /*@Test
     public void testGenerateDTO() throws JSQLParserException, IOException {
         String businessPurposeOfSQL = "InventoryData";
         JavaFile inventoryData = GenerateDTO.getDTO(sql, ddl, businessPurposeOfSQL);
 
         assertEquals(businessPurposeOfSQL+"DTO", inventoryData.typeSpec.name);
-    }
+    }*/
 
     @Test
     public void testGenerateDTOForMultipleTables() throws JSQLParserException, IOException {

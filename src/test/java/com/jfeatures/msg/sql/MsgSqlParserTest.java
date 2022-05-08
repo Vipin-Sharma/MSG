@@ -1,5 +1,7 @@
 package com.jfeatures.msg.sql;
 
+import ch.qos.logback.classic.db.names.TableName;
+import com.jfeatures.msg.codegen.domain.TableColumn;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import org.junit.jupiter.api.Test;
@@ -63,5 +65,44 @@ class MsgSqlParserTest {
         assertEquals("INT", dataTypePerColumn.get("a").getColDataType().getDataType());
         assertEquals("NVARCHAR", dataTypePerColumn.get("d").getColDataType().getDataType());
         assertEquals("INT", dataTypePerColumn.get("e").getColDataType().getDataType());
+    }
+
+    @Test
+    void dataTypePerColumnWithTableInfo() throws JSQLParserException {
+        String sql = "Select tableC.a, tableC.b, tableD.c, tableD.d, e from tableC as tableC, tableD as tableD, tableE";
+        Map<String, String> ddlPerTableName = new HashMap<>();
+        ddlPerTableName.put("tableC", "CREATE TABLE tableC (a INT, b NVARCHAR(50))");
+        ddlPerTableName.put("tableD", "CREATE TABLE tableD (c INT, d NVARCHAR(50))");
+        ddlPerTableName.put("tableE", "CREATE TABLE tableD (e INT)");
+        Map<TableColumn, ColumnDefinition> dataTypePerColumn = MsgSqlParser.dataTypePerColumnWithTableInfo(sql, ddlPerTableName);
+
+        System.out.println(dataTypePerColumn);
+        assertEquals(5, dataTypePerColumn.size());
+        assertEquals("INT", dataTypePerColumn.get(new TableColumn("a", "tableC")).getColDataType().getDataType());
+        /*assertEquals("NVARCHAR", dataTypePerColumn.get("d").getColDataType().getDataType());
+        assertEquals("INT", dataTypePerColumn.get("e").getColDataType().getDataType());*/
+    }
+
+    @Test
+    void testSelectSQLWithWhereClause() throws JSQLParserException {
+        String sql = "Select tableC.a, tableC.b, tableD.c, tableD.d, e from tableC as tableC, tableD as tableD, tableE where tableC.a = tableD.c and tableC.b = tableD.d and tableC.a = tableE.e and tableC.b = tableE.e and tableC.a = 1 and tableC.b = 'Vipin'";
+        Map<String, String> ddlPerTableName = new HashMap<>();
+        ddlPerTableName.put("tableC", "CREATE TABLE tableC (a INT, b NVARCHAR(50))");
+        ddlPerTableName.put("tableD", "CREATE TABLE tableD (c INT, d NVARCHAR(50))");
+        ddlPerTableName.put("tableE", "CREATE TABLE tableD (e INT)");
+        Map<String, ColumnDefinition> dataTypePerColumn = MsgSqlParser.dataTypePerColumn(sql, ddlPerTableName);
+
+        System.out.println(dataTypePerColumn);
+        assertEquals(5, dataTypePerColumn.size());
+        assertEquals("INT", dataTypePerColumn.get("a").getColDataType().getDataType());
+        assertEquals("NVARCHAR", dataTypePerColumn.get("d").getColDataType().getDataType());
+        assertEquals("INT", dataTypePerColumn.get("e").getColDataType().getDataType());
+    }
+
+    @Test
+    void extractPredicateHavingLiterals() throws JSQLParserException {
+        String sql = "Select tableC.a, tableC.b, tableD.c, tableD.d, e from tableC as tableC, tableD as tableD, tableE where tableC.a = tableD.c and tableC.b = tableD.d and tableC.a = tableE.e and tableC.b = tableE.e and tableC.a = 1 and tableC.b = 'Vipin'";
+        List<String> strings = MsgSqlParser.extractPredicateHavingLiterals(sql);
+        strings.forEach(System.out::println);
     }
 }
