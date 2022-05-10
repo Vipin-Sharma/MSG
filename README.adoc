@@ -14,6 +14,7 @@ DONE
     pom.xml                 DONE
     SpringBootApplication.  DONE
     Controller              DONE
+    Controller              WIP Add support for request params which is derived from SQL where clause.
     DAO with spring-jdbc.   WIP
     Check Rest Annotations.
 

@@ -1,6 +1,6 @@
 package com.jfeatures.msg.sql;
 
-import ch.qos.logback.classic.db.names.TableName;
+import com.jfeatures.msg.codegen.domain.DBColumn;
 import com.jfeatures.msg.codegen.domain.TableColumn;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
@@ -102,7 +102,11 @@ class MsgSqlParserTest {
     @Test
     void extractPredicateHavingLiterals() throws JSQLParserException {
         String sql = "Select tableC.a, tableC.b, tableD.c, tableD.d, e from tableC as tableC, tableD as tableD, tableE where tableC.a = tableD.c and tableC.b = tableD.d and tableC.a = tableE.e and tableC.b = tableE.e and tableC.a = 1 and tableC.b = 'Vipin'";
-        List<String> strings = MsgSqlParser.extractPredicateHavingLiterals(sql);
+        Map<String, String> ddlPerTableName = new HashMap<>();
+        ddlPerTableName.put("tableC", "CREATE TABLE tableC (a INT, b NVARCHAR(50))");
+        ddlPerTableName.put("tableD", "CREATE TABLE tableD (c INT, d NVARCHAR(50))");
+        ddlPerTableName.put("tableE", "CREATE TABLE tableD (e INT)");
+        List<DBColumn> strings = MsgSqlParser.extractPredicateHavingLiterals(sql, ddlPerTableName);
         strings.forEach(System.out::println);
     }
 }
