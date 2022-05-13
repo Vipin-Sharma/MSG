@@ -181,6 +181,7 @@ public class MsgSqlParser {
         PlainSelect plainSelect = (PlainSelect) selectStatement.getSelectBody();
         Map<String, String> tableAliasToTableName = getAliasToTableName(plainSelect);
 
+        //todo add null check on plainSelect.getWhere()
         String whereClause = ((PlainSelect) selectStatement.getSelectBody()).getWhere().toString();
         System.out.println("Where condition: " + whereClause);
 

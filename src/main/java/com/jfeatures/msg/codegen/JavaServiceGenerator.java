@@ -16,7 +16,8 @@ public class JavaServiceGenerator {
         CreateDirectoryStructure.createDirectoryStructure();
         Path pomPath = PomGenerator.generatePomFile();
 
-        String sql = "Select tableC.a, tableC.b, tableD.c, tableD.d, e from tableC as tableC, tableD as tableD, tableE";
+        String sql = "Select tableC.a, tableC.b, tableD.c, tableD.d, e from tableC as tableC, tableD as tableD, tableE" +
+                " where tableC.a = 123 and tableD.d = 'abc'";
         Map<String, String> ddlPerTableName = new HashMap<>();
         ddlPerTableName.put("tableC", "CREATE TABLE tableC (a INT, b NVARCHAR(50))");
         ddlPerTableName.put("tableD", "CREATE TABLE tableD (c INT, d NVARCHAR(50))");
@@ -26,7 +27,7 @@ public class JavaServiceGenerator {
 
         JavaFile dtoForMultiTableSQL = GenerateDTO.getDTOForMultiTableSQL(sql, ddlPerTableName, businessPurposeOfSQL);
         JavaFile springBootMainClass = GenerateSpringBootApp.createSpringBootApp(businessPurposeOfSQL);
-        JavaFile controllerClass = GenerateController.createController(businessPurposeOfSQL);
+        JavaFile controllerClass = GenerateController.createController(sql, businessPurposeOfSQL, ddlPerTableName);
         JavaFile daoClass = GenerateDao.createDao(businessPurposeOfSQL);
 
         Path javaFilesSrcPath = Paths.get( System.getProperty("java.io.tmpdir")
