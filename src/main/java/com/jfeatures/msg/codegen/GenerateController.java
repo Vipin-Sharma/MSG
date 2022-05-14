@@ -7,7 +7,6 @@ import com.jfeatures.msg.sql.MsgSqlParser;
 import com.squareup.javapoet.*;
 import net.sf.jsqlparser.JSQLParserException;
 import org.apache.commons.text.CaseUtils;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 public class GenerateController {
-    public static JavaFile createController(String sql, String businessPurposeOfSQL, Map<String, String> ddlPerTableName) throws IOException, JSQLParserException {
+    public static JavaFile createController(String sql, String businessPurposeOfSQL, Map<String, String> ddlPerTableName, List<DBColumn> predicateHavingLiterals) throws IOException, JSQLParserException {
 
         TypeName daoTypeName = TypeUtil.getJavaClassTypeName(businessPurposeOfSQL, "dao", "DAO");
         TypeName dtoTypeName = TypeUtil.getJavaClassTypeName(businessPurposeOfSQL, "dto", "DTO");
@@ -38,20 +37,21 @@ public class GenerateController {
                 .build();
 
 
-        ClassName list = ClassName.get("java.util", "List");
+        ClassName listClass = ClassName.get("java.util", "List");
 
-        ParameterizedTypeName parameterizedTypeName = TypeUtil.getParameterizedTypeName(dtoTypeName, list);
-
-        CodeBlock serviceCodeBlock = CodeBlock.builder()
-                .addStatement("return $N." + "getData()", daoInstanceFieldName)
-                .build();
-
-        List<DBColumn> predicateHavingLiterals = MsgSqlParser.extractPredicateHavingLiterals(sql, ddlPerTableName);
+        ParameterizedTypeName parameterizedTypeName = TypeUtil.getParameterizedTypeName(dtoTypeName, listClass);
         List<ParameterSpec> parameterSpecs = new ArrayList<>();
+        ArrayList<String> getDataParameters       = predicateHavingLiterals.stream().collect(ArrayList::new, (list, dbColumn) -> list.add(dbColumn.name()), ArrayList::addAll);
+        String getDataMethodParametersString = getDataParameters.stream().reduce((a, b) -> a + ", " + b).orElse("");
+
         predicateHavingLiterals.forEach(literal ->
                 parameterSpecs.add(ParameterSpec.builder(ClassName.bestGuess(literal.type()).box(), literal.name())
                                 .addAnnotation(AnnotationSpec.builder(RequestParam.class).addMember("value", "$S", literal.name()).build())
                         .build()));
+
+        CodeBlock serviceCodeBlock = CodeBlock.builder()
+                .addStatement("return $N." + "getData("+ getDataMethodParametersString + ")", daoInstanceFieldName)
+                .build();
 
         MethodSpec methodSpec = MethodSpec.methodBuilder("getData")
                 .addAnnotation(AnnotationSpec.builder(RequestMapping.class)

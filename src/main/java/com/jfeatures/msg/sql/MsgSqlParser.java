@@ -21,6 +21,7 @@ import net.sf.jsqlparser.util.TablesNamesFinder;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -181,8 +182,13 @@ public class MsgSqlParser {
         PlainSelect plainSelect = (PlainSelect) selectStatement.getSelectBody();
         Map<String, String> tableAliasToTableName = getAliasToTableName(plainSelect);
 
-        //todo add null check on plainSelect.getWhere()
-        String whereClause = ((PlainSelect) selectStatement.getSelectBody()).getWhere().toString();
+        Expression whereExpression = ((PlainSelect) selectStatement.getSelectBody()).getWhere();
+
+        //todo handle this null case better, try removing if condition
+        if(whereExpression == null) {
+            return Collections.emptyList();
+        }
+        String whereClause = whereExpression.toString();
         System.out.println("Where condition: " + whereClause);
 
         Expression expr = CCJSqlParserUtil.parseCondExpression(whereClause);

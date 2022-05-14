@@ -1,25 +1,20 @@
 package com.jfeatures.msg.codegen;
 
+import com.jfeatures.msg.codegen.domain.DBColumn;
 import com.jfeatures.msg.codegen.util.NameUtil;
 import com.jfeatures.msg.codegen.util.TypeUtil;
-import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.CodeBlock;
-import com.squareup.javapoet.FieldSpec;
-import com.squareup.javapoet.JavaFile;
-import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.ParameterizedTypeName;
-import com.squareup.javapoet.TypeName;
-import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.*;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-import static com.jfeatures.msg.codegen.util.NameUtil.getJavaClassTypeName;
-
-public class GenerateDao {
-    public static JavaFile createDao(String businessPurposeOfSQL) throws IOException {
+public class GenerateDAO {
+    public static JavaFile createDao(String businessPurposeOfSQL, List<DBColumn> predicateHavingLiterals) throws IOException {
 
         String jdbcTemplateInstanceFieldName = "namedParameterJdbcTemplate";
 
@@ -42,8 +37,14 @@ public class GenerateDao {
         ParameterizedTypeName parameterizedTypeName = TypeUtil.getParameterizedTypeName(dtoTypeName, list);
 
         //todo add method to generate getData method
+        ArrayList<ParameterSpec> parameters = new ArrayList<>();
+
+        predicateHavingLiterals.forEach(literal ->
+                parameters.add(ParameterSpec.builder(ClassName.bestGuess(literal.type()).box(), literal.name()).build()));
+
         MethodSpec methodSpec = MethodSpec.methodBuilder("getData")
                 .addModifiers(Modifier.PUBLIC)
+                .addParameters(parameters)
                 .returns(parameterizedTypeName)
                 .addStatement("return null")
                 .build();

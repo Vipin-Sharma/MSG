@@ -1,6 +1,8 @@
 package com.jfeatures.msg.codegen;
 
+import com.jfeatures.msg.codegen.domain.DBColumn;
 import com.jfeatures.msg.codegen.maven.PomGenerator;
+import com.jfeatures.msg.sql.MsgSqlParser;
 import com.squareup.javapoet.JavaFile;
 import net.sf.jsqlparser.JSQLParserException;
 
@@ -9,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class JavaServiceGenerator {
@@ -16,8 +19,8 @@ public class JavaServiceGenerator {
         CreateDirectoryStructure.createDirectoryStructure();
         Path pomPath = PomGenerator.generatePomFile();
 
-        String sql = "Select tableC.a, tableC.b, tableD.c, tableD.d, e from tableC as tableC, tableD as tableD, tableE" +
-                " where tableC.a = 123 and tableD.d = 'abc'";
+        String sql = "Select tableC.a, tableC.b, tableD.c, tableD.d, e from tableC as tableC, tableD as tableD, tableE"
+                + " where tableC.a = 123 and tableD.d = 'abc'";
         Map<String, String> ddlPerTableName = new HashMap<>();
         ddlPerTableName.put("tableC", "CREATE TABLE tableC (a INT, b NVARCHAR(50))");
         ddlPerTableName.put("tableD", "CREATE TABLE tableD (c INT, d NVARCHAR(50))");
@@ -27,8 +30,11 @@ public class JavaServiceGenerator {
 
         JavaFile dtoForMultiTableSQL = GenerateDTO.getDTOForMultiTableSQL(sql, ddlPerTableName, businessPurposeOfSQL);
         JavaFile springBootMainClass = GenerateSpringBootApp.createSpringBootApp(businessPurposeOfSQL);
-        JavaFile controllerClass = GenerateController.createController(sql, businessPurposeOfSQL, ddlPerTableName);
-        JavaFile daoClass = GenerateDao.createDao(businessPurposeOfSQL);
+
+        List<DBColumn> predicateHavingLiterals = MsgSqlParser.extractPredicateHavingLiterals(sql, ddlPerTableName);
+
+        JavaFile controllerClass = GenerateController.createController(sql, businessPurposeOfSQL, ddlPerTableName, predicateHavingLiterals);
+        JavaFile daoClass = GenerateDAO.createDao(businessPurposeOfSQL, predicateHavingLiterals);
 
         Path javaFilesSrcPath = Paths.get( System.getProperty("java.io.tmpdir")
                 + File.separator + "generated"
