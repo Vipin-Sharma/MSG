@@ -24,6 +24,9 @@ DONE
 
 5. Table ddl should be defined in a file and when application starts it should create a map of table name vs CreateTable object.
 
+Caution while coding:
+1. Always convert SQL server data type into UPPER case before use.
+
 Low Priority:
 
 1. Implement JSQLParser as per recommendation, find if current approach has any limitations.
