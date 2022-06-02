@@ -235,10 +235,33 @@ public class MsgSqlParser {
         return result;
     }
 
+    public static Map<TableColumn, DBColumn> getDetailsOfColumnsUsedInSelect(String sql, Map<String, String> ddlPerTableName) throws JSQLParserException {
+        Map<TableColumn, DBColumn> result = new HashMap<>();
+        Statement sqlStatement = CCJSqlParserUtil.parse(sql);
+        Select selectStatement = (Select) sqlStatement;
+
+        PlainSelect plainSelect = (PlainSelect) selectStatement.getSelectBody();
+        Map<String, String> tableAliasToTableName = getAliasToTableName(plainSelect);
+
+        plainSelect.getSelectItems().forEach(selectItem -> {
+            String columnName = selectItem.toString();
+            String tableAlias = null;
+            if(columnName.contains(".")){
+                tableAlias = StringUtils.substringBefore(columnName, ".");
+                columnName = StringUtils.substringAfter(columnName, ".");
+            }
+            DBColumn dbColumn = getDbColumn(tableAlias, columnName, tableAliasToTableName, ddlPerTableName);
+            result.put(new TableColumn(dbColumn.name(), tableAliasToTableName.get(tableAlias)), dbColumn);
+        });
+
+        return result;
+    }
+
     private static DBColumn getDbColumn(String tableAlias, String columnName, Map<String, String> tableAliasToTableName, Map<String, String> ddlPerTableName) {
         String tableName = getTableName(tableAlias, columnName, tableAliasToTableName, ddlPerTableName);
         Optional<ColumnDefinition> columnDefinition = MsgDdlParser.getColumnDefinition(columnName, ddlPerTableName.get(tableName));
-        return new DBColumn(columnName, SQLServerDataTypeEnum.getClassForType(columnDefinition.get().getColDataType().getDataType()).getSimpleName());
+        return new DBColumn(columnName, SQLServerDataTypeEnum.getClassForType(columnDefinition.get().getColDataType().getDataType()).getSimpleName(),
+                SQLServerDataTypeEnum.getJdbcTypeForDBType(columnDefinition.get().getColDataType().getDataType()));
     }
 
     private static String getTableName(String tableAlias, String columnName, Map<String, String> tableAliasToTableName, Map<String, String> ddlPerTableName) {

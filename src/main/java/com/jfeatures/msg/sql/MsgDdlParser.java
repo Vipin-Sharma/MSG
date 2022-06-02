@@ -1,5 +1,7 @@
 package com.jfeatures.msg.sql;
 
+import com.jfeatures.msg.codegen.SQLServerDataTypeEnum;
+import com.jfeatures.msg.codegen.domain.DBColumn;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
@@ -35,6 +37,25 @@ public class MsgDdlParser {
         return createTableStatement.getColumnDefinitions()
                 .stream()
                 .filter(columnDefinition -> columnDefinition.getColumnName().equalsIgnoreCase(columnName))
+                .findAny();
+
+    }
+
+    public static Optional<DBColumn> getColumnDataTypes(String columnName, String ddl) {
+        Statement sqlStatement;
+        try {
+            sqlStatement = CCJSqlParserUtil.parse(ddl);
+        } catch (JSQLParserException e) {
+            System.out.println(e.getMessage());
+            throw new RuntimeException("Exception " + e.getMessage());
+        }
+        CreateTable createTableStatement = (CreateTable) sqlStatement;
+
+        return createTableStatement.getColumnDefinitions()
+                .stream()
+                .filter(columnDefinition -> columnDefinition.getColumnName().equalsIgnoreCase(columnName))
+                .map(columnDefinition -> new DBColumn(columnName, columnDefinition.getColDataType().getDataType(),
+                        SQLServerDataTypeEnum.getJdbcTypeForDBType(columnDefinition.getColDataType().getDataType())) )
                 .findAny();
 
     }

@@ -1,5 +1,6 @@
 package com.jfeatures.msg.sql;
 
+import com.jfeatures.msg.codegen.domain.DBColumn;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.statement.create.table.ColDataType;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
@@ -29,4 +30,13 @@ class MsgDdlParserTest {
         Optional<ColumnDefinition> columnDefinition = MsgDdlParser.getColumnDefinition("id", DDL);
         assertEquals("id", columnDefinition.get().getColumnName());
     }
+
+    @Test
+    public void testGetColumnDataTypes() {
+        Optional<DBColumn> dbColumn = MsgDdlParser.getColumnDataTypes("id", DDL);
+        assertEquals("id", dbColumn.get().name());
+        assertEquals("INT", dbColumn.get().javaType());
+        assertEquals("Int", dbColumn.get().jdbcType());
+    }
+
 }

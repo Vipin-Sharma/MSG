@@ -6,7 +6,6 @@ import com.jfeatures.msg.codegen.util.TypeUtil;
 import com.squareup.javapoet.*;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
@@ -40,7 +39,7 @@ public class GenerateDAO {
         ArrayList<ParameterSpec> parameters = new ArrayList<>();
 
         predicateHavingLiterals.forEach(literal ->
-                parameters.add(ParameterSpec.builder(ClassName.bestGuess(literal.type()).box(), literal.name()).build()));
+                parameters.add(ParameterSpec.builder(ClassName.bestGuess(literal.javaType()).box(), literal.name()).build()));
 
         MethodSpec methodSpec = MethodSpec.methodBuilder("getData")
                 .addModifiers(Modifier.PUBLIC)
