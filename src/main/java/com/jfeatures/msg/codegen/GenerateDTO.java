@@ -3,12 +3,16 @@ package com.jfeatures.msg.codegen;
 import com.jfeatures.msg.codegen.domain.TableColumn;
 import com.jfeatures.msg.codegen.util.NameUtil;
 import com.jfeatures.msg.sql.MsgSqlParser;
+import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeSpec;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import org.apache.commons.lang3.StringUtils;
@@ -36,14 +40,17 @@ public class GenerateDTO {
         List<String> selectColumns = MsgSqlParser.getSelectColumns(sql);
 
         List<FieldSpec> fieldSpecList = generateFieldSpecsForColumnDefinition(columnNameToTypeMapping);
-        List<MethodSpec> methodSpecList = generateMethodSpecsForColumnDefinition(columnNameToTypeMapping);
+        //List<MethodSpec> methodSpecList = generateMethodSpecsForColumnDefinition(columnNameToTypeMapping);
         MethodSpec constructorSpec = generateConstructorSpec(columnNameToTypeMapping);
 
         TypeSpec dao = TypeSpec.classBuilder(businessPurposeOfSQL + "DTO").
                 addModifiers(Modifier.PUBLIC, Modifier.FINAL).
                 addFields(fieldSpecList).
-                addMethods(methodSpecList).
+                //addMethods(methodSpecList).
                 addMethod(constructorSpec).
+                addAnnotation(AnnotationSpec.builder(Builder.class).addMember("builderClassName", "$S", "Builder").build()).
+                addAnnotation(AnnotationSpec.builder(Getter.class).build()).
+                addAnnotation(AnnotationSpec.builder(Setter.class).build()).
                 build();
 
         JavaFile javaFile = JavaFile.builder(NameUtil.getPackageName(businessPurposeOfSQL, "dto"), dao)
