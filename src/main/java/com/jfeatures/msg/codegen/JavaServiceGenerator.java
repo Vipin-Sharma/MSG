@@ -34,7 +34,7 @@ public class JavaServiceGenerator {
         List<DBColumn> predicateHavingLiterals = MsgSqlParser.extractPredicateHavingLiterals(sql, ddlPerTableName);
 
         JavaFile controllerClass = GenerateController.createController(sql, businessPurposeOfSQL, ddlPerTableName, predicateHavingLiterals);
-        JavaFile daoClass = GenerateDAO.createDao(businessPurposeOfSQL, predicateHavingLiterals);
+        JavaFile daoClass = GenerateDAO.createDao(businessPurposeOfSQL, predicateHavingLiterals, sql, ddlPerTableName);
 
         Path javaFilesSrcPath = Paths.get( System.getProperty("java.io.tmpdir")
                 + File.separator + "generated"

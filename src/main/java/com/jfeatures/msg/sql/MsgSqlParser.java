@@ -246,12 +246,30 @@ public class MsgSqlParser {
         plainSelect.getSelectItems().forEach(selectItem -> {
             String columnName = selectItem.toString();
             String tableAlias = null;
+            DBColumn dbColumn;
             if(columnName.contains(".")){
                 tableAlias = StringUtils.substringBefore(columnName, ".");
                 columnName = StringUtils.substringAfter(columnName, ".");
+                dbColumn = getDbColumn(tableAlias, columnName, tableAliasToTableName, ddlPerTableName);
+                result.put(new TableColumn(dbColumn.name(), tableAliasToTableName.get(tableAlias)), dbColumn);
+            }else {
+                Map<TableColumn, ColumnDefinition> tableColumnColumnDefinitionMap;
+                try
+                {
+                    tableColumnColumnDefinitionMap = dataTypePerColumnWithTableInfo(sql, ddlPerTableName);
+                } catch (JSQLParserException e)
+                {
+                    throw new RuntimeException(e);
+                }
+
+                String finalColumnName = columnName;
+                String tableName = tableColumnColumnDefinitionMap.keySet().stream()
+                        .filter(tableColumn -> tableColumn.columnName().equalsIgnoreCase(finalColumnName))
+                        .findAny().get().tableName();
+
+                dbColumn = getDbColumn( null , columnName, tableAliasToTableName, ddlPerTableName);
+                result.put(new TableColumn(dbColumn.name(), tableName), dbColumn);
             }
-            DBColumn dbColumn = getDbColumn(tableAlias, columnName, tableAliasToTableName, ddlPerTableName);
-            result.put(new TableColumn(dbColumn.name(), tableAliasToTableName.get(tableAlias)), dbColumn);
         });
 
         return result;
