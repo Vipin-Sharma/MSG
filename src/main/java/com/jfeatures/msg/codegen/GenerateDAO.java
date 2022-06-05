@@ -37,11 +37,15 @@ public class GenerateDAO {
                 .build();
 
 
-        FieldSpec fieldSpec = FieldSpec.builder(NamedParameterJdbcTemplate.class, jdbcTemplateInstanceFieldName, Modifier.PRIVATE, Modifier.FINAL).build();
+        FieldSpec jdbcTemplateFieldSpec = FieldSpec.builder(NamedParameterJdbcTemplate.class, jdbcTemplateInstanceFieldName, Modifier.PRIVATE, Modifier.FINAL).build();
+
+        String modifiedSQL = MsgSqlParser.modifySQLToUseNamedParameter(sql);
+        FieldSpec sqlFieldSpec = FieldSpec.builder(String.class, "SQL", Modifier.PRIVATE, Modifier.FINAL, Modifier.STATIC)
+                .initializer("$S", modifiedSQL)
+                .build();
 
         TypeName dtoTypeName = TypeUtil.getJavaClassTypeName(businessPurposeOfSQL, "dto", "DTO");
 
-        //todo add method to generate getData method
         ArrayList<ParameterSpec> parameters = new ArrayList<>();
 
         predicateHavingLiterals.forEach(literal ->
@@ -88,7 +92,7 @@ public class GenerateDAO {
                 .build();
 
         CodeBlock.Builder codeBlockForJdbcQuery = CodeBlock.builder();
-        codeBlockForJdbcQuery.add(jdbcTemplateInstanceFieldName + ".query(\"select * from " + businessPurposeOfSQL + "\", sqlParamMap, " + rowCallbackHandler + ");\n");
+        codeBlockForJdbcQuery.add(jdbcTemplateInstanceFieldName + ".query(SQL, sqlParamMap, " + rowCallbackHandler + ");\n");
 
         ClassName list = ClassName.get("java.util", "ArrayList");
         ParameterizedTypeName parameterizedTypeName = TypeUtil.getParameterizedTypeName(dtoTypeName, list);
@@ -107,7 +111,8 @@ public class GenerateDAO {
 
         TypeSpec dao = TypeSpec.classBuilder(businessPurposeOfSQL + "DAO")
                 .addModifiers(Modifier.PUBLIC)
-                .addField(fieldSpec)
+                .addField(jdbcTemplateFieldSpec)
+                .addField(sqlFieldSpec)
                 .addAnnotation(Component.class)
                 .addMethod(methodSpec)
                 .addMethod(constructorSpec)

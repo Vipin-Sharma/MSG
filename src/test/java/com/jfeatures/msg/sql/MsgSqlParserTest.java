@@ -113,14 +113,36 @@ class MsgSqlParserTest {
     }
 
     @Test
-    void extractPredicateHavingLiterals() throws JSQLParserException {
+    void testExtractPredicateHavingLiterals() throws JSQLParserException {
         String sql = "Select tableC.a, tableC.b, tableD.c, tableD.d, e from tableC as tableC, tableD as tableD, tableE where tableC.a = tableD.c and tableC.b = tableD.d and tableC.a = tableE.e and tableC.b = tableE.e and tableC.a = 1 and tableC.b = 'Vipin'";
         Map<String, String> ddlPerTableName = new HashMap<>();
         ddlPerTableName.put("tableC", "CREATE TABLE tableC (a INT, b NVARCHAR(50))");
         ddlPerTableName.put("tableD", "CREATE TABLE tableD (c INT, d NVARCHAR(50))");
         ddlPerTableName.put("tableE", "CREATE TABLE tableD (e INT)");
-        List<DBColumn> strings = MsgSqlParser.extractPredicateHavingLiterals(sql, ddlPerTableName);
-        strings.forEach(System.out::println);
+        List<DBColumn> dbColumnList = MsgSqlParser.extractPredicateHavingLiterals(sql, ddlPerTableName);
+        dbColumnList.forEach(System.out::println);
+    }
+
+    @Test
+    void testModifySQLToUseNamedParameter() throws JSQLParserException {
+        String sql = """
+                Select tableC.a, tableC.b, tableD.c, tableD.d, e ,  tableF.a, tableF.b, tableF.c, tableF.d
+                from tableC as tableC, tableD as tableD, tableE, tableF as tableF
+                where tableC.a = tableD.c and tableC.b = tableD.d and tableC.a = tableE.e and tableC.b = tableE.e and tableC.a = 1 and tableC.b = 'Vipin'
+                and e = 100
+                """;
+        Map<String, String> ddlPerTableName = new HashMap<>();
+        ddlPerTableName.put("tableC", "CREATE TABLE tableC (a INT, b NVARCHAR(50))");
+        ddlPerTableName.put("tableD", "CREATE TABLE tableD (c INT, d NVARCHAR(50))");
+        ddlPerTableName.put("tableE", "CREATE TABLE tableD (e INT)");
+        ddlPerTableName.put("tableF", tableF);
+        /*String sql = "Select tableC.a, tableC.b, tableD.c, tableD.d, e from tableC as tableC, tableD as tableD, tableE where tableC.a = tableD.c and tableC.b = tableD.d and tableC.a = tableE.e and tableC.b = tableE.e and tableC.a = 1 and tableC.b = 'Vipin'";
+        Map<String, String> ddlPerTableName = new HashMap<>();
+        ddlPerTableName.put("tableC", "CREATE TABLE tableC (a INT, b NVARCHAR(50))");
+        ddlPerTableName.put("tableD", "CREATE TABLE tableD (c INT, d NVARCHAR(50))");
+        ddlPerTableName.put("tableE", "CREATE TABLE tableD (e INT)");*/
+        String modifiedSQL = MsgSqlParser.modifySQLToUseNamedParameter(sql);
+        System.out.println(modifiedSQL);
     }
 
     @Test
