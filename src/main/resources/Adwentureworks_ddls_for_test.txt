@@ -1,0 +1,141 @@
+CREATE TABLE [Person].[Person](
+	[BusinessEntityID] [int] NOT NULL,
+	[PersonType] [nchar](2) NOT NULL,
+	[NameStyle] [dbo].[NameStyle] NOT NULL,
+	[Title] [nvarchar](8) NULL,
+	[FirstName] [dbo].[Name] NOT NULL,
+	[MiddleName] [dbo].[Name] NULL,
+	[LastName] [dbo].[Name] NOT NULL,
+	[Suffix] [nvarchar](10) NULL,
+	[EmailPromotion] [int] NOT NULL,
+	[AdditionalContactInfo] [xml](CONTENT [Person].[AdditionalContactInfoSchemaCollection]) NULL,
+	[Demographics] [xml](CONTENT [Person].[IndividualSurveySchemaCollection]) NULL,
+	[rowguid] [uniqueidentifier] ROWGUIDCOL  NOT NULL,
+	[ModifiedDate] [datetime] NOT NULL
+);
+
+CREATE TABLE [Sales].[SalesOrderDetail](
+	[SalesOrderID] [int] NOT NULL,
+	[SalesOrderDetailID] [int] IDENTITY(1,1) NOT NULL,
+	[CarrierTrackingNumber] [nvarchar](25) NULL,
+	[OrderQty] [smallint] NOT NULL,
+	[ProductID] [int] NOT NULL,
+	[SpecialOfferID] [int] NOT NULL,
+	[UnitPrice] [money] NOT NULL,
+	[UnitPriceDiscount] [money] NOT NULL,
+	[LineTotal]  AS (isnull(([UnitPrice]*((1.0)-[UnitPriceDiscount]))*[OrderQty],(0.0))),
+	[rowguid] [uniqueidentifier] ROWGUIDCOL  NOT NULL,
+	[ModifiedDate] [datetime] NOT NULL
+);
+
+CREATE TABLE [Sales].[SalesOrderHeader](
+	[SalesOrderID] [int] IDENTITY(1,1) NOT FOR REPLICATION NOT NULL,
+	[RevisionNumber] [tinyint] NOT NULL,
+	[OrderDate] [datetime] NOT NULL,
+	[DueDate] [datetime] NOT NULL,
+	[ShipDate] [datetime] NULL,
+	[Status] [tinyint] NOT NULL,
+	[OnlineOrderFlag] [dbo].[Flag] NOT NULL,
+	[SalesOrderNumber]  AS (isnull(N'SO'+CONVERT([nvarchar](23),[SalesOrderID]),N'*** ERROR ***')),
+	[PurchaseOrderNumber] [dbo].[OrderNumber] NULL,
+	[AccountNumber] [dbo].[AccountNumber] NULL,
+	[CustomerID] [int] NOT NULL,
+	[SalesPersonID] [int] NULL,
+	[TerritoryID] [int] NULL,
+	[BillToAddressID] [int] NOT NULL,
+	[ShipToAddressID] [int] NOT NULL,
+	[ShipMethodID] [int] NOT NULL,
+	[CreditCardID] [int] NULL,
+	[CreditCardApprovalCode] [varchar](15) NULL,
+	[CurrencyRateID] [int] NULL,
+	[SubTotal] [money] NOT NULL,
+	[TaxAmt] [money] NOT NULL,
+	[Freight] [money] NOT NULL,
+	[TotalDue]  AS (isnull(([SubTotal]+[TaxAmt])+[Freight],(0))),
+	[Comment] [nvarchar](128) NULL,
+	[rowguid] [uniqueidentifier] ROWGUIDCOL  NOT NULL,
+	[ModifiedDate] [datetime] NOT NULL
+);
+
+CREATE TABLE [Production].[Product](
+	[ProductID] [int] IDENTITY(1,1) NOT NULL,
+	[Name] [dbo].[Name] NOT NULL,
+	[ProductNumber] [nvarchar](25) NOT NULL,
+	[MakeFlag] [dbo].[Flag] NOT NULL,
+	[FinishedGoodsFlag] [dbo].[Flag] NOT NULL,
+	[Color] [nvarchar](15) NULL,
+	[SafetyStockLevel] [smallint] NOT NULL,
+	[ReorderPoint] [smallint] NOT NULL,
+	[StandardCost] [money] NOT NULL,
+	[ListPrice] [money] NOT NULL,
+	[Size] [nvarchar](5) NULL,
+	[SizeUnitMeasureCode] [nchar](3) NULL,
+	[WeightUnitMeasureCode] [nchar](3) NULL,
+	[Weight] [decimal](8, 2) NULL,
+	[DaysToManufacture] [int] NOT NULL,
+	[ProductLine] [nchar](2) NULL,
+	[Class] [nchar](2) NULL,
+	[Style] [nchar](2) NULL,
+	[ProductSubcategoryID] [int] NULL,
+	[ProductModelID] [int] NULL,
+	[SellStartDate] [datetime] NOT NULL,
+	[SellEndDate] [datetime] NULL,
+	[DiscontinuedDate] [datetime] NULL,
+	[rowguid] [uniqueidentifier] ROWGUIDCOL  NOT NULL,
+	[ModifiedDate] [datetime] NOT NULL
+);
+
+CREATE TABLE [Sales].[Customer](
+	[CustomerID] [int] IDENTITY(1,1) NOT FOR REPLICATION NOT NULL,
+	[PersonID] [int] NULL,
+	[StoreID] [int] NULL,
+	[TerritoryID] [int] NULL,
+	[AccountNumber]  AS (isnull('AW'+[dbo].[ufnLeadingZeros]([CustomerID]),'')),
+	[rowguid] [uniqueidentifier] ROWGUIDCOL  NOT NULL,
+	[ModifiedDate] [datetime] NOT NULL
+);
+
+CREATE TABLE [Production].[ProductModel](
+	[ProductModelID] [int] IDENTITY(1,1) NOT NULL,
+	[Name] [dbo].[Name] NOT NULL,
+	[CatalogDescription] [xml](CONTENT [Production].[ProductDescriptionSchemaCollection]) NULL,
+	[Instructions] [xml](CONTENT [Production].[ManuInstructionsSchemaCollection]) NULL,
+	[rowguid] [uniqueidentifier] ROWGUIDCOL  NOT NULL,
+	[ModifiedDate] [datetime] NOT NULL
+);
+
+CREATE TABLE [Production].[ProductModelProductDescriptionCulture](
+	[ProductModelID] [int] NOT NULL,
+	[ProductDescriptionID] [int] NOT NULL,
+	[CultureID] [nchar](6) NOT NULL,
+	[ModifiedDate] [datetime] NOT NULL
+);
+
+CREATE TABLE [Production].[ProductDescription](
+	[ProductDescriptionID] [int] IDENTITY(1,1) NOT NULL,
+	[Description] [nvarchar](400) NOT NULL,
+	[rowguid] [uniqueidentifier] ROWGUIDCOL  NOT NULL,
+	[ModifiedDate] [datetime] NOT NULL
+);
+
+CREATE TABLE [Sales].[PersonCreditCard](
+	[BusinessEntityID] [int] NOT NULL,
+	[CreditCardID] [int] NOT NULL,
+	[ModifiedDate] [datetime] NOT NULL
+);
+
+CREATE TABLE [Person].[Person](
+	[BusinessEntityID] [int] NOT NULL,
+	[PersonType] [nchar](2) NOT NULL,
+	[NameStyle] [dbo].[NameStyle] NOT NULL,
+	[Title] [nvarchar](8) NULL,
+	[FirstName] [dbo].[Name] NOT NULL,
+	[MiddleName] [dbo].[Name] NULL,
+	[LastName] [dbo].[Name] NOT NULL,
+	[Suffix] [nvarchar](10) NULL,
+	[EmailPromotion] [int] NOT NULL,
+	[AdditionalContactInfo] [xml](CONTENT [Person].[AdditionalContactInfoSchemaCollection]) NULL,
+	[Demographics] [xml](CONTENT [Person].[IndividualSurveySchemaCollection]) NULL,
+	[rowguid] [uniqueidentifier] ROWGUIDCOL  NOT NULL,
+	[ModifiedDate] [datetime] NOT NULL
+);
