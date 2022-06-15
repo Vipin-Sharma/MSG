@@ -12,7 +12,7 @@ class ReadDDLTest {
 
     @Test
     void readDDLsFromFile() throws IOException, URISyntaxException {
-        Map<String, String> stringStringMap = ReadDDL.readDDLsFromFile("resources/Adwentureworks_ddls_for_test.txt");
+        Map<String, String> stringStringMap = new ReadDDL().readDDLsFromFile("/Adwentureworks_ddls_for_test.txt");
         stringStringMap.forEach((key, value) -> System.out.println(key + ": " + value));
     }
 }

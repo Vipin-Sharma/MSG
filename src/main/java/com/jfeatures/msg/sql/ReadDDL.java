@@ -2,6 +2,7 @@ package com.jfeatures.msg.sql;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -10,9 +11,12 @@ import java.util.List;
 import java.util.Map;
 
 public class ReadDDL {
-    public static Map<String, String> readDDLsFromFile(String filePath) throws IOException, URISyntaxException {
+    public Map<String, String> readDDLsFromFile(String filePath) throws IOException, URISyntaxException {
 
-        List<String> allLines = Files.readAllLines(Path.of(ReadDDL.class.getResource(filePath).toURI()));
+        URL resource = ReadDDL.class.getResource(filePath);
+        assert resource != null;
+        Path path = Path.of(resource.toURI());
+        List<String> allLines = Files.readAllLines(path);
 
         Map<String, String> ddlPerTableName = new HashMap<>();
 
@@ -25,7 +29,8 @@ public class ReadDDL {
             }
             else if(line.contains(";"))
             {
-                ddlPerTableName.put(ddl.split(" ")[2], ddl);
+                ddl += line;
+                ddlPerTableName.put(ddl.split("\t")[0].split(" ")[2].split("\\(")[0], ddl);
                 ddl = "";
             }
             else
