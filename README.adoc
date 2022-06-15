@@ -18,11 +18,17 @@ DONE
     DAO with spring-jdbc.   WIP
     Check Rest Annotations.
 
+3.1 Write code to get Java type from SQL type, for this update class SQLServerDataTypeEnum, add additional data types.
+
 4. Test SubQuery that is treated as table with alias.
 
 5. Table ddl should be defined in a file and when application starts it should create a map of table name vs CreateTable object.
+
+Caution while coding:
+1. Always convert SQL server data type into UPPER case before use.
 
 Low Priority:
 
 1. Implement JSQLParser as per recommendation, find if current approach has any limitations.
 2. Add support for SQL Server data types in SQLServerDataTypeEnum class.
+3. Add support for SQL select columns having as clause.

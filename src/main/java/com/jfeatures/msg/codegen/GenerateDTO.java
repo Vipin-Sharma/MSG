@@ -41,6 +41,7 @@ public class GenerateDTO {
 
         List<FieldSpec> fieldSpecList = generateFieldSpecsForColumnDefinition(columnNameToTypeMapping);
         //List<MethodSpec> methodSpecList = generateMethodSpecsForColumnDefinition(columnNameToTypeMapping);
+
         MethodSpec constructorSpec = generateConstructorSpec(columnNameToTypeMapping);
 
         TypeSpec dao = TypeSpec.classBuilder(businessPurposeOfSQL + "DTO").

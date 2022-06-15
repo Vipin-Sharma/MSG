@@ -3,7 +3,6 @@ package com.jfeatures.msg.codegen;
 import com.jfeatures.msg.codegen.domain.DBColumn;
 import com.jfeatures.msg.codegen.util.NameUtil;
 import com.jfeatures.msg.codegen.util.TypeUtil;
-import com.jfeatures.msg.sql.MsgSqlParser;
 import com.squareup.javapoet.*;
 import net.sf.jsqlparser.JSQLParserException;
 import org.apache.commons.text.CaseUtils;
@@ -45,7 +44,7 @@ public class GenerateController {
         String getDataMethodParametersString = getDataParameters.stream().reduce((a, b) -> a + ", " + b).orElse("");
 
         predicateHavingLiterals.forEach(literal ->
-                parameterSpecs.add(ParameterSpec.builder(ClassName.bestGuess(literal.type()).box(), literal.name())
+                parameterSpecs.add(ParameterSpec.builder(ClassName.bestGuess(literal.javaType()).box(), literal.name())
                                 .addAnnotation(AnnotationSpec.builder(RequestParam.class).addMember("value", "$S", literal.name()).build())
                         .build()));
 

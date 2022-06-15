@@ -19,6 +19,7 @@ import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.util.TablesNamesFinder;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.CaseUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -235,10 +236,141 @@ public class MsgSqlParser {
         return result;
     }
 
+    public static String modifySQLToUseNamedParameter(String sql) throws JSQLParserException
+    {
+        String result = sql;
+        Statement sqlStatement = CCJSqlParserUtil.parse(sql);
+        Select selectStatement = (Select) sqlStatement;
+
+        Expression whereExpression = ((PlainSelect) selectStatement.getSelectBody()).getWhere();
+
+        if (whereExpression == null)
+        {
+            return result;
+        }
+        String whereClause = whereExpression.toString();
+        System.out.println("Where condition: " + whereClause);
+
+        Expression expr = CCJSqlParserUtil.parseCondExpression(whereClause);
+
+        Map<String, String> stringsToReplace = new HashMap<>();
+        expr.accept(new ExpressionVisitorAdapter() {
+
+            @Override
+            protected void visitBinaryExpression(BinaryExpression expr)
+            {
+                if (expr instanceof ComparisonOperator)
+                {
+                    if (!(expr.getLeftExpression() instanceof Column))
+                    {
+                        System.out.println("left=" + expr.getLeftExpression().toString() + "  op=" + expr.getStringExpression() + "  right=" + expr.getRightExpression());
+
+                        String tableAlias = null;
+                        String columnName;
+                        if (expr.getRightExpression().toString().contains("'"))
+                        {
+                            tableAlias = StringUtils.substringBefore(expr.getRightExpression().toString(), ".");
+                            columnName = StringUtils.substringAfter(expr.getRightExpression().toString(), ".");
+                        }
+                        else
+                        {
+                            columnName = expr.getRightExpression().toString();
+                        }
+                        String namedParameter = getNamedParameterString(tableAlias, columnName);
+                        stringsToReplace.put(expr.toString(), expr.getRightExpression().toString() + " = " + namedParameter);
+                    }
+                    if (!(expr.getRightExpression() instanceof Column))
+                    {
+                        System.out.println("left=" + expr.getLeftExpression() + "  op=" + expr.getStringExpression() + "  right=" + expr.getRightExpression().toString());
+                        String tableAlias = null;
+                        String columnName;
+                        if (expr.getLeftExpression().toString().contains("."))
+                        {
+                            tableAlias = StringUtils.substringBefore(expr.getLeftExpression().toString(), ".");
+                            columnName = StringUtils.substringAfter(expr.getLeftExpression().toString(), ".");
+                        }
+                        else
+                        {
+                            columnName = expr.getLeftExpression().toString();
+                        }
+                        String namedParameter = getNamedParameterString(tableAlias, columnName);
+                        stringsToReplace.put(expr.toString(), expr.getLeftExpression().toString() + " = " + namedParameter);
+                    }
+
+                }
+
+                super.visitBinaryExpression(expr);
+            }
+        });
+
+        for (Map.Entry<String, String> entry : stringsToReplace.entrySet())
+        {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            result = result.replace(key, value);
+        }
+
+
+        return result;
+    }
+
+    private static String getNamedParameterString(String tableAlias, String columnName)
+    {
+        if(tableAlias == null)
+        {
+            return ":" + columnName;
+        }
+        else
+        {
+            return ":" + tableAlias + CaseUtils.toCamelCase(columnName, true);
+        }
+    }
+
+    public static Map<TableColumn, DBColumn> getDetailsOfColumnsUsedInSelect(String sql, Map<String, String> ddlPerTableName) throws JSQLParserException {
+        Map<TableColumn, DBColumn> result = new HashMap<>();
+        Statement sqlStatement = CCJSqlParserUtil.parse(sql);
+        Select selectStatement = (Select) sqlStatement;
+
+        PlainSelect plainSelect = (PlainSelect) selectStatement.getSelectBody();
+        Map<String, String> tableAliasToTableName = getAliasToTableName(plainSelect);
+
+        plainSelect.getSelectItems().forEach(selectItem -> {
+            String columnName = selectItem.toString();
+            String tableAlias;
+            DBColumn dbColumn;
+            if(columnName.contains(".")){
+                tableAlias = StringUtils.substringBefore(columnName, ".");
+                columnName = StringUtils.substringAfter(columnName, ".");
+                dbColumn = getDbColumn(tableAlias, columnName, tableAliasToTableName, ddlPerTableName);
+                result.put(new TableColumn(dbColumn.name(), tableAliasToTableName.get(tableAlias)), dbColumn);
+            }else {
+                Map<TableColumn, ColumnDefinition> tableColumnColumnDefinitionMap;
+                try
+                {
+                    tableColumnColumnDefinitionMap = dataTypePerColumnWithTableInfo(sql, ddlPerTableName);
+                } catch (JSQLParserException e)
+                {
+                    throw new RuntimeException(e);
+                }
+
+                String finalColumnName = columnName;
+                String tableName = tableColumnColumnDefinitionMap.keySet().stream()
+                        .filter(tableColumn -> tableColumn.columnName().equalsIgnoreCase(finalColumnName))
+                        .findAny().get().tableName();
+
+                dbColumn = getDbColumn( null , columnName, tableAliasToTableName, ddlPerTableName);
+                result.put(new TableColumn(dbColumn.name(), tableName), dbColumn);
+            }
+        });
+
+        return result;
+    }
+
     private static DBColumn getDbColumn(String tableAlias, String columnName, Map<String, String> tableAliasToTableName, Map<String, String> ddlPerTableName) {
         String tableName = getTableName(tableAlias, columnName, tableAliasToTableName, ddlPerTableName);
         Optional<ColumnDefinition> columnDefinition = MsgDdlParser.getColumnDefinition(columnName, ddlPerTableName.get(tableName));
-        return new DBColumn(columnName, SQLServerDataTypeEnum.getClassForType(columnDefinition.get().getColDataType().getDataType()).getSimpleName());
+        return new DBColumn(columnName, SQLServerDataTypeEnum.getClassForType(columnDefinition.get().getColDataType().getDataType()).getSimpleName(),
+                SQLServerDataTypeEnum.getJdbcTypeForDBType(columnDefinition.get().getColDataType().getDataType()));
     }
 
     private static String getTableName(String tableAlias, String columnName, Map<String, String> tableAliasToTableName, Map<String, String> ddlPerTableName) {
