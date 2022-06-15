@@ -19,12 +19,8 @@ public class JavaServiceGenerator {
         CreateDirectoryStructure.createDirectoryStructure();
         Path pomPath = PomGenerator.generatePomFile();
 
-        String sql = "Select tableC.a, tableC.b, tableD.c, tableD.d, e from tableC as tableC, tableD as tableD, tableE"
-                + " where tableC.a = 123 and tableD.d = 'abc'";
-        Map<String, String> ddlPerTableName = new HashMap<>();
-        ddlPerTableName.put("tableC", "CREATE TABLE tableC (a INT, b NVARCHAR(50))");
-        ddlPerTableName.put("tableD", "CREATE TABLE tableD (c INT, d NVARCHAR(50))");
-        ddlPerTableName.put("tableE", "CREATE TABLE tableD (e INT)");
+        String sql = getSql();
+        Map<String, String> ddlPerTableName = getDdlPerTable();
 
         String businessPurposeOfSQL = "BusinessData";
 
@@ -47,5 +43,18 @@ public class JavaServiceGenerator {
         controllerClass.writeTo(javaFilesSrcPath);
         daoClass.writeTo(javaFilesSrcPath);
 
+    }
+
+    private static String getSql() {
+        String sql = "Select tableC.a, tableC.b, tableD.c, tableD.d, e from tableC as tableC, tableD as tableD, tableE where tableC.a = 123 and tableD.d = 'abc'";
+        return sql;
+    }
+
+    private static Map<String, String> getDdlPerTable() {
+        Map<String, String> ddlPerTableName = new HashMap<>();
+        ddlPerTableName.put("tableC", "CREATE TABLE tableC (a INT, b NVARCHAR(50))");
+        ddlPerTableName.put("tableD", "CREATE TABLE tableD (c INT, d NVARCHAR(50))");
+        ddlPerTableName.put("tableE", "CREATE TABLE tableD (e INT)");
+        return ddlPerTableName;
     }
 }

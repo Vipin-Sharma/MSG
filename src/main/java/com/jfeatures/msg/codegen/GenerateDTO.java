@@ -40,11 +40,14 @@ public class GenerateDTO {
         List<String> selectColumns = MsgSqlParser.getSelectColumns(sql);
 
         List<FieldSpec> fieldSpecList = generateFieldSpecsForColumnDefinition(columnNameToTypeMapping);
+        //List<MethodSpec> methodSpecList = generateMethodSpecsForColumnDefinition(columnNameToTypeMapping);
+
         MethodSpec constructorSpec = generateConstructorSpec(columnNameToTypeMapping);
 
         TypeSpec dao = TypeSpec.classBuilder(businessPurposeOfSQL + "DTO").
                 addModifiers(Modifier.PUBLIC, Modifier.FINAL).
                 addFields(fieldSpecList).
+                //addMethods(methodSpecList).
                 addMethod(constructorSpec).
                 addAnnotation(AnnotationSpec.builder(Builder.class).addMember("builderClassName", "$S", "Builder").build()).
                 addAnnotation(AnnotationSpec.builder(Getter.class).build()).

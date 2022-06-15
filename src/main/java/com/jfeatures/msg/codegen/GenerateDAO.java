@@ -97,11 +97,46 @@ public class GenerateDAO {
         ClassName list = ClassName.get("java.util", "ArrayList");
         ParameterizedTypeName parameterizedTypeName = TypeUtil.getParameterizedTypeName(dtoTypeName, list);
 
+        CodeBlock.Builder codeBlockHavingPredicatesMapBuilder = CodeBlock.builder();
+        predicateHavingLiterals.forEach(literal -> codeBlockHavingPredicatesMapBuilder.addStatement("sqlParamMap.put($S, $L)", literal.name(), literal.name()));
+        CodeBlock codeBlockHavingPredicatesMap = codeBlockHavingPredicatesMapBuilder.build();
+
+        CodeBlock codeBlock = CodeBlock.builder()
+                .addStatement("$T<String, Object> sqlParamMap = new $T()", Map.class, HashMap.class)
+                .build();
+
+        /*ddlPerTableName.keySet().forEach(tableName -> {
+            String ddl = ddlPerTableName.get(tableName);
+
+                }*/
+
+        TypeName builderTypeForDto = getBuilderType(dtoTypeName);
+        TypeSpec rowCallbackHandler = TypeSpec
+                .anonymousClassBuilder("")
+                .addSuperinterface(RowCallbackHandler.class)
+                .addMethod(MethodSpec.methodBuilder("processRow")
+                        .addModifiers(Modifier.PUBLIC)
+                        .addParameter(ResultSet.class, "rs")
+                        .addException(SQLException.class)
+                        .addStatement("$T " + ((ClassName) builderTypeForDto).simpleName() + " = $T.builder()", builderTypeForDto, dtoTypeName)
+                        /*.addCode()*/
+                        .build())
+                .build();
+
+        CodeBlock.Builder codeBlockForJdbcQuery = CodeBlock.builder();
+        codeBlockForJdbcQuery.add(jdbcTemplateInstanceFieldName + ".query(\"select * from " + businessPurposeOfSQL + "\", sqlParamMap, " + rowCallbackHandler);
+
+        ClassName list = ClassName.get("java.util", "ArrayList");
+        ParameterizedTypeName parameterizedTypeName = TypeUtil.getParameterizedTypeName(dtoTypeName, list);
+
+        Map<TableColumn, ColumnDefinition> columnNameToTypeMapping = MsgSqlParser.dataTypePerColumnWithTableInfo(sql, ddlPerTableName);
+
         MethodSpec methodSpec = MethodSpec.methodBuilder("getData")
                 .addStatement("$T result = new $T()", parameterizedTypeName, ArrayList.class)
                 .addModifiers(Modifier.PUBLIC)
                 .addParameters(parameters)
                 .returns(parameterizedTypeName)
+                .addCode(codeBlock)
                 .addCode(codeBlockForSqlParamsMap)
                 .addCode(codeBlockHavingPredicatesMap)
                 .addCode(codeBlockForJdbcQuery.build())
