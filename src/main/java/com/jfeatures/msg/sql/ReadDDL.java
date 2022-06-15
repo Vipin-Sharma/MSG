@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ReadDDL {
-    public Map<String, String> readDDLsFromFile(String filePath) throws IOException, URISyntaxException {
+    public static Map<String, String> readDDLsFromFile(String filePath) throws IOException, URISyntaxException {
 
         URL resource = ReadDDL.class.getResource(filePath);
         assert resource != null;
