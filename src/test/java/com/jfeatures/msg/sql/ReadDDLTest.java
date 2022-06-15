@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class ReadDDLTest {
 
     @Test
