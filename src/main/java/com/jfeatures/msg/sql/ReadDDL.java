@@ -30,7 +30,7 @@ public class ReadDDL {
             else if(line.contains(";"))
             {
                 ddl += line;
-                ddlPerTableName.put(ddl.split("\t")[0].split(" ")[2].split("\\(")[0], ddl);
+                ddlPerTableName.put(ddl.split("\t")[0].split("].\\[")[1].split("]\\(")[0], ddl);
                 ddl = "";
             }
             else

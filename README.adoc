@@ -24,6 +24,8 @@ DONE
 
 5. Table ddl should be defined in a file and when application starts it should create a map of table name vs CreateTable object.
 
+6. Schema name is ignored in ReadDDL class so Table names should be unique across all schemas.
+
 Caution while coding:
 1. Always convert SQL server data type into UPPER case before use.
 
