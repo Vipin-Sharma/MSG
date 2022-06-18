@@ -54,7 +54,7 @@ public class MsgDdlParser {
         return createTableStatement.getColumnDefinitions()
                 .stream()
                 .filter(columnDefinition -> columnDefinition.getColumnName().equalsIgnoreCase(columnName))
-                .map(columnDefinition -> new DBColumn(columnName, columnDefinition.getColDataType().getDataType(),
+                .map(columnDefinition -> new DBColumn( createTableStatement.getTable().getName(), columnName, columnDefinition.getColDataType().getDataType(),
                         SQLServerDataTypeEnum.getJdbcTypeForDBType(columnDefinition.getColDataType().getDataType())) )
                 .findAny();
 

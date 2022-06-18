@@ -34,7 +34,7 @@ class MsgDdlParserTest {
     @Test
     public void testGetColumnDataTypes() {
         Optional<DBColumn> dbColumn = MsgDdlParser.getColumnDataTypes("id", DDL);
-        assertEquals("id", dbColumn.get().name());
+        assertEquals("id", dbColumn.get().columnName());
         assertEquals("INT", dbColumn.get().javaType());
         assertEquals("Int", dbColumn.get().jdbcType());
     }

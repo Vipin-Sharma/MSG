@@ -41,12 +41,16 @@ public class GenerateController {
 
         ParameterizedTypeName parameterizedTypeName = TypeUtil.getParameterizedTypeName(dtoTypeName, listClass);
         List<ParameterSpec> parameterSpecs = new ArrayList<>();
-        ArrayList<String> getDataParameters       = predicateHavingLiterals.stream().collect(ArrayList::new, (list, dbColumn) -> list.add(dbColumn.name()), ArrayList::addAll);
+        ArrayList<String> getDataParameters       = predicateHavingLiterals.stream().collect(ArrayList::new,
+                (list, dbColumn) -> list.add(dbColumn.tableName() + CaseUtils.toCamelCase(dbColumn.columnName(), true)),
+                ArrayList::addAll);
         String getDataMethodParametersString = getDataParameters.stream().reduce((a, b) -> a + ", " + b).orElse("");
 
         predicateHavingLiterals.forEach(literal ->
-                parameterSpecs.add(ParameterSpec.builder(ClassName.bestGuess(literal.javaType()).box(), literal.name())
-                                .addAnnotation(AnnotationSpec.builder(RequestParam.class).addMember("value", "$S", literal.name()).build())
+                parameterSpecs.add(ParameterSpec.builder(ClassName.bestGuess(literal.javaType()).box(),
+                                literal.tableName() + CaseUtils.toCamelCase(literal.columnName(), true))
+                                .addAnnotation(AnnotationSpec.builder(RequestParam.class).addMember("value", "$S",
+                                        literal.tableName() + CaseUtils.toCamelCase(literal.columnName(), true)).build())
                         .build()));
 
         CodeBlock serviceCodeBlock = CodeBlock.builder()
@@ -71,7 +75,7 @@ public class GenerateController {
                 .addMethod(constructorSpec)
                 .addAnnotation(RestController.class)
                 .addAnnotation(AnnotationSpec.builder(RequestMapping.class)
-                        .addMember("name", "$S", "/api")
+                        .addMember("path", "$S", "/api")
                         .build())
                 .build();
 

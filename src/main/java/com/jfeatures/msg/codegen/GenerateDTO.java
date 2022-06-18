@@ -33,7 +33,7 @@ public class GenerateDTO {
      * @param ddlPerTableName      DDL per Table.
      * @param businessPurposeOfSQL It can be a string like productCatalog
      * @throws JSQLParserException This is standard RuntimeException from SQL parser
-     *                             todo check support needs to be provided for same name column or not
+     *                             todo check support needs to be provided for same columnName column or not
      */
     public static JavaFile getDTOForMultiTableSQL(String sql, Map<String, String> ddlPerTableName, String businessPurposeOfSQL) throws JSQLParserException, IOException {
         Map<TableColumn, ColumnDefinition> columnNameToTypeMapping = MsgSqlParser.dataTypePerColumnWithTableInfo(sql, ddlPerTableName);
@@ -42,10 +42,11 @@ public class GenerateDTO {
         List<FieldSpec> fieldSpecList = generateFieldSpecsForColumnDefinition(columnNameToTypeMapping);
         //List<MethodSpec> methodSpecList = generateMethodSpecsForColumnDefinition(columnNameToTypeMapping);
 
+        //todo we may not need constructor for this class as we use lombok builder
         MethodSpec constructorSpec = generateConstructorSpec(columnNameToTypeMapping);
 
         TypeSpec dao = TypeSpec.classBuilder(businessPurposeOfSQL + "DTO").
-                addModifiers(Modifier.PUBLIC, Modifier.FINAL).
+                addModifiers(Modifier.PUBLIC).
                 addFields(fieldSpecList).
                 //addMethods(methodSpecList).
                 addMethod(constructorSpec).

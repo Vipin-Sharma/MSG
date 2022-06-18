@@ -127,7 +127,7 @@ public class MsgSqlParser {
             @Override
             public void visit(Table table) {
                 String tableName = table.getName();
-                System.out.println("Table name: " + tableName);
+                System.out.println("Table columnName: " + tableName);
 
                 Alias tableAlias = table.getAlias();
                 if (tableAlias != null) {
@@ -142,7 +142,7 @@ public class MsgSqlParser {
             @Override
             public void visit(Table table) {
                 String tableName = table.getName();
-                System.out.println("Table name: " + tableName);
+                System.out.println("Table columnName: " + tableName);
 
                 Alias tableAlias = table.getAlias();
                 if (tableAlias != null) {
@@ -242,6 +242,9 @@ public class MsgSqlParser {
         Statement sqlStatement = CCJSqlParserUtil.parse(sql);
         Select selectStatement = (Select) sqlStatement;
 
+        PlainSelect plainSelect = (PlainSelect) selectStatement.getSelectBody();
+        Map<String, String> aliasToTableName = getAliasToTableName(plainSelect);
+
         Expression whereExpression = ((PlainSelect) selectStatement.getSelectBody()).getWhere();
 
         if (whereExpression == null)
@@ -276,7 +279,7 @@ public class MsgSqlParser {
                         {
                             columnName = expr.getRightExpression().toString();
                         }
-                        String namedParameter = getNamedParameterString(tableAlias, columnName);
+                        String namedParameter = getNamedParameterString(aliasToTableName.get(tableAlias), columnName);
                         stringsToReplace.put(expr.toString(), expr.getRightExpression().toString() + " = " + namedParameter);
                     }
                     if (!(expr.getRightExpression() instanceof Column))
@@ -293,7 +296,7 @@ public class MsgSqlParser {
                         {
                             columnName = expr.getLeftExpression().toString();
                         }
-                        String namedParameter = getNamedParameterString(tableAlias, columnName);
+                        String namedParameter = getNamedParameterString(aliasToTableName.get(tableAlias), columnName);
                         stringsToReplace.put(expr.toString(), expr.getLeftExpression().toString() + " = " + namedParameter);
                     }
 
@@ -314,15 +317,15 @@ public class MsgSqlParser {
         return result;
     }
 
-    private static String getNamedParameterString(String tableAlias, String columnName)
+    private static String getNamedParameterString(String tableName, String columnName)
     {
-        if(tableAlias == null)
+        if(tableName == null)
         {
             return ":" + columnName;
         }
         else
         {
-            return ":" + tableAlias + CaseUtils.toCamelCase(columnName, true);
+            return ":" + tableName + CaseUtils.toCamelCase(columnName, true);
         }
     }
 
@@ -342,7 +345,7 @@ public class MsgSqlParser {
                 tableAlias = StringUtils.substringBefore(columnName, ".");
                 columnName = StringUtils.substringAfter(columnName, ".");
                 dbColumn = getDbColumn(tableAlias, columnName, tableAliasToTableName, ddlPerTableName);
-                result.put(new TableColumn(dbColumn.name(), tableAliasToTableName.get(tableAlias)), dbColumn);
+                result.put(new TableColumn(dbColumn.columnName(), tableAliasToTableName.get(tableAlias)), dbColumn);
             }else {
                 Map<TableColumn, ColumnDefinition> tableColumnColumnDefinitionMap;
                 try
@@ -359,7 +362,7 @@ public class MsgSqlParser {
                         .findAny().get().tableName();
 
                 dbColumn = getDbColumn( null , columnName, tableAliasToTableName, ddlPerTableName);
-                result.put(new TableColumn(dbColumn.name(), tableName), dbColumn);
+                result.put(new TableColumn(dbColumn.columnName(), tableName), dbColumn);
             }
         });
 
@@ -369,7 +372,7 @@ public class MsgSqlParser {
     private static DBColumn getDbColumn(String tableAlias, String columnName, Map<String, String> tableAliasToTableName, Map<String, String> ddlPerTableName) {
         String tableName = getTableName(tableAlias, columnName, tableAliasToTableName, ddlPerTableName);
         Optional<ColumnDefinition> columnDefinition = MsgDdlParser.getColumnDefinition(columnName, ddlPerTableName.get(tableName));
-        return new DBColumn(columnName, SQLServerDataTypeEnum.getClassForType(columnDefinition.get().getColDataType().getDataType()).getSimpleName(),
+        return new DBColumn(tableName ,columnName, SQLServerDataTypeEnum.getClassForType(columnDefinition.get().getColDataType().getDataType()).getSimpleName(),
                 SQLServerDataTypeEnum.getJdbcTypeForDBType(columnDefinition.get().getColDataType().getDataType()));
     }
 

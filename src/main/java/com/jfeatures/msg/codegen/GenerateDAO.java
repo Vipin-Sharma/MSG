@@ -49,11 +49,9 @@ public class GenerateDAO {
         ArrayList<ParameterSpec> parameters = new ArrayList<>();
 
         predicateHavingLiterals.forEach(literal ->
-                parameters.add(ParameterSpec.builder(ClassName.bestGuess(literal.javaType()).box(), literal.name()).build()));
-
-        /*CodeBlock.Builder codeBlockHavingPredicatesMapBuilder = CodeBlock.builder();
-        predicateHavingLiterals.forEach(literal -> codeBlockHavingPredicatesMapBuilder.addStatement("sqlParamMap.put($S, $L)", literal.name(), literal.name()));
-        CodeBlock codeBlockHavingPredicatesMap = codeBlockHavingPredicatesMapBuilder.build();*/
+                parameters.add(ParameterSpec.builder(ClassName.bestGuess(literal.javaType()).box(),
+                        literal.tableName() + CaseUtils.toCamelCase(literal.columnName(), true)
+                ).build()));
 
         CodeBlock codeBlockForSqlParamsMap = CodeBlock.builder()
                 .addStatement("$T<String, Object> sqlParamMap = new $T()", Map.class, HashMap.class)
@@ -61,22 +59,23 @@ public class GenerateDAO {
 
         Map<TableColumn, DBColumn> selectColumnDetails = MsgSqlParser.getDetailsOfColumnsUsedInSelect(sql, ddlPerTableName);
 
-        String codeToSetColumnValuesFromResultSet = "";
+        String codeToSetColumnValuesFromResultSet = ((ClassName) dtoTypeName).simpleName() + " dto = Builder.";
         for (Map.Entry<TableColumn, DBColumn> entry : selectColumnDetails.entrySet())
         {
             TableColumn tableColumn = entry.getKey();
             DBColumn dbColumn = entry.getValue();
             codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet.concat(
-                    "Builder." + tableColumn.tableName() + CaseUtils.toCamelCase(tableColumn.columnName(), true)
-                    +
-                            "(rs.get" +
+                    tableColumn.tableName() + CaseUtils.toCamelCase(tableColumn.columnName(), true)
+                    + "(rs.get" +
                             dbColumn.jdbcType()
                     + "(\""
                     + tableColumn.columnName()
-                    + "\"));"
+                    + "\"))."
                     + "\n"
             );
         }
+        codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet.concat("build();");
+        codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet.concat("result.add(dto)");
 
         TypeName builderTypeForDto = getBuilderType(dtoTypeName);
         TypeSpec rowCallbackHandler = TypeSpec
@@ -97,16 +96,12 @@ public class GenerateDAO {
         ClassName list = ClassName.get("java.util", "ArrayList");
         ParameterizedTypeName parameterizedTypeName = TypeUtil.getParameterizedTypeName(dtoTypeName, list);
 
+        //todo $L can be taken from parameter list, but current code works for a poc
         CodeBlock.Builder codeBlockHavingPredicatesMapBuilder = CodeBlock.builder();
-        predicateHavingLiterals.forEach(literal -> codeBlockHavingPredicatesMapBuilder.addStatement("sqlParamMap.put($S, $L)", literal.name(), literal.name()));
+        predicateHavingLiterals.forEach(literal -> codeBlockHavingPredicatesMapBuilder.addStatement("sqlParamMap.put($S, $L)",
+                literal.tableName() + CaseUtils.toCamelCase(literal.columnName(), true),
+                literal.tableName() + CaseUtils.toCamelCase(literal.columnName(), true)));
         CodeBlock codeBlockHavingPredicatesMap = codeBlockHavingPredicatesMapBuilder.build();
-
-        /*ddlPerTableName.keySet().forEach(tableName -> {
-            String ddl = ddlPerTableName.get(tableName);
-
-                }*/
-
-        Map<TableColumn, ColumnDefinition> columnNameToTypeMapping = MsgSqlParser.dataTypePerColumnWithTableInfo(sql, ddlPerTableName);
 
         MethodSpec methodSpec = MethodSpec.methodBuilder("getData")
                 .addStatement("$T result = new $T()", parameterizedTypeName, ArrayList.class)

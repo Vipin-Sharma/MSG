@@ -19,6 +19,7 @@ public class JavaServiceGenerator {
     public static void main(String[] args) throws IOException, JSQLParserException, URISyntaxException {
         CreateDirectoryStructure.createDirectoryStructure();
         Path pomPath = PomGenerator.generatePomFile();
+        Path propertiesFiles = PropGenerator.generatePropertiesFile();
 
         String sql = getSql();
         Map<String, String> ddlPerTableName = getDdlPerTable();
