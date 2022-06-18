@@ -49,48 +49,21 @@ public class JavaServiceGenerator {
     private static String getSql() {
         return
                 """
-                        SELECT
-
-                        p.FirstName , p.MiddleName, p.LastName, cus.CustomerID, pmpd.ProductDescriptionID, pdes.Description, product.Name, sod.SalesOrderDetailID, sod.ProductID
-                                FROM
-
-                        AdventureWorks2019.Sales.SalesOrderDetail as sod, AdventureWorks2019.Sales.SalesOrderHeader as soh,
-                        AdventureWorks2019.Production.Product as product, AdventureWorks2019.Sales.Customer as cus,
-                        AdventureWorks2019.Production.ProductModel as pm, AdventureWorks2019.Production.ProductModelProductDescriptionCulture as pmpd,
-                        AdventureWorks2019.Production.ProductDescription as pdes,
-                                AdventureWorks2019.Sales.PersonCreditCard pcc, AdventureWorks2019.Person.Person p
-
-                                where
-
-                        sod.SalesOrderID = soh.SalesOrderID
-
-                        and
-
-                        sod.ProductID = product.ProductID
-
-                        and soh.CustomerID = cus.CustomerID
-
-                        and  sod.ProductID = product.ProductID
-
-                        and product.ProductModelID = pm.ProductModelID
-
-                        and pmpd.ProductModelID = product.ProductModelID
-
-                        and pdes.ProductDescriptionID = pmpd.ProductDescriptionID
-
-                        and soh.CreditCardID = pcc.CreditCardID
-
-                        and pcc.BusinessEntityID = p.BusinessEntityID
-
-                        and cus.CustomerID = 29825
-                        and pmpd.CultureID = 'en'
-
-                        ;
+                        select cus.first_name, cus.last_name, cus.email
+                         from customer cus
+                         join address adr
+                         on cus.address_id = adr.address_id
+                         join city cit
+                         on adr.city_id = cit.city_id
+                         join country cou
+                         on cit.country_id = cou.country_id
+                         where cou.country = 'Canada'
                         """
                 ;
     }
 
     private static Map<String, String> getDdlPerTable() throws IOException, URISyntaxException {
-        return ReadDDL.readDDLsFromFile("/Adwentureworks_ddls_for_test.txt");
+        //return ReadDDL.readDDLsFromFile("/Adwentureworks_ddls_for_test.txt");
+        return ReadDDL.readDDLsFromFile("/sakila_ddls_for_test.txt");
     }
 }

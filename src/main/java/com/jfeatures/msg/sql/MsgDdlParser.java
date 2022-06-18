@@ -27,7 +27,7 @@ public class MsgDdlParser {
     public static Optional<ColumnDefinition> getColumnDefinition(String columnName, String ddl) {
         Statement sqlStatement;
         try {
-            sqlStatement = CCJSqlParserUtil.parse(ddl);
+            sqlStatement = CCJSqlParserUtil.parse(ddl, parser -> parser.withSquareBracketQuotation(true));
         } catch (JSQLParserException e) {
             System.out.println(e.getMessage());
             throw new RuntimeException("Exception " + e.getMessage());

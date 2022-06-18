@@ -6,6 +6,7 @@ import com.jfeatures.msg.codegen.util.TypeUtil;
 import com.squareup.javapoet.*;
 import net.sf.jsqlparser.JSQLParserException;
 import org.apache.commons.text.CaseUtils;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -53,8 +54,8 @@ public class GenerateController {
                 .build();
 
         MethodSpec methodSpec = MethodSpec.methodBuilder("getData")
-                .addAnnotation(AnnotationSpec.builder(RequestMapping.class)
-                        .addMember("value", "$S", "/api")
+                .addAnnotation(AnnotationSpec.builder(GetMapping.class)
+                        .addMember("value", "$S", "/"+ businessPurposeOfSQL)
                         .build())
                 .addParameters(parameterSpecs)
                 .addModifiers(Modifier.PUBLIC)
@@ -69,6 +70,9 @@ public class GenerateController {
                 .addMethod(methodSpec)
                 .addMethod(constructorSpec)
                 .addAnnotation(RestController.class)
+                .addAnnotation(AnnotationSpec.builder(RequestMapping.class)
+                        .addMember("name", "$S", "/api")
+                        .build())
                 .build();
 
         JavaFile javaFile = JavaFile.builder(NameUtil.getPackageName(businessPurposeOfSQL, "controller"), controller)

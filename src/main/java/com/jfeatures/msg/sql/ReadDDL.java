@@ -30,7 +30,9 @@ public class ReadDDL {
             else if(line.contains(";"))
             {
                 ddl += line;
-                ddlPerTableName.put(ddl.split("\t")[0].split("].\\[")[1].split("]\\(")[0], ddl);
+                //todo write method to extract table name from ddl
+                //ddlPerTableName.put(ddl.split("\t")[0].split("].\\[")[1].split("]\\(")[0], ddl);
+                ddlPerTableName.put(ddl.split("CREATE TABLE ")[1].split(" \\( ")[0], ddl);
                 ddl = "";
             }
             else
