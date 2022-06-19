@@ -82,7 +82,7 @@ class MsgSqlParserTest {
 
     @Test
     void dataTypePerColumnWithTableInfo() throws JSQLParserException {
-        String sql = "Select tableC.a, tableC.b, tableD.c, tableD.d, e from tableC as tableC, tableD as tableD, tableE";
+        String sql = "Select tableC.a, tableC.b, tableD.c as tabDColumnC, tableD.d, e from tableC as tableC, tableD as tableD, tableE";
         Map<String, String> ddlPerTableName = new HashMap<>();
         ddlPerTableName.put("tableC", "CREATE TABLE tableC (a INT, b NVARCHAR(50))");
         ddlPerTableName.put("tableD", "CREATE TABLE tableD (c INT, d NVARCHAR(50))");
@@ -91,9 +91,8 @@ class MsgSqlParserTest {
 
         System.out.println(dataTypePerColumn);
         assertEquals(5, dataTypePerColumn.size());
-        assertEquals("INT", dataTypePerColumn.get(new TableColumn("a", "tableC")).getColDataType().getDataType());
-        /*assertEquals("NVARCHAR", dataTypePerColumn.get("d").getColDataType().getDataType());
-        assertEquals("INT", dataTypePerColumn.get("e").getColDataType().getDataType());*/
+        assertEquals("INT", dataTypePerColumn.get(new TableColumn("a", null, "tableC")).getColDataType().getDataType());
+        assertEquals("INT", dataTypePerColumn.get(new TableColumn("c", "tabDColumnC", "tableD")).getColDataType().getDataType());
     }
 
     @Test

@@ -14,9 +14,12 @@ DONE
     pom.xml                 DONE
     SpringBootApplication.  DONE
     Controller              DONE
-    Controller              WIP Add support for request params which is derived from SQL where clause.
-    DAO with spring-jdbc.   WIP
-    Check Rest Annotations.
+    Controller              DONE
+    DAO with spring-jdbc.   DONE
+    Check Rest Annotations. DONE
+
+3.-1 Add support for SQL having as clause in select columns. DONE
+3.0 plainSelect.getWhere(), plainSelect.getJoins() out of these wherever we have literals (city = 'Jaipur') use that to pass as parameter to rest API and SQL.
 
 3.1 Write code to get Java type from SQL type, for this update class SQLServerDataTypeEnum, add additional data types.
 

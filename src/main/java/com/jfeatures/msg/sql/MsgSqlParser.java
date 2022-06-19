@@ -17,6 +17,7 @@ import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.select.FromItemVisitorAdapter;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
+import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import net.sf.jsqlparser.util.TablesNamesFinder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.CaseUtils;
@@ -93,12 +94,17 @@ public class MsgSqlParser {
         PlainSelect plainSelect = (PlainSelect) selectStatement.getSelectBody();
         ArrayList<String> columnNameList = plainSelect.getSelectItems()
                 .stream()
-                .map(selectItem -> selectItem.getASTNode().jjtGetLastToken().toString())
+                .map(selectItem -> ((Column) ((SelectExpressionItem) (selectItem)).getExpression()).getColumnName())
                 .collect(Collectors.toCollection(ArrayList::new));
 
         ArrayList<String> tableAliasList = plainSelect.getSelectItems()
                 .stream()
                 .map(selectItem -> selectItem.getASTNode().jjtGetFirstToken().toString())
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        ArrayList<String> columnAliasList = plainSelect.getSelectItems()
+                .stream()
+                .map(selectItem -> ((SelectExpressionItem) (selectItem)).getAlias()!=null ? ((SelectExpressionItem) (selectItem)).getAlias().getName() : null)
                 .collect(Collectors.toCollection(ArrayList::new));
 
         Map<TableColumn, ColumnDefinition> resultMap = new HashMap<>();
@@ -114,7 +120,7 @@ public class MsgSqlParser {
                 tableName = getTableName(tableAliasList.get(i), columnNameList.get(i), tableAliasToTableName, ddlPerTableName);
                 columnDefinition = MsgDdlParser.getColumnDefinition(columnNameList.get(i), ddlPerTableName.get(tableName)).get();
             }
-            resultMap.put(new TableColumn(columnNameList.get(i), tableName) , columnDefinition);
+            resultMap.put(new TableColumn(columnNameList.get(i), columnAliasList.get(i), tableName) , columnDefinition);
 
         }
 
@@ -338,32 +344,12 @@ public class MsgSqlParser {
         Map<String, String> tableAliasToTableName = getAliasToTableName(plainSelect);
 
         plainSelect.getSelectItems().forEach(selectItem -> {
-            String columnName = selectItem.toString();
-            String tableAlias;
-            DBColumn dbColumn;
-            if(columnName.contains(".")){
-                tableAlias = StringUtils.substringBefore(columnName, ".");
-                columnName = StringUtils.substringAfter(columnName, ".");
-                dbColumn = getDbColumn(tableAlias, columnName, tableAliasToTableName, ddlPerTableName);
-                result.put(new TableColumn(dbColumn.columnName(), tableAliasToTableName.get(tableAlias)), dbColumn);
-            }else {
-                Map<TableColumn, ColumnDefinition> tableColumnColumnDefinitionMap;
-                try
-                {
-                    tableColumnColumnDefinitionMap = dataTypePerColumnWithTableInfo(sql, ddlPerTableName);
-                } catch (JSQLParserException e)
-                {
-                    throw new RuntimeException(e);
-                }
+            String columnName = ((Column) ((SelectExpressionItem) (selectItem)).getExpression()).getColumnName();
+            String tableAlias = ((Column) ((SelectExpressionItem) (selectItem)).getExpression()).getTable().getName();
+            String columnAliasName = ((SelectExpressionItem) (selectItem)).getAlias()!=null ? ((SelectExpressionItem) (selectItem)).getAlias().getName() : null;
 
-                String finalColumnName = columnName;
-                String tableName = tableColumnColumnDefinitionMap.keySet().stream()
-                        .filter(tableColumn -> tableColumn.columnName().equalsIgnoreCase(finalColumnName))
-                        .findAny().get().tableName();
-
-                dbColumn = getDbColumn( null , columnName, tableAliasToTableName, ddlPerTableName);
-                result.put(new TableColumn(dbColumn.columnName(), tableName), dbColumn);
-            }
+            DBColumn dbColumn = getDbColumn(tableAlias, columnName, tableAliasToTableName, ddlPerTableName);
+            result.put(new TableColumn(dbColumn.columnName(), columnAliasName ,tableAliasToTableName.get(tableAlias)), dbColumn);
         });
 
         return result;

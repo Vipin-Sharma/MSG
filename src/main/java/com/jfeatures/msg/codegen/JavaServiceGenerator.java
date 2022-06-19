@@ -50,7 +50,7 @@ public class JavaServiceGenerator {
     private static String getSql() {
         return
                 """
-                        select cus.first_name, cus.last_name, cus.email
+                        select cus.first_name, cus.last_name, cus.email, cit.city as mycity
                          from customer cus
                          join address adr
                          on cus.address_id = adr.address_id

@@ -69,7 +69,7 @@ public class GenerateDAO {
                     + "(rs.get" +
                             dbColumn.jdbcType()
                     + "(\""
-                    + tableColumn.columnName()
+                    + (tableColumn.columnAliasIfAvailable() != null ? tableColumn.columnAliasIfAvailable() : tableColumn.columnName())
                     + "\"))."
                     + "\n"
             );
