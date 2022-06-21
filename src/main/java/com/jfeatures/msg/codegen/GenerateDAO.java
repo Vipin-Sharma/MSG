@@ -64,8 +64,10 @@ public class GenerateDAO {
         {
             TableColumn tableColumn = entry.getKey();
             DBColumn dbColumn = entry.getValue();
+            String fieldName = tableColumn.columnAliasIfAvailable() != null ? tableColumn.columnAliasIfAvailable() : tableColumn.columnName();
+            String fieldNameCamelCase = CaseUtils.toCamelCase(fieldName, false, '_');
             codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet.concat(
-                    (tableColumn.columnAliasIfAvailable() != null ? tableColumn.columnAliasIfAvailable() : tableColumn.columnName())
+                    fieldNameCamelCase
                     + "(rs.get" +
                             dbColumn.jdbcType()
                     + "(\""

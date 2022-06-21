@@ -61,7 +61,7 @@ public class GenerateDTO {
         for (TableColumn tableColumn : columnNameToTypeMapping.keySet()) {
             Class<?> type = getClassForType(columnNameToTypeMapping.get(tableColumn).getColDataType().getDataType());
             String fieldName = tableColumn.columnAliasIfAvailable() != null ? tableColumn.columnAliasIfAvailable(): tableColumn.columnName();
-            String fieldNameInCamelCase = CaseUtils.toCamelCase(fieldName, false);
+            String fieldNameInCamelCase = CaseUtils.toCamelCase(fieldName, false, '_');
             FieldSpec fieldSpec = FieldSpec.builder(type, fieldNameInCamelCase)
                     .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                     .build();
