@@ -65,7 +65,7 @@ public class GenerateDAO {
             TableColumn tableColumn = entry.getKey();
             DBColumn dbColumn = entry.getValue();
             codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet.concat(
-                    tableColumn.tableName() + CaseUtils.toCamelCase(tableColumn.columnName(), true)
+                    (tableColumn.columnAliasIfAvailable() != null ? tableColumn.columnAliasIfAvailable() : tableColumn.columnName())
                     + "(rs.get" +
                             dbColumn.jdbcType()
                     + "(\""
@@ -74,7 +74,7 @@ public class GenerateDAO {
                     + "\n"
             );
         }
-        codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet.concat("build();");
+        codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet.concat("build();\n");
         codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet.concat("result.add(dto)");
 
         TypeName builderTypeForDto = getBuilderType(dtoTypeName);
