@@ -18,7 +18,7 @@ DONE
     DAO with spring-jdbc.   DONE
     Check Rest Annotations. DONE
 
-3.-1 Add support for SQL having as clause in select columns. DONE
+3.-1 Add support for SQL having as clause in select columns. DONE.
 3.0 plainSelect.getWhere(), plainSelect.getJoins() out of these wherever we have literals (city = 'Jaipur') use that to pass as parameter to rest API and SQL.
 
 3.1 Write code to get Java type from SQL type, for this update class SQLServerDataTypeEnum, add additional data types.
@@ -34,8 +34,7 @@ DONE
 8. Check if subquery is supported.
 
 
-Caution while coding:
-1. Always convert SQL server data type into UPPER case before use.
+Caution while coding: always convert SQL server data type into UPPER case before use.
 
 Low Priority:
 
