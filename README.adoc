@@ -1,12 +1,28 @@
-Roadmap to finish MVP
+### MSG (Microservice Generator)
 
-Top Priority:
+This is a tool for generating microservices. You need to provide SQL and DDL info, and it will generate Rest API that exposes data from SQL. It is a work in progress.
 
-1. Read multiple table SQL and Map Select column with corresponding table so that we can find out column data type accurately.
-DONE with limitation: For now we assume alias is same name as of table name.
+    Technologies used:
+        - Java 18
+        - JSQLParser
+        - JavaPoet
 
-2. Add support to generate DTO for multiple tables, need to create a method that takes SQL and ddls and can provide column name vs datatype mapping.
-DONE
+### Usages Instructions
+
+    1. Run JavaServiceGenerator.java to generate spring boot application. Application will be generated in the
+    2. /tmp/generated directory.
+    3. cd /tmp/generated
+    4. mvn clean package spring-boot:run
+
+For now SQL and DDL is hardcoded in JavaServiceGenerator.java, we can change SQL and DDL in JavaServiceGenerator.java to test different scenarios.
+
+### Roadmap to finish MVP
+
+#### List of tasks given in order of priority:
+
+1. Read multiple table SQL and Map Select column with corresponding table so that we can find out column data type accurately. DONE
+
+2. Add support to generate DTO for multiple tables, need to create a method that takes SQL and ddls and can provide column name vs datatype mapping. DONE
 
 3. Generate Spring boot application classes
 
@@ -18,26 +34,30 @@ DONE
     DAO with spring-jdbc.   DONE
     Check Rest Annotations. DONE
 
-3.-1 Add support for SQL having as clause in select columns. DONE.
-3.0 plainSelect.getWhere(), plainSelect.getJoins() out of these wherever we have literals (city = 'Jaipur') use that to pass as parameter to rest API and SQL.
+4. Add support for SQL having as clause in select columns. DONE.
 
-3.1 Write code to get Java type from SQL type, for this update class SQLServerDataTypeEnum, add additional data types.
+5. plainSelect.getWhere(), plainSelect.getJoins() out of these wherever we have literals (city = 'Jaipur') use that to pass as parameter to rest API and SQL. TODO
 
-4. Test SubQuery that is treated as table with alias.
+6. Write code to convert Java type from SQL type, for this update class SQLServerDataTypeEnum. Added basic types need to add additional data types. WIP
 
-5. Table ddl should be defined in a file and when application starts it should create a map of table name vs CreateTable object.
+7. Table ddl should be defined in a file and when application starts it should create a map of table name vs CreateTable object. TODO
 
-6. Schema name is ignored in ReadDDL class so Table names should be unique across all schemas.
+8. Test SubQuery that is treated as table with alias. TODO
 
-7. Add support for grouping by and having aggregate functions in select clause.
+9. Schema name is ignored in ReadDDL class so Table names should be unique across all schemas. This is a limitation right now, should be fixed. TODO
 
-8. Check if subquery is supported.
+10. Add support for grouping by and having aggregate functions in select clause. TODO
+
+11. Decide on license type(probably apache 2) and add it in repository. TODO
 
 
 Caution while coding: always convert SQL server data type into UPPER case before use.
 
-Low Priority:
+#### Low Priority tasks:
 
-1. Implement JSQLParser as per recommendation, find if current approach has any limitations.
-2. Add support for SQL Server data types in SQLServerDataTypeEnum class.
-3. Add support for SQL select columns having as clause.
+1. Implement JSQLParser as per recommendation, find if current approach has any limitations. WIP
+2. Add support for SQL select columns having as clause. DONE
+
+#### List of tasks for new contributors:
+
+1. Setup sonarcloud scan for code quality, test coverage, etc.
