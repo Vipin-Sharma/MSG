@@ -9,8 +9,7 @@ This is a tool for generating microservices. You need to provide SQL and DDL inf
 
 ### Usages Instructions
 
-    1. Run JavaServiceGenerator.java to generate spring boot application. Application will be generated in the
-    2. /tmp/generated directory.
+    1. Run JavaServiceGenerator.java to generate spring boot application. Application will be generated in the /tmp/generated directory. Next steps (2 and 3) help you to start generated spring boot application.
     3. cd /tmp/generated
     4. mvn clean package spring-boot:run
 
