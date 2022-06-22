@@ -50,8 +50,6 @@ For now SQL and DDL is hardcoded in JavaServiceGenerator.java, we can change SQL
 11. Decide on license type(probably apache 2) and add it in repository. TODO
 
 
-Caution while coding: always convert SQL server data type into UPPER case before use.
-
 #### Low Priority tasks:
 
 1. Implement JSQLParser as per recommendation, find if current approach has any limitations. WIP
@@ -59,5 +57,7 @@ Caution while coding: always convert SQL server data type into UPPER case before
 
 #### List of tasks for new contributors:
 
-1. Setup sonarcloud scan for code quality, test coverage, etc.
-2. Recommendation on issue tracking tool, probably github project can be used, created one https://github.com/users/Vipin-Sharma/projects/1. And we can remove issues from README file.
+See https://github.com/users/Vipin-Sharma/projects/1
+
+#### Caution while coding:
+Always convert SQL server data type into UPPER case before use.
