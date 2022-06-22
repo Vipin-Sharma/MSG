@@ -60,3 +60,4 @@ Caution while coding: always convert SQL server data type into UPPER case before
 #### List of tasks for new contributors:
 
 1. Setup sonarcloud scan for code quality, test coverage, etc.
+2. Recommendation on issue tracking tool, probably github project can be used, created one https://github.com/users/Vipin-Sharma/projects/1. And we can remove issues from README file.
