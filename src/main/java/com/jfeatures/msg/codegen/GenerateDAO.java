@@ -50,7 +50,7 @@ public class GenerateDAO {
 
         predicateHavingLiterals.forEach(literal ->
                 parameters.add(ParameterSpec.builder(ClassName.bestGuess(literal.javaType()).box(),
-                        literal.tableName() + CaseUtils.toCamelCase(literal.columnName(), true)
+                        CaseUtils.toCamelCase(literal.columnName(), false)
                 ).build()));
 
         CodeBlock codeBlockForSqlParamsMap = CodeBlock.builder()
@@ -101,8 +101,8 @@ public class GenerateDAO {
         //todo $L can be taken from parameter list, but current code works for a poc
         CodeBlock.Builder codeBlockHavingPredicatesMapBuilder = CodeBlock.builder();
         predicateHavingLiterals.forEach(literal -> codeBlockHavingPredicatesMapBuilder.addStatement("sqlParamMap.put($S, $L)",
-                literal.tableName() + CaseUtils.toCamelCase(literal.columnName(), true),
-                literal.tableName() + CaseUtils.toCamelCase(literal.columnName(), true)));
+                CaseUtils.toCamelCase(literal.columnName(), false),
+                CaseUtils.toCamelCase(literal.columnName(), false)));
         CodeBlock codeBlockHavingPredicatesMap = codeBlockHavingPredicatesMapBuilder.build();
 
         MethodSpec methodSpec = MethodSpec.methodBuilder("getData")

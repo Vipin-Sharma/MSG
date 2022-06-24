@@ -4,6 +4,7 @@ import com.jfeatures.msg.codegen.domain.DBColumn;
 import com.jfeatures.msg.codegen.domain.TableColumn;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -117,9 +118,39 @@ class MsgSqlParserTest {
         Map<String, String> ddlPerTableName = new HashMap<>();
         ddlPerTableName.put("tableC", "CREATE TABLE tableC (a INT, b NVARCHAR(50))");
         ddlPerTableName.put("tableD", "CREATE TABLE tableD (c INT, d NVARCHAR(50))");
-        ddlPerTableName.put("tableE", "CREATE TABLE tableD (e INT)");
-        List<DBColumn> dbColumnList = MsgSqlParser.extractPredicateHavingLiterals(sql, ddlPerTableName);
+        ddlPerTableName.put("tableE", "CREATE TABLE tableE (e INT)");
+        List<DBColumn> dbColumnList = MsgSqlParser.extractPredicateHavingLiteralsFromWhereClause(sql, ddlPerTableName);
         dbColumnList.forEach(System.out::println);
+        //todo Add assertions like testExtractPredicateHavingLiteralsFromJoinsClause
+    }
+
+    @Test
+    void testExtractPredicateHavingLiteralsFromJoinsClause() throws JSQLParserException {
+        String sql = """
+                        Select tableC.a, tableC.b, tableD.c, tableD.d, e
+                        from tableC as tableC
+                            join tableD as tableD on tableC.a = tableD.c and tableC.a = 1 and tableC.b = 'b'
+                            join tableE as tableE on tableC.a = tableE.e
+                """;
+        Map<String, String> ddlPerTableName = new HashMap<>();
+        ddlPerTableName.put("tableC", "CREATE TABLE tableC (a INT, b NVARCHAR(50))");
+        ddlPerTableName.put("tableD", "CREATE TABLE tableD (c INT, d NVARCHAR(50))");
+        ddlPerTableName.put("tableE", "CREATE TABLE tableE (e INT)");
+        List<DBColumn> dbColumnList = MsgSqlParser.extractPredicateHavingLiteralsFromJoinsClause(sql, ddlPerTableName);
+        dbColumnList.forEach(System.out::println);
+        Assertions.assertTrue(dbColumnList.stream().anyMatch(dbColumn ->
+                dbColumn.tableName().equals("tableC")
+                && dbColumn.columnName().equals("a")
+                && dbColumn.jdbcType().equals("Int")
+                && dbColumn.javaType().equals("Integer")
+                ));
+        Assertions.assertTrue(dbColumnList.stream().anyMatch(dbColumn ->
+                dbColumn.tableName().equals("tableC")
+                && dbColumn.columnName().equals("b")
+                && dbColumn.jdbcType().equals("String")
+                && dbColumn.javaType().equals("String")
+                ));
+        Assertions.assertEquals(dbColumnList.size(), 2);
     }
 
     @Test
@@ -130,18 +161,24 @@ class MsgSqlParserTest {
                 where tableC.a = tableD.c and tableC.b = tableD.d and tableC.a = tableE.e and tableC.b = tableE.e and tableC.a = 1 and tableC.b = 'Vipin'
                 and e = 100
                 """;
-        Map<String, String> ddlPerTableName = new HashMap<>();
-        ddlPerTableName.put("tableC", "CREATE TABLE tableC (a INT, b NVARCHAR(50))");
-        ddlPerTableName.put("tableD", "CREATE TABLE tableD (c INT, d NVARCHAR(50))");
-        ddlPerTableName.put("tableE", "CREATE TABLE tableD (e INT)");
-        ddlPerTableName.put("tableF", tableF);
-        /*String sql = "Select tableC.a, tableC.b, tableD.c, tableD.d, e from tableC as tableC, tableD as tableD, tableE where tableC.a = tableD.c and tableC.b = tableD.d and tableC.a = tableE.e and tableC.b = tableE.e and tableC.a = 1 and tableC.b = 'Vipin'";
-        Map<String, String> ddlPerTableName = new HashMap<>();
-        ddlPerTableName.put("tableC", "CREATE TABLE tableC (a INT, b NVARCHAR(50))");
-        ddlPerTableName.put("tableD", "CREATE TABLE tableD (c INT, d NVARCHAR(50))");
-        ddlPerTableName.put("tableE", "CREATE TABLE tableD (e INT)");*/
+        String modifiedSQL = MsgSqlParser.modifySQLToUseNamedParameter(sql);
+        Assertions.assertTrue(modifiedSQL.contains("tableC.a = :a"));
+        Assertions.assertTrue(modifiedSQL.contains("tableC.b = :b"));
+        Assertions.assertTrue(modifiedSQL.contains("e = :e"));
+    }
+
+    @Test
+    void testModifySQLHavingJoinClauseWithLiteralsToUseNamedParameter() throws JSQLParserException {
+        String sql = """
+                        Select tableC.a, tableC.b, tableD.c, tableD.d, e
+                        from tableC as tableC
+                            join tableD as tableD on tableC.a = tableD.c and tableC.a = 1 and tableC.b = 'b'
+                            join tableE as tableE on tableC.a = tableE.e
+                """;
         String modifiedSQL = MsgSqlParser.modifySQLToUseNamedParameter(sql);
         System.out.println(modifiedSQL);
+        Assertions.assertTrue(modifiedSQL.contains("tableC.a = :a"));
+        Assertions.assertTrue(modifiedSQL.contains("tableC.b = :b"));
     }
 
     @Test

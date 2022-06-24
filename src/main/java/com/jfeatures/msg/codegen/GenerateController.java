@@ -50,7 +50,7 @@ public class GenerateController {
                 parameterSpecs.add(ParameterSpec.builder(ClassName.bestGuess(literal.javaType()).box(),
                                 literal.tableName() + CaseUtils.toCamelCase(literal.columnName(), true))
                                 .addAnnotation(AnnotationSpec.builder(RequestParam.class).addMember("value", "$S",
-                                        literal.tableName() + CaseUtils.toCamelCase(literal.columnName(), true)).build())
+                                        CaseUtils.toCamelCase(literal.columnName(), false)).build())
                         .build()));
 
         CodeBlock serviceCodeBlock = CodeBlock.builder()

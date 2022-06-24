@@ -29,7 +29,7 @@ public class JavaServiceGenerator {
         JavaFile dtoForMultiTableSQL = GenerateDTO.getDTOForMultiTableSQL(sql, ddlPerTableName, businessPurposeOfSQL);
         JavaFile springBootMainClass = GenerateSpringBootApp.createSpringBootApp(businessPurposeOfSQL);
 
-        List<DBColumn> predicateHavingLiterals = MsgSqlParser.extractPredicateHavingLiterals(sql, ddlPerTableName);
+        List<DBColumn> predicateHavingLiterals = MsgSqlParser.extractPredicateHavingLiteralsFromWhereClause(sql, ddlPerTableName);
 
         JavaFile controllerClass = GenerateController.createController(sql, businessPurposeOfSQL, ddlPerTableName, predicateHavingLiterals);
         JavaFile daoClass = GenerateDAO.createDao(businessPurposeOfSQL, predicateHavingLiterals, sql, ddlPerTableName);

@@ -35,7 +35,7 @@ For now SQL and DDL is hardcoded in JavaServiceGenerator.java, we can change SQL
 
 4. Add support for SQL having as clause in select columns. DONE.
 
-5. plainSelect.getWhere(), plainSelect.getJoins() out of these wherever we have literals (city = 'Jaipur') use that to pass as parameter to rest API and SQL. TODO
+5. plainSelect.getWhere(), plainSelect.getJoins() out of these wherever we have literals (city = 'Jaipur') use that to pass as parameter to rest API and SQL. DONE
 
 6. Write code to convert Java type from SQL type, for this update class SQLServerDataTypeEnum. Added basic types need to add additional data types. WIP
 
@@ -49,6 +49,9 @@ For now SQL and DDL is hardcoded in JavaServiceGenerator.java, we can change SQL
 
 11. Decide on license type(probably apache 2) and add it in repository. TODO
 
+12. Usages of code like `selectItem.getASTNode()` is not good idea replace it with better alternative, like `selectItem.getExpression()` and depending upon type of expression, call appropriate method to retrieve column/alias/table name. TODO
+
+13. Remove sysout and add logger (Slf4j). TODO
 
 #### Low Priority tasks:
 
