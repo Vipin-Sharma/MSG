@@ -37,7 +37,7 @@ For now SQL and DDL is hardcoded in JavaServiceGenerator.java, we can change SQL
 
 5. plainSelect.getWhere(), plainSelect.getJoins() out of these wherever we have literals (city = 'Jaipur') use that to pass as parameter to rest API and SQL. DONE
 
-6. Write code to convert Java type from SQL type, for this update class SQLServerDataTypeEnum. Added basic types need to add additional data types. WIP
+6. Write code to convert Java type from SQL type, for this update class SQLServerDataTypeEnum. Added basic types need to add additional data types. Need to add tests along with new types, may be a DDL and SQL having all these types. WIP
 
 7. Table ddl should be defined in a file and when application starts it should create a map of table name vs CreateTable object. TODO
 

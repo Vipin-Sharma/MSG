@@ -20,28 +20,34 @@ public class ReadDDL {
 
         Map<String, String> ddlPerTableName = new HashMap<>();
 
-        String ddl = "";
+        StringBuilder ddl = new StringBuilder();
 
         for (String line : allLines) {
             if(line.contains("CREATE TABLE"))
             {
-                ddl = line;
+                ddl = new StringBuilder(line);
             }
             else if(line.contains(";"))
             {
-                ddl += line;
+                ddl.append(line);
                 //todo write method to extract table name from ddl
                 //ddlPerTableName.put(ddl.split("\t")[0].split("].\\[")[1].split("]\\(")[0], ddl);
-                ddlPerTableName.put(ddl.split("CREATE TABLE ")[1].split(" \\( ")[0], ddl);
-                ddl = "";
+                ddlPerTableName.put(ddl.toString().split("CREATE TABLE ")[1].split(" \\( ")[0], ddl.toString());
+                ddl = new StringBuilder();
             }
             else
             {
-                ddl += line;
+                ddl.append(line);
             }
         }
 
         return ddlPerTableName;
 
+    }
+
+    public static Map<String, String> readDDLFromDatabase(String databaseName)
+    {
+        //todo
+        return null;
     }
 }

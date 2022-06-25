@@ -19,7 +19,7 @@ public class PropGenerator {
                 + File.separator + "resources"
                 + File.separator + "application.properties");
 
-        InputStream inputStream = PomGenerator.class.getClassLoader().getResourceAsStream("application.properties");
+        InputStream inputStream = PomGenerator.class.getClassLoader().getResourceAsStream("application_properties_file.txt");
         assert inputStream != null;
         return Files.write(resourcesPath, inputStream.readAllBytes());
     }
