@@ -442,6 +442,14 @@ public class MsgSqlParser {
         return ":" + CaseUtils.toCamelCase(columnName, false);
     }
 
+    /**
+     * This method extracts column details used in select clause.
+     * todo we are taking tableAlias from table name, need to check if this is correct.
+     * @param sql
+     * @param ddlPerTableName
+     * @return
+     * @throws JSQLParserException
+     */
     public static Map<TableColumn, DBColumn> getDetailsOfColumnsUsedInSelect(String sql, Map<String, String> ddlPerTableName) throws JSQLParserException {
         Map<TableColumn, DBColumn> result = new HashMap<>();
         Statement sqlStatement = CCJSqlParserUtil.parse(sql);
@@ -452,7 +460,10 @@ public class MsgSqlParser {
 
         plainSelect.getSelectItems().forEach(selectItem -> {
             String columnName = ((Column) ((SelectExpressionItem) (selectItem)).getExpression()).getColumnName();
-            String tableAlias = ((Column) ((SelectExpressionItem) (selectItem)).getExpression()).getTable().getName();
+            //todo find better way to get table name, we are not getting this in case of column e as it does not have table alias along with column name.
+            String tableAlias = ((Column) ((SelectExpressionItem) (selectItem)).getExpression()).getTable() != null
+                    ? ((Column) ((SelectExpressionItem) (selectItem)).getExpression()).getTable().getName()
+                    : null;
             String columnAliasName = ((SelectExpressionItem) (selectItem)).getAlias()!=null ? ((SelectExpressionItem) (selectItem)).getAlias().getName() : null;
 
             DBColumn dbColumn = getDbColumn(tableAlias, columnName, tableAliasToTableName, ddlPerTableName);

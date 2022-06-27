@@ -63,4 +63,4 @@ For now SQL and DDL is hardcoded in JavaServiceGenerator.java, we can change SQL
 See https://github.com/users/Vipin-Sharma/projects/1
 
 #### Caution while coding:
-Always convert SQL server data type into UPPER case before use.
+Always convert SQL server data type into UPPER case before use. TODO Fix this by using converting to UPPER case in code.

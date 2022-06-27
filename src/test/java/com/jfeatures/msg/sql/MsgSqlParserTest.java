@@ -196,4 +196,27 @@ class MsgSqlParserTest {
         Map<TableColumn, DBColumn> listOfColumnsDataTypes = MsgSqlParser.getDetailsOfColumnsUsedInSelect(sql, ddlPerTableName);
         listOfColumnsDataTypes.keySet().forEach(tableColumn -> System.out.println(tableColumn + " " + listOfColumnsDataTypes.get(tableColumn)));
     }
+
+    @Test
+    void testGetSelectListOfColumnsDataTypesWhenTableAliasIsDifferentThanTableName() throws JSQLParserException
+    {
+        String sql = """              
+                Select tableC.a, tableC.b, tabd.c, tabd.d, e ,  tableF.a, tableF.b, tableF.c, tableF.d
+                from tableC as tableC, tableD as tabd, tableE, tableF as tableF
+                where tableC.a = tabd.c 
+                and tableC.b = tabd.d 
+                and tableC.a = tableE.e 
+                and tableC.b = tableE.e 
+                and tableC.a = 1 
+                and tableC.b = 'Vipin'
+                """;
+
+        Map<String, String> ddlPerTableName = new HashMap<>();
+        ddlPerTableName.put("tableC", "CREATE TABLE tableC (a INT, b NVARCHAR(50))");
+        ddlPerTableName.put("tableD", "CREATE TABLE tableD (c INT, d NVARCHAR(50))");
+        ddlPerTableName.put("tableE", "CREATE TABLE tableD (e INT)");
+        ddlPerTableName.put("tableF", tableF);
+        Map<TableColumn, DBColumn> listOfColumnsDataTypes = MsgSqlParser.getDetailsOfColumnsUsedInSelect(sql, ddlPerTableName);
+        listOfColumnsDataTypes.keySet().forEach(tableColumn -> System.out.println(tableColumn + " " + listOfColumnsDataTypes.get(tableColumn)));
+    }
 }
