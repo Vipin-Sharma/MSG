@@ -59,7 +59,7 @@ public class MsgSqlParser {
             } else {
                 Map<String, String> tableAliasToTableName = getAliasToTableName(plainSelect);
                 String tableName = getTableName(tableAliasList.get(i), columnNameList.get(i), tableAliasToTableName, ddlPerTableName);
-                columnDefinition = MsgDdlParser.getColumnDefinition(columnNameList.get(i), ddlPerTableName.get(tableName)).get();
+                columnDefinition = MsgDdlParser.getColumnDefinition(columnNameList.get(i), ddlPerTableName.get(StringUtils.upperCase(tableName))).get();
             }
             resultMap.put(columnNameList.get(i), columnDefinition);
         }
@@ -70,7 +70,7 @@ public class MsgSqlParser {
     private static ColumnDefinition findColumnDefinitionByColumnName(Map<String, String> ddlPerTableName, String columnName) {
         ColumnDefinition columnDefinition = null;
         for (String tableName : ddlPerTableName.keySet()) {
-            Optional<ColumnDefinition> columnDefinitionOptional = MsgDdlParser.getColumnDefinition(columnName, ddlPerTableName.get(tableName));
+            Optional<ColumnDefinition> columnDefinitionOptional = MsgDdlParser.getColumnDefinition(columnName, ddlPerTableName.get(StringUtils.upperCase(tableName)));
             if (columnDefinitionOptional.isPresent()) {
                 columnDefinition = columnDefinitionOptional.get();
                 break;
@@ -110,7 +110,7 @@ public class MsgSqlParser {
             } else {
                 Map<String, String> tableAliasToTableName = getAliasToTableName(plainSelect);
                 tableName = getTableName(tableAliasList.get(i), columnNameList.get(i), tableAliasToTableName, ddlPerTableName);
-                columnDefinition = MsgDdlParser.getColumnDefinition(columnNameList.get(i), ddlPerTableName.get(tableName)).get();
+                columnDefinition = MsgDdlParser.getColumnDefinition(columnNameList.get(i), ddlPerTableName.get(StringUtils.upperCase(tableName))).get();
             }
             resultMap.put(new TableColumn(columnNameList.get(i), columnAliasList.get(i), tableName) , columnDefinition);
 
@@ -136,6 +136,10 @@ public class MsgSqlParser {
             }
         });
 
+        if(plainSelect.getJoins() == null)
+        {
+            return tableAliasToTableName;
+        }
         plainSelect.getJoins().forEach(join -> join.getRightItem().accept(new FromItemVisitorAdapter() {
             @Override
             public void visit(Table table) {
@@ -174,7 +178,7 @@ public class MsgSqlParser {
      * @throws JSQLParserException
      */
     public static List<DBColumn> extractPredicateHavingLiteralsFromWhereClause(String sql, Map<String, String> ddlPerTableName) throws JSQLParserException {
-        List<DBColumn> result = new ArrayList<>();
+        ArrayList<DBColumn> result = new ArrayList<>();
         Statement sqlStatement = CCJSqlParserUtil.parse(sql);
         Select selectStatement = (Select) sqlStatement;
 
@@ -235,7 +239,7 @@ public class MsgSqlParser {
     }
 
     public static List<DBColumn> extractPredicateHavingLiteralsFromJoinsClause(String sql, Map<String, String> ddlPerTableName) throws JSQLParserException {
-        List<DBColumn> result = new ArrayList<>();
+        ArrayList<DBColumn> result = new ArrayList<>();
         Statement sqlStatement = CCJSqlParserUtil.parse(sql);
         Select selectStatement = (Select) sqlStatement;
 
@@ -245,14 +249,29 @@ public class MsgSqlParser {
         List<Join> joinList = ((PlainSelect) selectStatement.getSelectBody()).getJoins();
 
         //todo handle this null case better, try removing if condition
-        if(joinList.isEmpty()) {
+        if(joinList ==null || joinList.isEmpty()) {
             return Collections.emptyList();
         }
         joinList.forEach(System.out::println);
 
         joinList.forEach(join ->
         {
+            List<DBColumn> dbColumnsFromSubSelectJoinClause;
+            List<DBColumn> dbColumnsFromSubSelectFromClause;
             Collection<Expression> onExpressions = join.getOnExpressions();
+            if(join.getRightItem() instanceof SubSelect)
+            {
+                try
+                {
+                    dbColumnsFromSubSelectFromClause = extractPredicateHavingLiteralsFromWhereClause(((SubSelect) join.getRightItem()).getSelectBody().toString(), ddlPerTableName);
+                    dbColumnsFromSubSelectJoinClause = extractPredicateHavingLiteralsFromJoinsClause(((SubSelect) join.getRightItem()).getSelectBody().toString(), ddlPerTableName);
+                    result.addAll(dbColumnsFromSubSelectFromClause);
+                    result.addAll(dbColumnsFromSubSelectJoinClause);
+                } catch (JSQLParserException e)
+                {
+                    throw new RuntimeException(e);
+                }
+            }
 
             if(onExpressions.isEmpty()) {
                 return;
@@ -473,7 +492,7 @@ public class MsgSqlParser {
 
     private static DBColumn getDbColumn(String tableAlias, String columnName, Map<String, String> tableAliasToTableName, Map<String, String> ddlPerTableName) {
         String tableName = getTableName(tableAlias, columnName, tableAliasToTableName, ddlPerTableName);
-        Optional<ColumnDefinition> columnDefinition = MsgDdlParser.getColumnDefinition(columnName, ddlPerTableName.get(tableName));
+        Optional<ColumnDefinition> columnDefinition = MsgDdlParser.getColumnDefinition(columnName, ddlPerTableName.get(StringUtils.upperCase(tableName)));
         return new DBColumn(tableName ,columnName, SQLServerDataTypeEnum.getClassForType(columnDefinition.get().getColDataType().getDataType()).getSimpleName(),
                 SQLServerDataTypeEnum.getJdbcTypeForDBType(columnDefinition.get().getColDataType().getDataType()));
     }
@@ -487,7 +506,7 @@ public class MsgSqlParser {
 
     private static String findTableNameByColumnName(String columnName, Map<String, String> ddlPerTableName) {
         for (String tableName : ddlPerTableName.keySet()) {
-            Optional<ColumnDefinition> columnDefinitionOptional = MsgDdlParser.getColumnDefinition(columnName, ddlPerTableName.get(tableName));
+            Optional<ColumnDefinition> columnDefinitionOptional = MsgDdlParser.getColumnDefinition(columnName, ddlPerTableName.get(StringUtils.upperCase(tableName)));
             if (columnDefinitionOptional.isPresent()) {
                 return tableName;
             }

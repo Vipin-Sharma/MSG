@@ -1,5 +1,7 @@
 package com.jfeatures.msg.sql;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -31,7 +33,9 @@ public class ReadFileFromResources {
                 ddl.append(line);
                 //todo write method to extract table name from ddl
                 //ddlPerTableName.put(ddl.split("\t")[0].split("].\\[")[1].split("]\\(")[0], ddl);
-                ddlPerTableName.put(ddl.toString().split("CREATE TABLE ")[1].split(" \\( ")[0], ddl.toString());
+                //todo add better support `ddl.toString().split("CREATE TABLE ")[1].split(" \\( ")[0]` should also work
+                String tableName = ddl.toString().split("CREATE TABLE ")[1].split("\\( ")[0];
+                ddlPerTableName.put(StringUtils.upperCase(tableName), ddl.toString());
                 ddl = new StringBuilder();
             }
             else

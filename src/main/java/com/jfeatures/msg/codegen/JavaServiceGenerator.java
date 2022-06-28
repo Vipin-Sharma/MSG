@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -29,7 +30,12 @@ public class JavaServiceGenerator {
         JavaFile dtoForMultiTableSQL = GenerateDTO.dtoFromSqlAndDdl(sql, ddlPerTableName, businessPurposeOfSQL);
         JavaFile springBootMainClass = GenerateSpringBootApp.createSpringBootApp(businessPurposeOfSQL);
 
-        List<DBColumn> predicateHavingLiterals = MsgSqlParser.extractPredicateHavingLiteralsFromWhereClause(sql, ddlPerTableName);
+        List<DBColumn> predicateHavingLiteralsInFromClause = MsgSqlParser.extractPredicateHavingLiteralsFromWhereClause(sql, ddlPerTableName);
+        List<DBColumn> predicatesHavingLiteralsInJoinClause = MsgSqlParser.extractPredicateHavingLiteralsFromJoinsClause(sql, ddlPerTableName);
+
+        ArrayList<DBColumn> predicateHavingLiterals = new ArrayList<>();
+        predicateHavingLiterals.addAll(predicateHavingLiteralsInFromClause);
+        predicateHavingLiterals.addAll(predicatesHavingLiteralsInJoinClause);
 
         JavaFile controllerClass = GenerateController.createController(sql, businessPurposeOfSQL, ddlPerTableName, predicateHavingLiterals);
         JavaFile daoClass = GenerateDAO.createDao(businessPurposeOfSQL, predicateHavingLiterals, sql, ddlPerTableName);

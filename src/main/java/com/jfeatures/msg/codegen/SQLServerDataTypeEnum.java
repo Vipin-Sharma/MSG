@@ -63,7 +63,7 @@ public enum SQLServerDataTypeEnum {
     public static Class<?> getClassForType(String type)
     {
         List<SQLServerDataTypeEnum> TypeList = Arrays.stream(SQLServerDataTypeEnum.values())
-                .filter(SQLServerDataTypeEnum -> Objects.equals(SQLServerDataTypeEnum.getDbDataType(), type))
+                .filter(SQLServerDataTypeEnum -> SQLServerDataTypeEnum.getDbDataType().equalsIgnoreCase( type))
                 .toList();
         return TypeList.get(0).getJavaClassType();
     }
@@ -79,7 +79,7 @@ public enum SQLServerDataTypeEnum {
     public static String getJdbcTypeForDBType(String DbDataType)
     {
         List<SQLServerDataTypeEnum> TypeList = Arrays.stream(SQLServerDataTypeEnum.values())
-                .filter(SQLServerDataTypeEnum -> Objects.equals(SQLServerDataTypeEnum.getDbDataType(), DbDataType))
+                .filter(SQLServerDataTypeEnum -> SQLServerDataTypeEnum.getDbDataType().equalsIgnoreCase( DbDataType))
                 .toList();
         return TypeList.get(0).jdbcType;
     }
