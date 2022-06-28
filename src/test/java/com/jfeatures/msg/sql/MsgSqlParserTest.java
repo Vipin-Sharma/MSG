@@ -6,6 +6,8 @@ import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.HashMap;
 import java.util.List;
@@ -30,6 +32,13 @@ class MsgSqlParserTest {
                 h TEXT       ,
                 i DATETIME
             )
+            """;
+
+    private static final String sql1 = """
+                    Select tableC.a, tableC.b, tableD.c, tableD.d, e
+                    from tableC as tableC
+                        join tableD as tableD on tableC.a = tableD.c and tableC.a = 1 and tableC.b = 'b'
+                        join tableE as tableE on tableC.a = tableE.e
             """;
 
     @Test
@@ -167,14 +176,9 @@ class MsgSqlParserTest {
         Assertions.assertTrue(modifiedSQL.contains("e = :e"));
     }
 
-    @Test
-    void testModifySQLHavingJoinClauseWithLiteralsToUseNamedParameter() throws JSQLParserException {
-        String sql = """
-                        Select tableC.a, tableC.b, tableD.c, tableD.d, e
-                        from tableC as tableC
-                            join tableD as tableD on tableC.a = tableD.c and tableC.a = 1 and tableC.b = 'b'
-                            join tableE as tableE on tableC.a = tableE.e
-                """;
+    @ParameterizedTest(name = "testExtractPredicateHavingLiteralsFromWhereClause: {0}")
+    @ValueSource(strings = { sql1})
+    void testModifySQLHavingJoinClauseWithLiteralsToUseNamedParameter(String sql) throws JSQLParserException {
         String modifiedSQL = MsgSqlParser.modifySQLToUseNamedParameter(sql);
         System.out.println(modifiedSQL);
         Assertions.assertTrue(modifiedSQL.contains("tableC.a = :a"));
