@@ -5,15 +5,14 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ReadDDL {
+public class ReadFileFromResources {
     public static Map<String, String> readDDLsFromFile(String filePath) throws IOException, URISyntaxException {
 
-        URL resource = ReadDDL.class.getResource(filePath);
+        URL resource = ReadFileFromResources.class.getResource(filePath);
         assert resource != null;
         Path path = Path.of(resource.toURI());
         List<String> allLines = Files.readAllLines(path);
@@ -49,5 +48,19 @@ public class ReadDDL {
     {
         //todo
         return null;
+    }
+
+    public static String readFileFromResources(String fileName) throws URISyntaxException
+    {
+        URL resource = ReadFileFromResources.class.getResource(fileName);
+        assert resource != null;
+        Path path = Path.of(resource.toURI());
+        String fileContent = "";
+        try {
+            fileContent = new String(Files.readAllBytes(path));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return fileContent;
     }
 }

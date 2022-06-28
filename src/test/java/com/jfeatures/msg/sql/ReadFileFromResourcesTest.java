@@ -6,11 +6,11 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Map;
 
-class ReadDDLTest {
+class ReadFileFromResourcesTest {
 
     @Test
     void readDDLsFromFile() throws IOException, URISyntaxException {
-        Map<String, String> stringStringMap = ReadDDL.readDDLsFromFile("/Adwentureworks_ddls_for_test.txt");
+        Map<String, String> stringStringMap = ReadFileFromResources.readDDLsFromFile("/Adwentureworks_ddls_for_test.txt");
         stringStringMap.forEach((key, value) -> System.out.println(key + ": " + value));
     }
 }
