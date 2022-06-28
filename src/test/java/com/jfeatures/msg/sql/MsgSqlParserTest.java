@@ -28,7 +28,7 @@ class MsgSqlParserTest {
                 f CHAR       ,
                 g VARCHAR       ,
                 h TEXT       ,
-                i DATETIME      
+                i DATETIME
             )
             """;
 
@@ -203,11 +203,11 @@ class MsgSqlParserTest {
         String sql = """              
                 Select tableC.a, tableC.b, tabd.c, tabd.d, e ,  tableF.a, tableF.b, tableF.c, tableF.d
                 from tableC as tableC, tableD as tabd, tableE, tableF as tableF
-                where tableC.a = tabd.c 
-                and tableC.b = tabd.d 
-                and tableC.a = tableE.e 
-                and tableC.b = tableE.e 
-                and tableC.a = 1 
+                where tableC.a = tabd.c
+                and tableC.b = tabd.d
+                and tableC.a = tableE.e
+                and tableC.b = tableE.e
+                and tableC.a = 1
                 and tableC.b = 'Vipin'
                 """;
 

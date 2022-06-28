@@ -319,7 +319,6 @@ public class MsgSqlParser {
 
     /**
      * This method adds parameter in place of literals in where clause so that this SQL can be used in DAO class.
-     * TODO Right now we are using `((PlainSelect) selectStatement.getSelectBody()).getWhere()` to get where clause. We also need to add support for joins.
      * @param sql
      * @return
      * @throws JSQLParserException
@@ -331,7 +330,6 @@ public class MsgSqlParser {
         Select selectStatement = (Select) sqlStatement;
 
         PlainSelect plainSelect = (PlainSelect) selectStatement.getSelectBody();
-        //Map<String, String> aliasToTableName = getAliasToTableName(plainSelect);
 
         Expression whereExpression = ((PlainSelect) selectStatement.getSelectBody()).getWhere();
         Map<String, String> stringsToReplace = new HashMap<>();
