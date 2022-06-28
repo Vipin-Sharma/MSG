@@ -35,7 +35,7 @@ class GenerateDTOTest {
 
         String businessPurposeOfSQL = "BusinessData";
 
-        JavaFile dtoForMultiTableSQL = GenerateDTO.getDTOForMultiTableSQL(sql, ddlPerTableName, businessPurposeOfSQL);
+        JavaFile dtoForMultiTableSQL = GenerateDTO.dtoFromSqlAndDdl(sql, ddlPerTableName, businessPurposeOfSQL);
 
         assertEquals(businessPurposeOfSQL+"DTO", dtoForMultiTableSQL.typeSpec.name);
 
@@ -52,7 +52,7 @@ class GenerateDTOTest {
 
         String businessPurposeOfSQL = "BusinessData";
 
-        JavaFile dtoForMultiTableSQL = GenerateDTO.getDTOForMultiTableSQL(sql, ddlPerTableName, businessPurposeOfSQL);
+        JavaFile dtoForMultiTableSQL = GenerateDTO.dtoFromSqlAndDdl(sql, ddlPerTableName, businessPurposeOfSQL);
 
         assertEquals(businessPurposeOfSQL+"DTO", dtoForMultiTableSQL.typeSpec.name);
 
