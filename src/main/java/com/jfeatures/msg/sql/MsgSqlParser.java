@@ -200,6 +200,7 @@ public class MsgSqlParser {
             @Override
             protected void visitBinaryExpression(BinaryExpression expr) {
                 if (expr instanceof ComparisonOperator) {
+                    //todo what if left expression or right expression are select expressions(subquery)?
                     if (!(expr.getLeftExpression() instanceof Column)) {
                         System.out.println("left=" + expr.getLeftExpression().toString() + "  op=" + expr.getStringExpression() + "  right=" + expr.getRightExpression());
 
