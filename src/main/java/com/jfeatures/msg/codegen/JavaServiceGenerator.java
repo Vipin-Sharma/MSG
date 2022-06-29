@@ -58,7 +58,7 @@ public class JavaServiceGenerator {
         return ReadFileFromResources.readFileFromResources("/sql.sql");
     }
 
-    private static Map<String, String> getDdlPerTable() throws IOException, URISyntaxException {
+    private static Map<String, String> getDdlPerTable() throws IOException, URISyntaxException, JSQLParserException {
         return ReadFileFromResources.readDDLsFromFile("/sakila_ddls_for_test.txt");
     }
 }

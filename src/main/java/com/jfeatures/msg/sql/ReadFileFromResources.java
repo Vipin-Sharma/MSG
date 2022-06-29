@@ -1,5 +1,8 @@
 package com.jfeatures.msg.sql;
 
+import net.sf.jsqlparser.JSQLParserException;
+import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.statement.create.table.CreateTable;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -12,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ReadFileFromResources {
-    public static Map<String, String> readDDLsFromFile(String filePath) throws IOException, URISyntaxException {
+    public static Map<String, String> readDDLsFromFile(String filePath) throws IOException, URISyntaxException, JSQLParserException {
 
         URL resource = ReadFileFromResources.class.getResource(filePath);
         assert resource != null;
@@ -31,10 +34,9 @@ public class ReadFileFromResources {
             else if(line.contains(";"))
             {
                 ddl.append(line);
-                //todo write method to extract table name from ddl
-                //ddlPerTableName.put(ddl.split("\t")[0].split("].\\[")[1].split("]\\(")[0], ddl);
-                //todo add better support `ddl.toString().split("CREATE TABLE ")[1].split(" \\( ")[0]` should also work
-                String tableName = ddl.toString().split("CREATE TABLE ")[1].split("\\( ")[0];
+                CreateTable ddlStatement = (CreateTable) CCJSqlParserUtil.parse(ddl.toString());
+                String tableName = ddlStatement.getTable().getName();
+                tableName = tableName.trim();
                 ddlPerTableName.put(StringUtils.upperCase(tableName), ddl.toString());
                 ddl = new StringBuilder();
             }
