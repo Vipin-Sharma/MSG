@@ -34,7 +34,7 @@ public class ReadFileFromResources {
             else if(line.contains(";"))
             {
                 ddl.append(line);
-                CreateTable ddlStatement = (CreateTable) CCJSqlParserUtil.parse(ddl.toString());
+                CreateTable ddlStatement = (CreateTable) CCJSqlParserUtil.parse(ddl.toString(), parser -> parser.withSquareBracketQuotation(true));
                 String tableName = ddlStatement.getTable().getName();
                 tableName = tableName.trim();
                 ddlPerTableName.put(StringUtils.upperCase(tableName), ddl.toString());

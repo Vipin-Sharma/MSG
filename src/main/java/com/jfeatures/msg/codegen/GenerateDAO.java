@@ -4,10 +4,18 @@ import com.jfeatures.msg.codegen.domain.DBColumn;
 import com.jfeatures.msg.codegen.domain.TableColumn;
 import com.jfeatures.msg.codegen.util.NameUtil;
 import com.jfeatures.msg.codegen.util.TypeUtil;
+import com.jfeatures.msg.sql.ModifySQL;
 import com.jfeatures.msg.sql.MsgSqlParser;
-import com.squareup.javapoet.*;
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.FieldSpec;
+import com.squareup.javapoet.JavaFile;
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
+import com.squareup.javapoet.TypeSpec;
 import net.sf.jsqlparser.JSQLParserException;
-import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import org.apache.commons.text.CaseUtils;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -39,7 +47,7 @@ public class GenerateDAO {
 
         FieldSpec jdbcTemplateFieldSpec = FieldSpec.builder(NamedParameterJdbcTemplate.class, jdbcTemplateInstanceFieldName, Modifier.PRIVATE, Modifier.FINAL).build();
 
-        String modifiedSQL = MsgSqlParser.modifySQLToUseNamedParameter(sql);
+        String modifiedSQL = ModifySQL.modifySQLToUseNamedParameter(sql);
         FieldSpec sqlFieldSpec = FieldSpec.builder(String.class, "SQL", Modifier.PRIVATE, Modifier.FINAL, Modifier.STATIC)
                 .initializer("$S", modifiedSQL)
                 .build();

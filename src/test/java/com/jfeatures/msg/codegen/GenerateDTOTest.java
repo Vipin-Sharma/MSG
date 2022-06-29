@@ -29,9 +29,9 @@ class GenerateDTOTest {
     public void testGenerateDTOForMultipleTables() throws JSQLParserException, IOException {
         String sql = "Select tableC.a, tableC.b, tableD.c, tableD.d, e from tableC as tableC, tableD as tableD, tableE";
         Map<String, String> ddlPerTableName = new HashMap<>();
-        ddlPerTableName.put("tableC", "CREATE TABLE tableC (a INT, b NVARCHAR(50))");
-        ddlPerTableName.put("tableD", "CREATE TABLE tableD (c INT, d NVARCHAR(50))");
-        ddlPerTableName.put("tableE", "CREATE TABLE tableD (e INT)");
+        ddlPerTableName.put("TABLEC", "CREATE TABLE tableC (a INT, b NVARCHAR(50))");
+        ddlPerTableName.put("TABLED", "CREATE TABLE tableD (c INT, d NVARCHAR(50))");
+        ddlPerTableName.put("TABLEE", "CREATE TABLE tableD (e INT)");
 
         String businessPurposeOfSQL = "BusinessData";
 
@@ -46,9 +46,9 @@ class GenerateDTOTest {
     public void testGenerateDTOForMultipleTablesComplexSQL1() throws JSQLParserException, IOException {
         String sql = "Select tableC.a, tableC.b, tableD.c, tableD.d, e from tableC as tableC, tableD as tableD, tableE";
         Map<String, String> ddlPerTableName = new HashMap<>();
-        ddlPerTableName.put("tableC", "CREATE TABLE tableC (a INT, b NVARCHAR(50))");
-        ddlPerTableName.put("tableD", "CREATE TABLE tableD (c INT, d NVARCHAR(50))");
-        ddlPerTableName.put("tableE", "CREATE TABLE tableD (e INT)");
+        ddlPerTableName.put("TABLEC", "CREATE TABLE tableC (a INT, b NVARCHAR(50))");
+        ddlPerTableName.put("TABLED", "CREATE TABLE tableD (c INT, d NVARCHAR(50))");
+        ddlPerTableName.put("TABLEE", "CREATE TABLE tableD (e INT)");
 
         String businessPurposeOfSQL = "BusinessData";
 
