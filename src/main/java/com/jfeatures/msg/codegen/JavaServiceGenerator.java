@@ -55,7 +55,7 @@ public class JavaServiceGenerator {
 
     private static String getSql() throws URISyntaxException
     {
-        return ReadFileFromResources.readFileFromResources("/sql.sql");
+        return ReadFileFromResources.readFileFromResources("/sql_hardcoded_literal.sql");
     }
 
     private static Map<String, String> getDdlPerTable() throws IOException, URISyntaxException, JSQLParserException {

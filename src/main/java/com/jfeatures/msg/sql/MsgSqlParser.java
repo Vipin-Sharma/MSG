@@ -14,12 +14,22 @@ import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
-import net.sf.jsqlparser.statement.select.*;
+import net.sf.jsqlparser.statement.select.FromItemVisitorAdapter;
+import net.sf.jsqlparser.statement.select.Join;
+import net.sf.jsqlparser.statement.select.PlainSelect;
+import net.sf.jsqlparser.statement.select.Select;
+import net.sf.jsqlparser.statement.select.SelectExpressionItem;
+import net.sf.jsqlparser.statement.select.SubSelect;
 import net.sf.jsqlparser.util.TablesNamesFinder;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.CaseUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class MsgSqlParser {
@@ -139,7 +149,7 @@ public class MsgSqlParser {
         if(plainSelect.getJoins() == null)
         {
             return tableAliasToTableName;
-        }
+        }//todo shall we also use join.onExpression in below logic, we are just using getRightItem here
         plainSelect.getJoins().forEach(join -> join.getRightItem().accept(new FromItemVisitorAdapter() {
             @Override
             public void visit(Table table) {
@@ -200,7 +210,8 @@ public class MsgSqlParser {
             @Override
             protected void visitBinaryExpression(BinaryExpression expr) {
                 if (expr instanceof ComparisonOperator) {
-                    if (!(expr.getLeftExpression() instanceof Column)) {
+                    //todo what if left expression or right expression are select expressions(subquery)?
+                    if (!(expr.getLeftExpression() instanceof Column) && !expr.getLeftExpression().toString().contains("HARDCODE_AS")) {
                         System.out.println("left=" + expr.getLeftExpression().toString() + "  op=" + expr.getStringExpression() + "  right=" + expr.getRightExpression());
 
                         String tableAlias = null;
@@ -215,7 +226,7 @@ public class MsgSqlParser {
                         DBColumn dbColumn = getDbColumn(tableAlias, columnName, tableAliasToTableName, ddlPerTableName);
                         result.add(dbColumn);
                     }
-                    if (!(expr.getRightExpression() instanceof Column)) {
+                    if (!(expr.getRightExpression() instanceof Column) && !expr.getRightExpression().toString().contains("HARDCODE_AS")) {
                         System.out.println("left=" + expr.getLeftExpression() + "  op=" + expr.getStringExpression() + "  right=" + expr.getRightExpression().toString());
                         String tableAlias = null;
                         String columnName;
@@ -282,18 +293,18 @@ public class MsgSqlParser {
                 if (expression instanceof BinaryExpression binaryExpression)
                 {
 
-                    List<BinaryExpression> binaryExpressionList = getIndividualBinaryExpression(binaryExpression);
+                    List<BinaryExpression> binaryExpressionList = BinaryExpressionUtil.getIndividualBinaryExpression(binaryExpression);
                     binaryExpressionList.forEach( individualBinaryExpression ->
                     {
                         boolean expressionHasLiteral = false;
                         Column column = null;
-                        if (!(individualBinaryExpression.getLeftExpression() instanceof Column))
+                        if (!(individualBinaryExpression.getLeftExpression() instanceof Column) && !individualBinaryExpression.getLeftExpression().toString().contains("HARDCODE_AS"))
                         {
                             expressionHasLiteral = true;
                             System.out.println("left=" + individualBinaryExpression.getLeftExpression().toString() + "  op=" + individualBinaryExpression.getStringExpression() + "  right=" + individualBinaryExpression.getRightExpression());
                             column = (Column) individualBinaryExpression.getRightExpression();
                         }
-                        if (!(individualBinaryExpression.getRightExpression() instanceof Column))
+                        if (!(individualBinaryExpression.getRightExpression() instanceof Column) && !individualBinaryExpression.getRightExpression().toString().contains("HARDCODE_AS"))
                         {
                             expressionHasLiteral = true;
                             System.out.println("left=" + individualBinaryExpression.getLeftExpression().toString() + "  op=" + individualBinaryExpression.getStringExpression() + "  right=" + individualBinaryExpression.getRightExpression());
@@ -313,150 +324,6 @@ public class MsgSqlParser {
         });
 
         return result;
-    }
-
-    private static List<BinaryExpression> getIndividualBinaryExpression(BinaryExpression binaryExpression)
-    {
-        if(!(binaryExpression.getLeftExpression() instanceof BinaryExpression)
-                && !(binaryExpression.getRightExpression() instanceof BinaryExpression))
-        {
-            return Collections.singletonList(binaryExpression);
-        }
-
-        List<BinaryExpression> binaryExpressionList = new ArrayList<>();
-        if(binaryExpression.getLeftExpression() instanceof BinaryExpression)
-        {
-            binaryExpressionList.addAll(getIndividualBinaryExpression((BinaryExpression) binaryExpression.getLeftExpression()));
-        }
-        if(binaryExpression.getRightExpression() instanceof BinaryExpression)
-        {
-            binaryExpressionList.addAll(getIndividualBinaryExpression((BinaryExpression) binaryExpression.getRightExpression()));
-        }
-
-        return binaryExpressionList;
-    }
-
-    /**
-     * This method adds parameter in place of literals in where clause so that this SQL can be used in DAO class.
-     * @param sql
-     * @return
-     * @throws JSQLParserException
-     */
-    public static String modifySQLToUseNamedParameter(String sql) throws JSQLParserException
-    {
-        String result = sql;
-        Statement sqlStatement = CCJSqlParserUtil.parse(sql);
-        Select selectStatement = (Select) sqlStatement;
-
-        PlainSelect plainSelect = (PlainSelect) selectStatement.getSelectBody();
-
-        Expression whereExpression = ((PlainSelect) selectStatement.getSelectBody()).getWhere();
-        Map<String, String> stringsToReplace = new HashMap<>();
-
-        if (whereExpression != null)
-        {
-            String whereClause = whereExpression.toString();
-            System.out.println("Where condition: " + whereClause);
-
-            Expression expr = CCJSqlParserUtil.parseCondExpression(whereClause);
-            expr.accept(new ExpressionVisitorAdapter() {
-
-                @Override
-                protected void visitBinaryExpression(BinaryExpression expr)
-                {
-                    if (expr instanceof ComparisonOperator)
-                    {
-                        if (!(expr.getLeftExpression() instanceof Column))
-                        {
-                            System.out.println("left=" + expr.getLeftExpression().toString() + "  op=" + expr.getStringExpression() + "  right=" + expr.getRightExpression());
-
-                            String columnName;
-                            if (expr.getRightExpression().toString().contains("'"))
-                            {
-                                columnName = StringUtils.substringAfter(expr.getRightExpression().toString(), ".");
-                            }
-                            else
-                            {
-                                columnName = expr.getRightExpression().toString();
-                            }
-                            String namedParameter = getNamedParameterString(columnName);
-                            stringsToReplace.put(expr.toString(), expr.getRightExpression().toString() + " = " + namedParameter);
-                        }
-                        if (!(expr.getRightExpression() instanceof Column))
-                        {
-                            System.out.println("left=" + expr.getLeftExpression() + "  op=" + expr.getStringExpression() + "  right=" + expr.getRightExpression().toString());
-                            String columnName;
-                            if (expr.getLeftExpression().toString().contains("."))
-                            {
-                                columnName = StringUtils.substringAfter(expr.getLeftExpression().toString(), ".");
-                            }
-                            else
-                            {
-                                columnName = expr.getLeftExpression().toString();
-                            }
-                            String namedParameter = getNamedParameterString(columnName);
-                            stringsToReplace.put(expr.toString(), expr.getLeftExpression().toString() + " = " + namedParameter);
-                        }
-
-                    }
-
-                    super.visitBinaryExpression(expr);
-                }
-            });
-        }
-
-        List<Join> joins = plainSelect.getJoins();
-
-        joins.forEach(join -> {
-            Collection<Expression> onExpressions = join.getOnExpressions();
-
-            onExpressions.forEach(
-                    expression -> {
-                        //todo add code like we used in extractColumnsFromJoin method
-                        {
-                            if (expression instanceof BinaryExpression binaryExpression)
-                            {
-
-                                List<BinaryExpression> binaryExpressionList = getIndividualBinaryExpression(binaryExpression);
-                                binaryExpressionList.forEach( individualBinaryExpression ->
-                                {
-                                    Column column;
-                                    if (!(individualBinaryExpression.getLeftExpression() instanceof Column))
-                                    {
-                                        System.out.println("left=" + individualBinaryExpression.getLeftExpression().toString() + "  op=" + individualBinaryExpression.getStringExpression() + "  right=" + individualBinaryExpression.getRightExpression());
-                                        column = (Column) individualBinaryExpression.getRightExpression();
-                                        String namedParameterString = getNamedParameterString(column.getColumnName());
-                                        stringsToReplace.put(individualBinaryExpression.toString(), individualBinaryExpression.getRightExpression().toString() + " = " + namedParameterString);
-                                    }
-                                    if (!(individualBinaryExpression.getRightExpression() instanceof Column))
-                                    {
-                                        System.out.println("left=" + individualBinaryExpression.getLeftExpression().toString() + "  op=" + individualBinaryExpression.getStringExpression() + "  right=" + individualBinaryExpression.getRightExpression());
-                                        column = (Column) individualBinaryExpression.getLeftExpression();
-                                        String namedParameterString = getNamedParameterString(column.getColumnName());
-                                        stringsToReplace.put(individualBinaryExpression.toString(),
-                                                individualBinaryExpression.getLeftExpression().toString() + " = "
-                                                        + namedParameterString);
-                                    }
-                                });
-                            }
-                        }
-                    }
-            );
-        });
-
-        for (Map.Entry<String, String> entry : stringsToReplace.entrySet())
-        {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            result = result.replace(key, value);
-        }
-
-        return result;
-    }
-
-    private static String getNamedParameterString(String columnName)
-    {
-        return ":" + CaseUtils.toCamelCase(columnName, false);
     }
 
     /**

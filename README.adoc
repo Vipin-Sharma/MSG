@@ -51,6 +51,8 @@ For now SQL and DDL is hardcoded in JavaServiceGenerator.java, we can change SQL
 
 12. Usages of code like `selectItem.getASTNode()` is not good idea replace it with better alternative, like `selectItem.getExpression()` and depending upon type of expression, call appropriate method to retrieve column/alias/table name. TODO
 
+13. SQL and DDL should be converted in upper case as first step.
+
 13. Remove sysout and add logger (Slf4j). TODO
 
 #### Low Priority tasks:
