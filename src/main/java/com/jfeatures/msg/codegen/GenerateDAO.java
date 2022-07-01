@@ -6,6 +6,7 @@ import com.jfeatures.msg.codegen.util.NameUtil;
 import com.jfeatures.msg.codegen.util.TypeUtil;
 import com.jfeatures.msg.sql.ModifySQL;
 import com.jfeatures.msg.sql.MsgSqlParser;
+import com.manticore.jsqlformatter.JSQLFormatter;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
@@ -31,7 +32,8 @@ import java.util.List;
 import java.util.Map;
 
 public class GenerateDAO {
-    public static JavaFile createDao(String businessPurposeOfSQL, List<DBColumn> predicateHavingLiterals, String sql, Map<String, String> ddlPerTableName) throws IOException, JSQLParserException {
+    public static JavaFile createDao(String businessPurposeOfSQL, List<DBColumn> predicateHavingLiterals, String sql, Map<String, String> ddlPerTableName) throws Exception
+    {
 
         String jdbcTemplateInstanceFieldName = "namedParameterJdbcTemplate";
 
@@ -48,8 +50,9 @@ public class GenerateDAO {
         FieldSpec jdbcTemplateFieldSpec = FieldSpec.builder(NamedParameterJdbcTemplate.class, jdbcTemplateInstanceFieldName, Modifier.PRIVATE, Modifier.FINAL).build();
 
         String modifiedSQL = ModifySQL.modifySQLToUseNamedParameter(sql);
+        String formattedSQL = JSQLFormatter.format(modifiedSQL);
         FieldSpec sqlFieldSpec = FieldSpec.builder(String.class, "SQL", Modifier.PRIVATE, Modifier.FINAL, Modifier.STATIC)
-                .initializer("$S", modifiedSQL)
+                .initializer("$S", formattedSQL)
                 .build();
 
         TypeName dtoTypeName = TypeUtil.getJavaClassTypeName(businessPurposeOfSQL, "dto", "DTO");

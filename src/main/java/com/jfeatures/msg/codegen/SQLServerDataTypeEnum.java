@@ -13,7 +13,7 @@ public enum SQLServerDataTypeEnum {
     BIGINT("BIGINT", Long.class, "Long" ),
     BINARY("BINARY", byte[].class, "Byte[]" ),
     BIT("BIT", Boolean.class, "Boolean"),
-    CHAR("CHAR", String.class, "Char" ),
+    CHAR("CHAR", String.class, "String" ),
     DATE("DATE", java.sql.Date.class, "Date"),
     DATETIME3("DATETIME3", java.sql.Timestamp.class, "Timestamp" ),
     DATETIME2("DATETIME2", java.sql.Timestamp.class, "Timestamp" ),
@@ -21,11 +21,11 @@ public enum SQLServerDataTypeEnum {
     DECIMAL("DECIMAL", java.math.BigDecimal.class, "BigDecimal" ),
     INT("INT", Integer.class, "Int" ),
     FLOAT("FLOAT", Double.class, "Double" ),
-    /*(image, byte[] );
-    (money, java.math.BigDecimal );
-    (nchar, String );
-    (ntext, String );
-    (numeric, java.math.BigDecimal );*/
+    /*(image, byte[] );*/
+    MONEY("MONEY", java.math.BigDecimal.class, "BigDecimal" ),
+    NCHAR("NCHAR", String.class, "String" ),
+    NTEXT("NTEXT", String.class, "String" ),
+    NUMERIC("NUMERIC", java.math.BigDecimal.class, "BigDecimal" ),
     NVARCHAR("NVARCHAR", String.class, "String"),
     /*(nvarchar(max)   String );
     (real, float );

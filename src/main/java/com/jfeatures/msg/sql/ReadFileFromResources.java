@@ -37,6 +37,8 @@ public class ReadFileFromResources {
                 CreateTable ddlStatement = (CreateTable) CCJSqlParserUtil.parse(ddl.toString(), parser -> parser.withSquareBracketQuotation(true));
                 String tableName = ddlStatement.getTable().getName();
                 tableName = tableName.trim();
+                tableName = tableName.replace("[", "");
+                tableName = tableName.replace("]", "");
                 ddlPerTableName.put(StringUtils.upperCase(tableName), ddl.toString());
                 ddl = new StringBuilder();
             }
