@@ -63,7 +63,7 @@ public class GenerateController {
                         .build()));
 
         CodeBlock serviceCodeBlock = CodeBlock.builder()
-                .addStatement("return $N." + "getData("+ getDataMethodParametersString + ")", daoInstanceFieldName)
+                .addStatement("return $N." + "get"+ businessPurposeOfSQL + "(" + getDataMethodParametersString + ")", daoInstanceFieldName)
                 .build();
 
         MethodSpec methodSpec = MethodSpec.methodBuilder("getDataFor" + businessPurposeOfSQL)

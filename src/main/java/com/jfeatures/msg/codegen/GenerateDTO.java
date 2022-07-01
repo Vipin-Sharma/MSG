@@ -12,7 +12,6 @@ import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
-import org.apache.commons.text.CaseUtils;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
@@ -55,9 +54,8 @@ public class GenerateDTO {
         ArrayList<FieldSpec> fieldSpecList = new ArrayList<>();
         for (TableColumn tableColumn : columnNameToTypeMapping.keySet()) {
             Class<?> type = getClassForType(columnNameToTypeMapping.get(tableColumn).getColDataType().getDataType());
-            String fieldName = tableColumn.columnAliasIfAvailable() != null ? tableColumn.columnAliasIfAvailable(): tableColumn.columnName();
-            String fieldNameInCamelCase = CaseUtils.toCamelCase(fieldName, false, '_');
-            FieldSpec fieldSpec = FieldSpec.builder(type, fieldNameInCamelCase)
+            String fieldName = NameUtil.getFieldNameForDTO(tableColumn);
+            FieldSpec fieldSpec = FieldSpec.builder(type, fieldName)
                     .build();
             fieldSpecList.add(fieldSpec);
         }
