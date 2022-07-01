@@ -4,6 +4,8 @@ import com.jfeatures.msg.codegen.domain.DBColumn;
 import com.jfeatures.msg.codegen.util.NameUtil;
 import com.jfeatures.msg.codegen.util.TypeUtil;
 import com.squareup.javapoet.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import net.sf.jsqlparser.JSQLParserException;
 import org.apache.commons.text.CaseUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -57,9 +59,12 @@ public class GenerateController {
                 .addStatement("return $N." + "getData("+ getDataMethodParametersString + ")", daoInstanceFieldName)
                 .build();
 
-        MethodSpec methodSpec = MethodSpec.methodBuilder("getData")
+        MethodSpec methodSpec = MethodSpec.methodBuilder("getDataFor" + businessPurposeOfSQL)
                 .addAnnotation(AnnotationSpec.builder(GetMapping.class)
                         .addMember("value", "$S", "/"+ businessPurposeOfSQL)
+                        .build())
+                .addAnnotation(AnnotationSpec.builder(Operation.class)
+                        .addMember("summary", "$S", "Get API to fetch data for " + businessPurposeOfSQL)
                         .build())
                 .addParameters(parameterSpecs)
                 .addModifiers(Modifier.PUBLIC)
@@ -76,6 +81,10 @@ public class GenerateController {
                 .addAnnotation(RestController.class)
                 .addAnnotation(AnnotationSpec.builder(RequestMapping.class)
                         .addMember("path", "$S", "/api")
+                        .build())
+                .addAnnotation(AnnotationSpec.builder(Tag.class)
+                        .addMember("name", "$S", businessPurposeOfSQL)
+                        .addMember("description", "$S", businessPurposeOfSQL)
                         .build())
                 .build();
 
