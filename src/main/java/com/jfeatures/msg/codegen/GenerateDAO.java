@@ -106,7 +106,7 @@ public class GenerateDAO {
         CodeBlock.Builder codeBlockForJdbcQuery = CodeBlock.builder();
         codeBlockForJdbcQuery.add(jdbcTemplateInstanceFieldName + ".query(SQL, sqlParamMap, " + rowCallbackHandler + ");\n");
 
-        ClassName list = ClassName.get("java.util", "ArrayList");
+        ClassName list = ClassName.get("java.util", "List");
         ParameterizedTypeName parameterizedTypeName = TypeUtil.getParameterizedTypeName(dtoTypeName, list);
 
         //todo $L can be taken from parameter list, but current code works for a poc

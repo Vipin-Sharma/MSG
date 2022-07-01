@@ -69,6 +69,7 @@ public class GenerateController {
         MethodSpec methodSpec = MethodSpec.methodBuilder("getDataFor" + businessPurposeOfSQL)
                 .addAnnotation(AnnotationSpec.builder(GetMapping.class)
                         .addMember("value", "$S", "/"+ businessPurposeOfSQL)
+                        .addMember("produces", "$S", "application/json")
                         .build())
                 .addAnnotation(AnnotationSpec.builder(Operation.class)
                         .addMember("summary", "$S", "Get API to fetch data for " + businessPurposeOfSQL)
