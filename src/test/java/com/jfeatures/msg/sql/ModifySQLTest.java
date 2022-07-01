@@ -31,7 +31,7 @@ class ModifySQLTest
                 Select tableC.a, tableC.b, tableD.c, tableD.d, e ,  tableF.a, tableF.b, tableF.c, tableF.d
                 from tableC as tableC, tableD as tableD, tableE, tableF as tableF
                 where tableC.a = tableD.c and tableC.b = tableD.d and tableC.a = tableE.e and tableC.b = tableE.e
-                and tableC.a = 1 and tableC.b = 'Vipin' and e = 100
+                and tableC.a = 1 and tableC.b = 'HARDCODE_AS_STRING{Vipin}' and e = 100
                 """;
     String modifiedSQL = ModifySQL.modifySQLToUseNamedParameter(sql);
     Assertions.assertTrue(modifiedSQL.contains("tableC.a = :a"));
@@ -45,7 +45,7 @@ class ModifySQLTest
                 Select tableC.a, tableC.b, tableD.c, tableD.d, e ,  tableF.a, tableF.b, tableF.c, tableF.d
                 from tableC as tableC, tableD as tableD, tableE, tableF as tableF
                 where tableC.a = tableD.c and tableC.b = tableD.d and tableC.a = tableE.e and tableC.b = tableE.e
-                and tableC.a = 1 and tableC.b = 'Vipin' and e = 'HARDCODE_AS"100"'
+                and tableC.a = 1 and tableC.b = 'Vipin' and e = 'HARDCODE_AS_{100}'
                 """;
     String modifiedSQL = ModifySQL.modifySQLToUseNamedParameter(sql);
     Assertions.assertTrue(modifiedSQL.contains("tableC.a = :a"));

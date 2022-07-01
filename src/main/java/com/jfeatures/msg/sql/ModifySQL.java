@@ -71,7 +71,7 @@ public class ModifySQL
               String namedParameter = getNamedParameterString(columnName);
               if(expr.getLeftExpression().toString().contains("HARDCODE_AS"))
               {
-                stringsToReplace.put(expr.toString(), expr.getRightExpression().toString() + " = " + StringUtils.substringBetween(expr.getLeftExpression().toString(), "\"", "\""));
+                stringsToReplace.put(expr.toString(), expr.getRightExpression().toString() + " = " + getHardcodedLiteralValue(expr.getLeftExpression()));
               }else
               {
                 stringsToReplace.put(expr.toString(), expr.getRightExpression().toString() + " = " + namedParameter);
@@ -91,7 +91,7 @@ public class ModifySQL
               String namedParameter = getNamedParameterString(columnName);
               if(expr.getRightExpression().toString().contains("HARDCODE_AS"))
               {
-                stringsToReplace.put(expr.toString(), expr.getLeftExpression().toString() + " = " + StringUtils.substringBetween(expr.getRightExpression().toString(), "\"", "\""));
+                stringsToReplace.put(expr.toString(), expr.getLeftExpression().toString() + " = " + getHardcodedLiteralValue(expr.getRightExpression()));
               }else {
                 stringsToReplace.put(expr.toString(), expr.getLeftExpression().toString() + " = " + namedParameter);
               }
@@ -145,7 +145,7 @@ public class ModifySQL
                           if(individualBinaryExpression.getLeftExpression().toString().contains("HARDCODE_AS"))
                           {
                             stringsToReplace.put(individualBinaryExpression.toString(), individualBinaryExpression.getLeftExpression().toString() + " = "
-                                    + StringUtils.substringBetween(individualBinaryExpression.getLeftExpression().toString(), "\"", "\""));
+                                    + getHardcodedLiteralValue(individualBinaryExpression.getLeftExpression()));
                           }
                           else
                           {
@@ -161,7 +161,7 @@ public class ModifySQL
                           if(individualBinaryExpression.getRightExpression().toString().contains("HARDCODE_AS"))
                           {
                             stringsToReplace.put(individualBinaryExpression.toString(), individualBinaryExpression.getLeftExpression().toString() + " = "
-                                    + StringUtils.substringBetween(individualBinaryExpression.getRightExpression().toString(), "\"", "\""));
+                                    + getHardcodedLiteralValue(individualBinaryExpression.getRightExpression()));
                           }
                           else
                           {
@@ -185,6 +185,15 @@ public class ModifySQL
     }
 
     return result;
+  }
+
+  private static String getHardcodedLiteralValue(Expression expr)
+  {
+    if(expr.toString().contains("HARDCODE_AS_STRING"))
+    {
+      return "'" + StringUtils.substringBetween(expr.toString(), "{", "}") + "'";
+    }
+    return StringUtils.substringBetween(expr.toString(), "{", "}");
   }
 
   private static String getNamedParameterString(String columnName)
