@@ -1,5 +1,6 @@
 package com.jfeatures.msg.codegen;
 
+import com.github.vertical_blank.sqlformatter.SqlFormatter;
 import com.jfeatures.msg.codegen.domain.DBColumn;
 import com.jfeatures.msg.codegen.domain.TableColumn;
 import com.jfeatures.msg.codegen.util.NameUtil;
@@ -15,14 +16,12 @@ import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
-import net.sf.jsqlparser.JSQLParserException;
 import org.apache.commons.text.CaseUtils;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.lang.model.element.Modifier;
-import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -31,7 +30,8 @@ import java.util.List;
 import java.util.Map;
 
 public class GenerateDAO {
-    public static JavaFile createDao(String businessPurposeOfSQL, List<DBColumn> predicateHavingLiterals, String sql, Map<String, String> ddlPerTableName) throws IOException, JSQLParserException {
+    public static JavaFile createDao(String businessPurposeOfSQL, List<DBColumn> predicateHavingLiterals, String sql, Map<String, String> ddlPerTableName) throws Exception
+    {
 
         String jdbcTemplateInstanceFieldName = "namedParameterJdbcTemplate";
 
@@ -48,8 +48,11 @@ public class GenerateDAO {
         FieldSpec jdbcTemplateFieldSpec = FieldSpec.builder(NamedParameterJdbcTemplate.class, jdbcTemplateInstanceFieldName, Modifier.PRIVATE, Modifier.FINAL).build();
 
         String modifiedSQL = ModifySQL.modifySQLToUseNamedParameter(sql);
+        String formattedSQL = SqlFormatter.format(modifiedSQL);
+        formattedSQL = formattedSQL.replace(": ", ":");
+        System.out.println(formattedSQL);
         FieldSpec sqlFieldSpec = FieldSpec.builder(String.class, "SQL", Modifier.PRIVATE, Modifier.FINAL, Modifier.STATIC)
-                .initializer("$S", modifiedSQL)
+                .initializer("$S", formattedSQL)
                 .build();
 
         TypeName dtoTypeName = TypeUtil.getJavaClassTypeName(businessPurposeOfSQL, "dto", "DTO");
@@ -72,10 +75,9 @@ public class GenerateDAO {
         {
             TableColumn tableColumn = entry.getKey();
             DBColumn dbColumn = entry.getValue();
-            String fieldName = tableColumn.columnAliasIfAvailable() != null ? tableColumn.columnAliasIfAvailable() : tableColumn.columnName();
-            String fieldNameCamelCase = CaseUtils.toCamelCase(fieldName, false, '_');
+            String fieldName = NameUtil.getFieldNameForDTO(tableColumn);
             codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet.concat(
-                    fieldNameCamelCase
+                    fieldName
                     + "(rs.get" +
                             dbColumn.jdbcType()
                     + "(\""
@@ -92,6 +94,7 @@ public class GenerateDAO {
                 .anonymousClassBuilder("")
                 .addSuperinterface(RowCallbackHandler.class)
                 .addMethod(MethodSpec.methodBuilder("processRow")
+                        .addAnnotation(Override.class)
                         .addModifiers(Modifier.PUBLIC)
                         .addParameter(ResultSet.class, "rs")
                         .addException(SQLException.class)
@@ -103,7 +106,7 @@ public class GenerateDAO {
         CodeBlock.Builder codeBlockForJdbcQuery = CodeBlock.builder();
         codeBlockForJdbcQuery.add(jdbcTemplateInstanceFieldName + ".query(SQL, sqlParamMap, " + rowCallbackHandler + ");\n");
 
-        ClassName list = ClassName.get("java.util", "ArrayList");
+        ClassName list = ClassName.get("java.util", "List");
         ParameterizedTypeName parameterizedTypeName = TypeUtil.getParameterizedTypeName(dtoTypeName, list);
 
         //todo $L can be taken from parameter list, but current code works for a poc
@@ -113,7 +116,7 @@ public class GenerateDAO {
                 CaseUtils.toCamelCase(literal.columnName(), false)));
         CodeBlock codeBlockHavingPredicatesMap = codeBlockHavingPredicatesMapBuilder.build();
 
-        MethodSpec methodSpec = MethodSpec.methodBuilder("getData")
+        MethodSpec methodSpec = MethodSpec.methodBuilder("get" + businessPurposeOfSQL)
                 .addStatement("$T result = new $T()", parameterizedTypeName, ArrayList.class)
                 .addModifiers(Modifier.PUBLIC)
                 .addParameters(parameters)

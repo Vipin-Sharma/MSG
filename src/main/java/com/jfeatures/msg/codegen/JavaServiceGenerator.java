@@ -17,7 +17,8 @@ import java.util.List;
 import java.util.Map;
 
 public class JavaServiceGenerator {
-    public static void main(String[] args) throws IOException, JSQLParserException, URISyntaxException {
+    public static void main(String[] args) throws Exception
+    {
         CreateDirectoryStructure.createDirectoryStructure();
         PomGenerator.generatePomFile();
         PropGenerator.generatePropertiesFile();
@@ -37,7 +38,7 @@ public class JavaServiceGenerator {
         predicateHavingLiterals.addAll(predicateHavingLiteralsInFromClause);
         predicateHavingLiterals.addAll(predicatesHavingLiteralsInJoinClause);
 
-        JavaFile controllerClass = GenerateController.createController(sql, businessPurposeOfSQL, ddlPerTableName, predicateHavingLiterals);
+        JavaFile controllerClass = GenerateController.createController(businessPurposeOfSQL, predicateHavingLiterals);
         JavaFile daoClass = GenerateDAO.createDao(businessPurposeOfSQL, predicateHavingLiterals, sql, ddlPerTableName);
 
         Path javaFilesSrcPath = Paths.get(System.getProperty("java.io.tmpdir")
