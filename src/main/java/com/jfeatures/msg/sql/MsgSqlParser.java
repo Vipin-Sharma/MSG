@@ -69,7 +69,7 @@ public class MsgSqlParser {
             } else {
                 Map<String, String> tableAliasToTableName = getAliasToTableName(plainSelect);
                 tableName = getTableName(tableAliasList.get(i), columnNameList.get(i), tableAliasToTableName, ddlPerTableName);
-                columnDefinition = MsgDdlParser.getColumnDefinition(columnNameList.get(i), ddlPerTableName.get(StringUtils.upperCase(tableName))).get();
+                columnDefinition = MsgDdlParser.getColumnDefinition(columnNameList.get(i), ddlPerTableName.get(tableName)).get();
             }
             resultMap.put(new TableColumn(columnNameList.get(i), columnAliasList.get(i), tableName) , columnDefinition);
 
@@ -81,7 +81,7 @@ public class MsgSqlParser {
     private static ColumnDefinition findColumnDefinitionByColumnName(Map<String, String> ddlPerTableName, String columnName) {
         ColumnDefinition columnDefinition = null;
         for (String tableName : ddlPerTableName.keySet()) {
-            Optional<ColumnDefinition> columnDefinitionOptional = MsgDdlParser.getColumnDefinition(columnName, ddlPerTableName.get(StringUtils.upperCase(tableName)));
+            Optional<ColumnDefinition> columnDefinitionOptional = MsgDdlParser.getColumnDefinition(columnName, ddlPerTableName.get(tableName));
             if (columnDefinitionOptional.isPresent()) {
                 columnDefinition = columnDefinitionOptional.get();
                 break;
@@ -312,7 +312,7 @@ public class MsgSqlParser {
 
     private static DBColumn getDbColumn(String tableAlias, String columnName, Map<String, String> tableAliasToTableName, Map<String, String> ddlPerTableName) {
         String tableName = getTableName(tableAlias, columnName, tableAliasToTableName, ddlPerTableName);
-        Optional<ColumnDefinition> columnDefinition = MsgDdlParser.getColumnDefinition(columnName, ddlPerTableName.get(StringUtils.upperCase(tableName)));
+        Optional<ColumnDefinition> columnDefinition = MsgDdlParser.getColumnDefinition(columnName, ddlPerTableName.get(tableName));
         return new DBColumn(tableName ,columnName, SQLServerDataTypeEnum.getClassForType(columnDefinition.get().getColDataType().getDataType()).getSimpleName(),
                 SQLServerDataTypeEnum.getJdbcTypeForDBType(columnDefinition.get().getColDataType().getDataType()));
     }
@@ -326,7 +326,7 @@ public class MsgSqlParser {
 
     private static String findTableNameByColumnName(String columnName, Map<String, String> ddlPerTableName) {
         for (String tableName : ddlPerTableName.keySet()) {
-            Optional<ColumnDefinition> columnDefinitionOptional = MsgDdlParser.getColumnDefinition(columnName, ddlPerTableName.get(StringUtils.upperCase(tableName)));
+            Optional<ColumnDefinition> columnDefinitionOptional = MsgDdlParser.getColumnDefinition(columnName, ddlPerTableName.get(tableName));
             if (columnDefinitionOptional.isPresent()) {
                 return tableName;
             }
