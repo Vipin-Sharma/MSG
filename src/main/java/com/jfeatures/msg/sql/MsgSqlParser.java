@@ -33,45 +33,46 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class MsgSqlParser {
-    public static List<String> getSelectColumns(String sql) throws JSQLParserException {
-        Statement sqlStatement = CCJSqlParserUtil.parse(sql);
-        Select selectStatement = (Select) sqlStatement;
 
-        PlainSelect plainSelect = (PlainSelect) selectStatement.getSelectBody();
-        return plainSelect.getSelectItems()
-                .stream()
-                .map(selectItem -> selectItem.getASTNode().jjtGetLastToken().toString())
-                .sorted()
-                .collect(Collectors.toCollection(ArrayList::new));
-    }
-
-    public static Map<String, ColumnDefinition> dataTypePerColumn(String sql, Map<String, String> ddlPerTableName) throws JSQLParserException {
+    public static Map<TableColumn, ColumnDefinition> dataTypePerColumnWithTableInfo(String sql, Map<String, String> ddlPerTableName) throws JSQLParserException {
         Statement sqlStatement = CCJSqlParserUtil.parse(sql);
         Select selectStatement = (Select) sqlStatement;
 
         PlainSelect plainSelect = (PlainSelect) selectStatement.getSelectBody();
         ArrayList<String> columnNameList = plainSelect.getSelectItems()
                 .stream()
-                .map(selectItem -> selectItem.getASTNode().jjtGetLastToken().toString())
+                .map(selectItem -> ((Column) ((SelectExpressionItem) (selectItem)).getExpression()).getColumnName())
                 .collect(Collectors.toCollection(ArrayList::new));
 
         ArrayList<String> tableAliasList = plainSelect.getSelectItems()
                 .stream()
-                .map(selectItem -> selectItem.getASTNode().jjtGetFirstToken().toString())
+                .map(selectItem -> ((Column) ((SelectExpressionItem) selectItem).getExpression()).getTable() != null
+                        ? ((Column) ((SelectExpressionItem) selectItem).getExpression()).getTable().getName()
+                        : null)
                 .collect(Collectors.toCollection(ArrayList::new));
 
-        Map<String, ColumnDefinition> resultMap = new HashMap<>();
+        ArrayList<String> columnAliasList = plainSelect.getSelectItems()
+                .stream()
+                .map(selectItem -> ((SelectExpressionItem) (selectItem)).getAlias()!=null
+                        ? ((SelectExpressionItem) (selectItem)).getAlias().getName()
+                        : null)
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        Map<TableColumn, ColumnDefinition> resultMap = new HashMap<>();
 
         for (int i = 0; i < columnNameList.size(); i++) {
             ColumnDefinition columnDefinition;
-            if (isSelectColumnWithOutTableAlias(columnNameList.get(i), tableAliasList.get(i))) {
+            String tableName;
+            if (isSelectColumnWithOutTableAlias(tableAliasList.get(i))) {
                 columnDefinition = findColumnDefinitionByColumnName(ddlPerTableName, columnNameList.get(i));
+                tableName = findTableNameByColumnName(columnNameList.get(i), ddlPerTableName);
             } else {
                 Map<String, String> tableAliasToTableName = getAliasToTableName(plainSelect);
-                String tableName = getTableName(tableAliasList.get(i), columnNameList.get(i), tableAliasToTableName, ddlPerTableName);
+                tableName = getTableName(tableAliasList.get(i), columnNameList.get(i), tableAliasToTableName, ddlPerTableName);
                 columnDefinition = MsgDdlParser.getColumnDefinition(columnNameList.get(i), ddlPerTableName.get(StringUtils.upperCase(tableName))).get();
             }
-            resultMap.put(columnNameList.get(i), columnDefinition);
+            resultMap.put(new TableColumn(columnNameList.get(i), columnAliasList.get(i), tableName) , columnDefinition);
+
         }
 
         return resultMap;
@@ -87,46 +88,6 @@ public class MsgSqlParser {
             }
         }
         return columnDefinition;
-    }
-
-    public static Map<TableColumn, ColumnDefinition> dataTypePerColumnWithTableInfo(String sql, Map<String, String> ddlPerTableName) throws JSQLParserException {
-        Statement sqlStatement = CCJSqlParserUtil.parse(sql);
-        Select selectStatement = (Select) sqlStatement;
-
-        PlainSelect plainSelect = (PlainSelect) selectStatement.getSelectBody();
-        ArrayList<String> columnNameList = plainSelect.getSelectItems()
-                .stream()
-                .map(selectItem -> ((Column) ((SelectExpressionItem) (selectItem)).getExpression()).getColumnName())
-                .collect(Collectors.toCollection(ArrayList::new));
-
-        ArrayList<String> tableAliasList = plainSelect.getSelectItems()
-                .stream()
-                .map(selectItem -> selectItem.getASTNode().jjtGetFirstToken().toString())
-                .collect(Collectors.toCollection(ArrayList::new));
-
-        ArrayList<String> columnAliasList = plainSelect.getSelectItems()
-                .stream()
-                .map(selectItem -> ((SelectExpressionItem) (selectItem)).getAlias()!=null ? ((SelectExpressionItem) (selectItem)).getAlias().getName() : null)
-                .collect(Collectors.toCollection(ArrayList::new));
-
-        Map<TableColumn, ColumnDefinition> resultMap = new HashMap<>();
-
-        for (int i = 0; i < columnNameList.size(); i++) {
-            ColumnDefinition columnDefinition;
-            String tableName;
-            if (isSelectColumnWithOutTableAlias(columnNameList.get(i), tableAliasList.get(i))) {
-                columnDefinition = findColumnDefinitionByColumnName(ddlPerTableName, columnNameList.get(i));
-                tableName = findTableNameByColumnName(columnNameList.get(i), ddlPerTableName);
-            } else {
-                Map<String, String> tableAliasToTableName = getAliasToTableName(plainSelect);
-                tableName = getTableName(tableAliasList.get(i), columnNameList.get(i), tableAliasToTableName, ddlPerTableName);
-                columnDefinition = MsgDdlParser.getColumnDefinition(columnNameList.get(i), ddlPerTableName.get(StringUtils.upperCase(tableName))).get();
-            }
-            resultMap.put(new TableColumn(columnNameList.get(i), columnAliasList.get(i), tableName) , columnDefinition);
-
-        }
-
-        return resultMap;
     }
 
     private static Map<String, String> getAliasToTableName(PlainSelect plainSelect) {
@@ -167,16 +128,8 @@ public class MsgSqlParser {
         return tableAliasToTableName;
     }
 
-    private static boolean isSelectColumnWithOutTableAlias(String columnName, String tableAliasOrColumnName) {
-        return columnName.equals(tableAliasOrColumnName);
-    }
-
-    public static List<String> getTablesFromSQL(String sql) throws JSQLParserException {
-        Statement sqlStatement = CCJSqlParserUtil.parse(sql);
-        Select selectStatement = (Select) sqlStatement;
-
-        TablesNamesFinder tablesNamesFinder = new TablesNamesFinder();
-        return tablesNamesFinder.getTableList(selectStatement);
+    private static boolean isSelectColumnWithOutTableAlias(String tableAlias) {
+        return tableAlias == null;
     }
 
     /**
