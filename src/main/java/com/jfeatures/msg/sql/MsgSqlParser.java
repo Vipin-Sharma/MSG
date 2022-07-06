@@ -20,7 +20,6 @@ import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import net.sf.jsqlparser.statement.select.SubSelect;
-import net.sf.jsqlparser.util.TablesNamesFinder;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -64,7 +63,7 @@ public class MsgSqlParser {
             ColumnDefinition columnDefinition;
             String tableName;
             if (isSelectColumnWithOutTableAlias(tableAliasList.get(i))) {
-                columnDefinition = findColumnDefinitionByColumnName(ddlPerTableName, columnNameList.get(i));
+                columnDefinition = findColumnByColumnNameWhenTableAliasIsNotAvailable(ddlPerTableName, columnNameList.get(i));
                 tableName = findTableNameByColumnName(columnNameList.get(i), ddlPerTableName);
             } else {
                 Map<String, String> tableAliasToTableName = getAliasToTableName(plainSelect);
@@ -78,7 +77,7 @@ public class MsgSqlParser {
         return resultMap;
     }
 
-    private static ColumnDefinition findColumnDefinitionByColumnName(Map<String, String> ddlPerTableName, String columnName) {
+    private static ColumnDefinition findColumnByColumnNameWhenTableAliasIsNotAvailable(Map<String, String> ddlPerTableName, String columnName) {
         ColumnDefinition columnDefinition = null;
         for (String tableName : ddlPerTableName.keySet()) {
             Optional<ColumnDefinition> columnDefinitionOptional = MsgDdlParser.getColumnDefinition(columnName, ddlPerTableName.get(tableName));

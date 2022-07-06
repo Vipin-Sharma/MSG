@@ -35,7 +35,7 @@ class ModifySQLTest
                 """;
     String modifiedSQL = ModifySQL.modifySQLToUseNamedParameter(sql);
     Assertions.assertTrue(modifiedSQL.contains("tableC.a = :a"));
-    Assertions.assertTrue(modifiedSQL.contains("tableC.b = :b"));
+    Assertions.assertTrue(modifiedSQL.contains("tableC.b = 'Vipin'"));
     Assertions.assertTrue(modifiedSQL.contains("e = :e"));
   }
 
