@@ -65,5 +65,15 @@ For now SQL and DDL is hardcoded in JavaServiceGenerator.java, we can change SQL
 
 See https://github.com/users/Vipin-Sharma/projects/1
 
-#### Caution while coding:
-Always convert SQL server data type into UPPER case before use. TODO Fix this by using converting to UPPER case in code.
+#### Project specific code conventions:
+TODO
+
+### Benefits
+
+1. Boost Dev Productivity #nocode.
+2. Reduce time spent on writing code.
+3. Reduce time spent on writing tests.
+4. Reduce time spent on writing documentation.
+5. Reduce time spent on writing code review.
+6. Bug free code, no time wasted on bug fixing. Study shows that debugging take more time than writing code.
+

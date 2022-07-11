@@ -3,6 +3,7 @@ package com.jfeatures.msg.sql;
 import com.jfeatures.msg.codegen.SQLServerDataTypeEnum;
 import com.jfeatures.msg.codegen.domain.DBColumn;
 import com.jfeatures.msg.codegen.domain.TableColumn;
+import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.BinaryExpression;
@@ -31,6 +32,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class MsgSqlParser {
 
     public static Map<TableColumn, ColumnDefinition> dataTypePerColumnWithTableInfo(String sql, Map<String, String> ddlPerTableName) throws JSQLParserException {
@@ -63,12 +65,12 @@ public class MsgSqlParser {
             ColumnDefinition columnDefinition;
             String tableName;
             if (isSelectColumnWithOutTableAlias(tableAliasList.get(i))) {
-                columnDefinition = findColumnByColumnNameWhenTableAliasIsNotAvailable(ddlPerTableName, columnNameList.get(i));
-                tableName = findTableNameByColumnName(columnNameList.get(i), ddlPerTableName);
+                columnDefinition = ColumnUtils.findColumnByColumnNameWhenTableAliasIsNotAvailable(ddlPerTableName, columnNameList.get(i));
+                tableName = TableUtils.findTableNameByColumnName(columnNameList.get(i), ddlPerTableName);
             } else {
                 Map<String, String> tableAliasToTableName = getAliasToTableName(plainSelect);
-                tableName = getTableName(tableAliasList.get(i), columnNameList.get(i), tableAliasToTableName, ddlPerTableName);
-                columnDefinition = MsgDdlParser.getColumnDefinition(columnNameList.get(i), ddlPerTableName.get(tableName)).get();
+                tableName = TableUtils.getTableName(tableAliasList.get(i), columnNameList.get(i), tableAliasToTableName, ddlPerTableName);
+                columnDefinition = ColumnUtils.getColumnDefinition(columnNameList.get(i), ddlPerTableName.get(tableName)).get();
             }
             resultMap.put(new TableColumn(columnNameList.get(i), columnAliasList.get(i), tableName) , columnDefinition);
 
@@ -77,30 +79,18 @@ public class MsgSqlParser {
         return resultMap;
     }
 
-    private static ColumnDefinition findColumnByColumnNameWhenTableAliasIsNotAvailable(Map<String, String> ddlPerTableName, String columnName) {
-        ColumnDefinition columnDefinition = null;
-        for (String tableName : ddlPerTableName.keySet()) {
-            Optional<ColumnDefinition> columnDefinitionOptional = MsgDdlParser.getColumnDefinition(columnName, ddlPerTableName.get(tableName));
-            if (columnDefinitionOptional.isPresent()) {
-                columnDefinition = columnDefinitionOptional.get();
-                break;
-            }
-        }
-        return columnDefinition;
-    }
-
     private static Map<String, String> getAliasToTableName(PlainSelect plainSelect) {
         Map<String, String> tableAliasToTableName = new HashMap<>();
         plainSelect.getFromItem().accept(new FromItemVisitorAdapter() {
             @Override
             public void visit(Table table) {
                 String tableName = table.getName();
-                System.out.println("Table columnName: " + tableName);
+                log.info("Table columnName: " + tableName);
 
                 Alias tableAlias = table.getAlias();
                 if (tableAlias != null) {
                     String aliasName = tableAlias.getName();
-                    System.out.println("Table alias: " + aliasName);
+                    log.info("Table alias: " + aliasName);
                     tableAliasToTableName.put(aliasName, tableName);
                 }
             }
@@ -114,12 +104,12 @@ public class MsgSqlParser {
             @Override
             public void visit(Table table) {
                 String tableName = table.getName();
-                System.out.println("Table columnName: " + tableName);
+                log.info("Table columnName: " + tableName);
 
                 Alias tableAlias = table.getAlias();
                 if (tableAlias != null) {
                     String aliasName = tableAlias.getName();
-                    System.out.println("Table alias: " + aliasName);
+                    log.info("Table alias: " + aliasName);
                     tableAliasToTableName.put(aliasName, tableName);
                 }
             }
@@ -154,7 +144,7 @@ public class MsgSqlParser {
             return Collections.emptyList();
         }
         String whereClause = whereExpression.toString();
-        System.out.println("Where condition: " + whereClause);
+        log.info("Where condition: " + whereClause);
 
         Expression expr = CCJSqlParserUtil.parseCondExpression(whereClause);
         expr.accept(new ExpressionVisitorAdapter() {
@@ -164,7 +154,7 @@ public class MsgSqlParser {
                 if (expr instanceof ComparisonOperator) {
                     //todo what if left expression or right expression are select expressions(subquery)?
                     if (!(expr.getLeftExpression() instanceof Column) && !expr.getLeftExpression().toString().contains("HARDCODE_AS")) {
-                        System.out.println("left=" + expr.getLeftExpression().toString() + "  op=" + expr.getStringExpression() + "  right=" + expr.getRightExpression());
+                        log.info("left=" + expr.getLeftExpression().toString() + "  op=" + expr.getStringExpression() + "  right=" + expr.getRightExpression());
 
                         String tableAlias = null;
                         String columnName;
@@ -179,7 +169,7 @@ public class MsgSqlParser {
                         result.add(dbColumn);
                     }
                     if (!(expr.getRightExpression() instanceof Column) && !expr.getRightExpression().toString().contains("HARDCODE_AS")) {
-                        System.out.println("left=" + expr.getLeftExpression() + "  op=" + expr.getStringExpression() + "  right=" + expr.getRightExpression().toString());
+                        log.info("left=" + expr.getLeftExpression() + "  op=" + expr.getStringExpression() + "  right=" + expr.getRightExpression().toString());
                         String tableAlias = null;
                         String columnName;
                         if(expr.getLeftExpression().toString().contains(".")){
@@ -253,13 +243,13 @@ public class MsgSqlParser {
                         if (!(individualBinaryExpression.getLeftExpression() instanceof Column) && !individualBinaryExpression.getLeftExpression().toString().contains("HARDCODE_AS"))
                         {
                             expressionHasLiteral = true;
-                            System.out.println("left=" + individualBinaryExpression.getLeftExpression().toString() + "  op=" + individualBinaryExpression.getStringExpression() + "  right=" + individualBinaryExpression.getRightExpression());
+                            log.info("left=" + individualBinaryExpression.getLeftExpression().toString() + "  op=" + individualBinaryExpression.getStringExpression() + "  right=" + individualBinaryExpression.getRightExpression());
                             column = (Column) individualBinaryExpression.getRightExpression();
                         }
                         if (!(individualBinaryExpression.getRightExpression() instanceof Column) && !individualBinaryExpression.getRightExpression().toString().contains("HARDCODE_AS"))
                         {
                             expressionHasLiteral = true;
-                            System.out.println("left=" + individualBinaryExpression.getLeftExpression().toString() + "  op=" + individualBinaryExpression.getStringExpression() + "  right=" + individualBinaryExpression.getRightExpression());
+                            log.info("left=" + individualBinaryExpression.getLeftExpression().toString() + "  op=" + individualBinaryExpression.getStringExpression() + "  right=" + individualBinaryExpression.getRightExpression());
                             column = (Column) individualBinaryExpression.getLeftExpression();
                         }
 
@@ -310,26 +300,10 @@ public class MsgSqlParser {
     }
 
     private static DBColumn getDbColumn(String tableAlias, String columnName, Map<String, String> tableAliasToTableName, Map<String, String> ddlPerTableName) {
-        String tableName = getTableName(tableAlias, columnName, tableAliasToTableName, ddlPerTableName);
-        Optional<ColumnDefinition> columnDefinition = MsgDdlParser.getColumnDefinition(columnName, ddlPerTableName.get(tableName));
+        String tableName = TableUtils.getTableName(tableAlias, columnName, tableAliasToTableName, ddlPerTableName);
+        Optional<ColumnDefinition> columnDefinition = ColumnUtils.getColumnDefinition(columnName, ddlPerTableName.get(tableName));
         return new DBColumn(tableName ,columnName, SQLServerDataTypeEnum.getClassForType(columnDefinition.get().getColDataType().getDataType()).getSimpleName(),
                 SQLServerDataTypeEnum.getJdbcTypeForDBType(columnDefinition.get().getColDataType().getDataType()));
     }
 
-    private static String getTableName(String tableAlias, String columnName, Map<String, String> tableAliasToTableName, Map<String, String> ddlPerTableName) {
-        if (tableAlias != null) {
-            return tableAliasToTableName.get(tableAlias);
-        }
-        return findTableNameByColumnName(columnName, ddlPerTableName);
-    }
-
-    private static String findTableNameByColumnName(String columnName, Map<String, String> ddlPerTableName) {
-        for (String tableName : ddlPerTableName.keySet()) {
-            Optional<ColumnDefinition> columnDefinitionOptional = MsgDdlParser.getColumnDefinition(columnName, ddlPerTableName.get(tableName));
-            if (columnDefinitionOptional.isPresent()) {
-                return tableName;
-            }
-        }
-        return null;
-    }
 }

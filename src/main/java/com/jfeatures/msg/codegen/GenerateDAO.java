@@ -16,6 +16,7 @@ import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.CaseUtils;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -29,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class GenerateDAO {
     public static JavaFile createDao(String businessPurposeOfSQL, List<DBColumn> predicateHavingLiterals, String sql, Map<String, String> ddlPerTableName) throws Exception
     {
@@ -50,7 +52,7 @@ public class GenerateDAO {
         String modifiedSQL = ModifySQL.modifySQLToUseNamedParameter(sql);
         String formattedSQL = SqlFormatter.format(modifiedSQL);
         formattedSQL = formattedSQL.replace(": ", ":");
-        System.out.println(formattedSQL);
+        log.info(formattedSQL);
         FieldSpec sqlFieldSpec = FieldSpec.builder(String.class, "SQL", Modifier.PRIVATE, Modifier.FINAL, Modifier.STATIC)
                 .initializer("$S", formattedSQL)
                 .build();
@@ -68,10 +70,10 @@ public class GenerateDAO {
                 .addStatement("$T<String, Object> sqlParamMap = new $T()", Map.class, HashMap.class)
                 .build();
 
-        Map<TableColumn, DBColumn> selectColumnDetails = MsgSqlParser.getDetailsOfColumnsUsedInSelect(sql, ddlPerTableName);
+        Map<TableColumn, DBColumn> selectColumnDetailsToGetDataFromResultSet = MsgSqlParser.getDetailsOfColumnsUsedInSelect(sql, ddlPerTableName);
 
         String codeToSetColumnValuesFromResultSet = ((ClassName) dtoTypeName).simpleName() + " dto = Builder.";
-        for (Map.Entry<TableColumn, DBColumn> entry : selectColumnDetails.entrySet())
+        for (Map.Entry<TableColumn, DBColumn> entry : selectColumnDetailsToGetDataFromResultSet.entrySet())
         {
             TableColumn tableColumn = entry.getKey();
             DBColumn dbColumn = entry.getValue();

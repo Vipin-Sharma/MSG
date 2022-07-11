@@ -27,13 +27,13 @@ class MsgDdlParserTest {
 
     @Test
     public void testGetColumnDefinition() {
-        Optional<ColumnDefinition> columnDefinition = MsgDdlParser.getColumnDefinition("id", DDL);
+        Optional<ColumnDefinition> columnDefinition = ColumnUtils.getColumnDefinition("id", DDL);
         assertEquals("id", columnDefinition.get().getColumnName());
     }
 
     @Test
     public void testGetColumnDataTypes() {
-        Optional<DBColumn> dbColumn = MsgDdlParser.getColumnDataTypes("id", DDL);
+        Optional<DBColumn> dbColumn = ColumnUtils.getColumnDataTypes("id", DDL);
         assertEquals("id", dbColumn.get().columnName());
         assertEquals("INT", dbColumn.get().javaType());
         assertEquals("Int", dbColumn.get().jdbcType());

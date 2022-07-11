@@ -85,7 +85,12 @@ class MsgSqlParserTest {
 
     @Test
     void testExtractPredicateHavingLiteralsFromWhereClause() throws JSQLParserException {
-        String sql = "Select tableC.a, tableC.b, tableD.c, tableD.d, e from tableC as tableC, tableD as tableD, tableE where tableC.a = tableD.c and tableC.b = tableD.d and tableC.a = tableE.e and tableC.b = tableE.e and tableC.a = 1 and tableC.b = 'Vipin'";
+        String sql = """
+                Select tableC.a, tableC.b, tableD.c, tableD.d, e from tableC as tableC, tableD as tableD, tableE\s
+                where tableC.a = tableD.c and tableC.b = tableD.d and tableC.a = tableE.e and tableC.b = tableE.e\s
+                and tableC.a = 1 and tableC.b = 'Vipin'
+                 and e = 1
+                """;
         Map<String, String> ddlPerTableName = new HashMap<>();
         ddlPerTableName.put("tableC", tableC);
         ddlPerTableName.put("tableD", tableD);
@@ -93,7 +98,7 @@ class MsgSqlParserTest {
         List<DBColumn> dbColumnList = MsgSqlParser.extractPredicateHavingLiteralsFromWhereClause(sql, ddlPerTableName);
         dbColumnList.forEach(System.out::println);
 
-        Assertions.assertEquals(2, dbColumnList.size());
+        Assertions.assertEquals(3, dbColumnList.size());
         Assertions.assertTrue(dbColumnList.stream().anyMatch(dbColumn ->
                 "tableC".equals(dbColumn.tableName())
                         && "a".equals(dbColumn.columnName())
@@ -105,6 +110,12 @@ class MsgSqlParserTest {
                         && "b".equals(dbColumn.columnName())
                         && "String".equals(dbColumn.jdbcType())
                         && "String".equals(dbColumn.javaType())
+        ));
+        Assertions.assertTrue(dbColumnList.stream().anyMatch(dbColumn ->
+                "tableE".equals(dbColumn.tableName())
+                        && "e".equals(dbColumn.columnName())
+                        && "Int".equals(dbColumn.jdbcType())
+                        && "Integer".equals(dbColumn.javaType())
         ));
     }
 

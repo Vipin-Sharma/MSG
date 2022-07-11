@@ -1,5 +1,6 @@
 package com.jfeatures.msg.sql;
 
+import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
@@ -23,6 +24,7 @@ import java.util.Map;
 
 import static com.jfeatures.msg.sql.BinaryExpressionUtil.getIndividualBinaryExpression;
 
+@Slf4j
 public class ModifySQL
 {
   /**
@@ -45,7 +47,7 @@ public class ModifySQL
     if (whereExpression != null)
     {
       String whereClause = whereExpression.toString();
-      System.out.println("Where condition: " + whereClause);
+      log.info("Where condition: " + whereClause);
 
       Expression expr = CCJSqlParserUtil.parseCondExpression(whereClause);
       expr.accept(new ExpressionVisitorAdapter()
@@ -58,7 +60,7 @@ public class ModifySQL
           {
             if (!(expr.getLeftExpression() instanceof Column))
             {
-              System.out.println("left=" + expr.getLeftExpression().toString() + "  op=" + expr.getStringExpression() + "  right=" + expr.getRightExpression());
+              log.info("left=" + expr.getLeftExpression().toString() + "  op=" + expr.getStringExpression() + "  right=" + expr.getRightExpression());
 
               String columnName;
               if (expr.getRightExpression().toString().contains("'"))
@@ -79,7 +81,7 @@ public class ModifySQL
             }
             if (!(expr.getRightExpression() instanceof Column))
             {
-              System.out.println("left=" + expr.getLeftExpression() + "  op=" + expr.getStringExpression() + "  right=" + expr.getRightExpression().toString());
+              log.info("left=" + expr.getLeftExpression() + "  op=" + expr.getStringExpression() + "  right=" + expr.getRightExpression().toString());
               String columnName;
               if (expr.getLeftExpression().toString().contains("."))
               {
@@ -138,7 +140,7 @@ public class ModifySQL
                         Column column;
                         if (!(individualBinaryExpression.getLeftExpression() instanceof Column))
                         {
-                          System.out.println("left=" + individualBinaryExpression.getLeftExpression().toString() + "  op=" + individualBinaryExpression.getStringExpression() + "  right=" + individualBinaryExpression.getRightExpression());
+                          log.info("left=" + individualBinaryExpression.getLeftExpression().toString() + "  op=" + individualBinaryExpression.getStringExpression() + "  right=" + individualBinaryExpression.getRightExpression());
                           column = (Column) individualBinaryExpression.getRightExpression();
                           String namedParameterString = getNamedParameterString(column.getColumnName());
 
@@ -154,7 +156,7 @@ public class ModifySQL
                         }
                         if (!(individualBinaryExpression.getRightExpression() instanceof Column))
                         {
-                          System.out.println("left=" + individualBinaryExpression.getLeftExpression().toString() + "  op=" + individualBinaryExpression.getStringExpression() + "  right=" + individualBinaryExpression.getRightExpression());
+                          log.info("left=" + individualBinaryExpression.getLeftExpression().toString() + "  op=" + individualBinaryExpression.getStringExpression() + "  right=" + individualBinaryExpression.getRightExpression());
                           column = (Column) individualBinaryExpression.getLeftExpression();
                           String namedParameterString = getNamedParameterString(column.getColumnName());
 
