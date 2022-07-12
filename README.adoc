@@ -1,29 +1,29 @@
-### MSG (Microservice Generator)
+= MSG (Microservice Generator)
 
 This is a tool for generating microservices. You need to provide SQL and DDL info, and it will generate Rest API that exposes data from SQL. It is a work in progress.
 
-    Technologies used:
-        - Java 18
-        - JSQLParser
-        - JavaPoet
+== Technologies used:
+- Java 18
+- JSQLParser
+- JavaPoet
 
-### Usages Instructions
+== Usages Instructions
 
-    1. Run JavaServiceGenerator.java to generate spring boot application. Application will be generated in the /tmp/generated directory. Next steps (2 and 3) help you to start generated spring boot application.
-    3. cd /tmp/generated
-    4. mvn clean package spring-boot:run
+. Run JavaServiceGenerator.java to generate spring boot application. Application will be generated in the /tmp/generated directory. Next steps (2 and 3) help you to start generated spring boot application.
+. cd /tmp/generated
+. mvn clean package spring-boot:run
 
 For now SQL and DDL is hardcoded in JavaServiceGenerator.java, we can change SQL and DDL in JavaServiceGenerator.java to test different scenarios.
 
-### Roadmap to finish MVP
+== Roadmap to finish MVP
 
-#### List of tasks given in order of priority:
+=== List of tasks given in order of priority:
 
-1. Read multiple table SQL and Map Select column with corresponding table so that we can find out column data type accurately. DONE
+. Read multiple table SQL and Map Select column with corresponding table so that we can find out column data type accurately. DONE
 
-2. Add support to generate DTO for multiple tables, need to create a method that takes SQL and ddls and can provide column name vs datatype mapping. DONE
+. Add support to generate DTO for multiple tables, need to create a method that takes SQL and ddls and can provide column name vs datatype mapping. DONE
 
-3. Generate Spring boot application classes
+. Generate Spring boot application classes
 
     directory structure     DONE
     pom.xml                 DONE
@@ -33,47 +33,47 @@ For now SQL and DDL is hardcoded in JavaServiceGenerator.java, we can change SQL
     DAO with spring-jdbc.   DONE
     Check Rest Annotations. DONE
 
-4. Add support for SQL having as clause in select columns. DONE.
+. Add support for SQL having as clause in select columns. DONE.
 
-5. plainSelect.getWhere(), plainSelect.getJoins() out of these wherever we have literals (city = 'Jaipur') use that to pass as parameter to rest API and SQL. DONE
+. plainSelect.getWhere(), plainSelect.getJoins() out of these wherever we have literals (city = 'Jaipur') use that to pass as parameter to rest API and SQL. DONE
 
-6. Write code to convert Java type from SQL type, for this update class SQLServerDataTypeEnum. Added basic types need to add additional data types. Need to add tests along with new types, may be a DDL and SQL having all these types. WIP
+. Write code to convert Java type from SQL type, for this update class SQLServerDataTypeEnum. Added basic types need to add additional data types. Need to add tests along with new types, may be a DDL and SQL having all these types. WIP
 
-7. Table ddl should be defined in a file and when application starts it should create a map of table name vs CreateTable object. TODO
+. Table ddl should be defined in a file and when application starts it should create a map of table name vs CreateTable object. TODO
 
-8. Test SubQuery that is treated as table with alias. TODO
+. Test SubQuery that is treated as table with alias. TODO
 
-9. Schema name is ignored in ReadDDL class so Table names should be unique across all schemas. This is a limitation right now, should be fixed. TODO
+. Schema name is ignored in ReadDDL class so Table names should be unique across all schemas. This is a limitation right now, should be fixed. TODO
 
-10. Add support for grouping by and having aggregate functions in select clause. TODO
+. Add support for grouping by and having aggregate functions in select clause. TODO
 
-11. Decide on license type(probably apache 2) and add it in repository. TODO
+. Decide on license type(probably apache 2) and add it in repository. TODO
 
-12. Usages of code like `selectItem.getASTNode()` is not good idea replace it with better alternative, like `selectItem.getExpression()` and depending upon type of expression, call appropriate method to retrieve column/alias/table name. DONE
+. Usages of code like `selectItem.getASTNode()` is not good idea replace it with better alternative, like `selectItem.getExpression()` and depending upon type of expression, call appropriate method to retrieve column/alias/table name. DONE
 
-13. Check and document why SQL and DDL converted in upper case. If it makes sense, SQL and DDL should be converted in upper case as first step. Verified, this is not required now, removing case conversion. DONE
+. Check and document why SQL and DDL converted in upper case. If it makes sense, SQL and DDL should be converted in upper case as first step. Verified, this is not required now, removing case conversion. DONE
 
 
-13. Remove sysout and add logger (Slf4j). TODO
+. Remove sysout and add logger (Slf4j). TODO
 
-#### Low Priority tasks:
+=== Low Priority tasks:
 
-1. Implement JSQLParser as per recommendation, find if current approach has any limitations. WIP
-2. Add support for SQL select columns having as clause. DONE
+. Implement JSQLParser as per recommendation, find if current approach has any limitations. WIP
+. Add support for SQL select columns having as clause. DONE
 
-#### List of tasks for new contributors:
+=== List of tasks for new contributors:
 
 See https://github.com/users/Vipin-Sharma/projects/1
 
-#### Project specific code conventions:
+=== Project specific code conventions:
 TODO
 
-### Benefits
+== Benefits
 
-1. Boost Dev Productivity #nocode.
-2. Reduce time spent on writing code.
-3. Reduce time spent on writing tests.
-4. Reduce time spent on writing documentation.
-5. Reduce time spent on writing code review.
-6. Bug free code, no time wasted on bug fixing. Study shows that debugging take more time than writing code.
+. Boost Dev Productivity #nocode.
+. Reduce time spent on writing code.
+. Reduce time spent on writing tests.
+. Reduce time spent on writing documentation.
+. Reduce time spent on writing code review.
+. Bug free code, no time wasted on bug fixing. Study shows that debugging take more time than writing code.
 
