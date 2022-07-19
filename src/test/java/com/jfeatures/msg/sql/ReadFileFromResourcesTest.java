@@ -13,7 +13,7 @@ class ReadFileFromResourcesTest {
     @Test
     void readDDLsFromFile() throws IOException, URISyntaxException, JSQLParserException
     {
-        Map<String, String> stringStringMap = ReadFileFromResources.readDDLsFromFile("/sakila_ddls_for_test.txt");
+        Map<String, String> stringStringMap = ReadFileFromResources.readDDLsFromFile("/ddls_for_test.txt");
         stringStringMap.forEach((key, value) -> System.out.println(key + ": " + value));
     }
 }

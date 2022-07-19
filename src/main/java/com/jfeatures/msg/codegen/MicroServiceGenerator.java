@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-public class JavaServiceGenerator {
+public class MicroServiceGenerator {
 
     private static final String SRC = "src";
     private static final String MAIN = "main";
@@ -79,7 +79,7 @@ public class JavaServiceGenerator {
                 + File.separator + RESOURCES
                 + File.separator + "application.properties", "application_properties_file.txt");
 
-        log.info("Generated Java files in {}", directoryNameWhereCodeWillBeGenerated);
+        log.info("Generated spring boot application is available at: {}", directoryNameWhereCodeWillBeGenerated);
     }
 
     private static ArrayList<DBColumn> getPredicateHavingLiterals(String sql, Map<String, String> ddlPerTableName) throws JSQLParserException
@@ -96,7 +96,7 @@ public class JavaServiceGenerator {
     private static void writeFileFromResources(String pathToGenerateFile, String nameOfFileFromResourcesDir) throws IOException
     {
         Path pomFilePath = Paths.get(pathToGenerateFile);
-        InputStream inputStream = JavaServiceGenerator.class.getClassLoader().getResourceAsStream(nameOfFileFromResourcesDir);
+        InputStream inputStream = MicroServiceGenerator.class.getClassLoader().getResourceAsStream(nameOfFileFromResourcesDir);
         assert inputStream != null;
         Files.write(pomFilePath, inputStream.readAllBytes());
     }
@@ -123,6 +123,6 @@ public class JavaServiceGenerator {
     }
 
     private static Map<String, String> getDdlPerTable() throws IOException, URISyntaxException, JSQLParserException {
-        return ReadFileFromResources.readDDLsFromFile("/sakila_ddls_for_test.txt");
+        return ReadFileFromResources.readDDLsFromFile("/ddls_for_test.txt");
     }
 }
