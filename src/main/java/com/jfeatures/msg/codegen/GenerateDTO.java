@@ -6,6 +6,7 @@ import com.jfeatures.msg.sql.MsgSqlParser;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
+import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 import lombok.Builder;
 import lombok.Value;
@@ -34,20 +35,43 @@ public class GenerateDTO {
 
         List<FieldSpec> fieldSpecList = generateFieldSpecsForColumnDefinition(columnNameToTypeMapping);
 
-        TypeSpec dao = TypeSpec.classBuilder(businessPurposeOfSQL + "DTO").
-                addModifiers(Modifier.PUBLIC).
-                addFields(fieldSpecList).
-                addAnnotation(AnnotationSpec.builder(Builder.class).addMember("builderClassName", "$S", "Builder").build()).
-                addAnnotation(AnnotationSpec.builder(Value.class).build()).
-                addAnnotation(AnnotationSpec.builder(Jacksonized.class).build()).
-                build();
+        TypeSpec dto = getDto(businessPurposeOfSQL, columnNameToTypeMapping, fieldSpecList);
 
-        JavaFile javaFile = JavaFile.builder(NameUtil.getPackageName(businessPurposeOfSQL, "dto"), dao)
+        JavaFile javaFile = JavaFile.builder(NameUtil.getPackageName(businessPurposeOfSQL, "dto"), dto)
                 .build();
 
         javaFile.writeTo(System.out);
 
         return javaFile;
+    }
+
+    private static TypeSpec getDto(String businessPurposeOfSQL, Map<TableColumn, ColumnDefinition> columnNameToTypeMapping, List<FieldSpec> fieldSpecList) {
+
+        TypeSpec dto;
+        if(fieldSpecList.size() <= 255)
+        {
+            dto = TypeSpec.classBuilder(businessPurposeOfSQL + "DTO").
+                    addModifiers(Modifier.PUBLIC).
+                    addFields(fieldSpecList).
+                    addAnnotation(AnnotationSpec.builder(Builder.class).addMember("builderClassName", "$S", "Builder").build()).
+                    addAnnotation(AnnotationSpec.builder(Value.class).build()).
+                    addAnnotation(AnnotationSpec.builder(Jacksonized.class).build()).
+                    build();
+        }
+        else
+        {
+            List<MethodSpec> methodSpecList = generateMethodSpecsForColumnDefinition(columnNameToTypeMapping);
+            MethodSpec constructorSpec = generateConstructorSpec(columnNameToTypeMapping);
+
+            dto = TypeSpec.classBuilder(businessPurposeOfSQL + "DTO").
+                    addModifiers(Modifier.PUBLIC, Modifier.FINAL).
+                    addFields(fieldSpecList).
+                    addMethods(methodSpecList).
+                    addMethod(constructorSpec).
+                    build();
+        }
+
+        return dto;
     }
 
     private static List<FieldSpec> generateFieldSpecsForColumnDefinition(Map<TableColumn, ColumnDefinition> columnNameToTypeMapping) {
@@ -61,5 +85,36 @@ public class GenerateDTO {
         }
         return fieldSpecList;
     }
+
+    private static MethodSpec generateConstructorSpec(Map<TableColumn, ColumnDefinition> columnNameToTypeMapping) {
+        return MethodSpec.constructorBuilder()
+                .addModifiers(Modifier.PUBLIC)
+                .build();
+    }
+
+    private static List<MethodSpec> generateMethodSpecsForColumnDefinition(Map<TableColumn, ColumnDefinition> columnNameToTypeMapping) {
+        ArrayList<MethodSpec> methodSpecList = new ArrayList<>();
+
+        for (TableColumn tableColumn : columnNameToTypeMapping.keySet()) {
+            MethodSpec methodSpec = MethodSpec.methodBuilder("get" + NameUtil.getFieldNameForDTO(tableColumn))
+                    .addModifiers(Modifier.PUBLIC)
+                    .returns(getClassForType(columnNameToTypeMapping.get(tableColumn).getColDataType().getDataType()))
+                    .addStatement("return $L", NameUtil.getFieldNameForDTO(tableColumn))
+                    .build();
+            methodSpecList.add(methodSpec);
+        }
+
+        for (TableColumn tableColumn : columnNameToTypeMapping.keySet()) {
+            MethodSpec methodSpec = MethodSpec.methodBuilder("set" + NameUtil.getFieldNameForDTO(tableColumn))
+                    .addModifiers(Modifier.PUBLIC)
+                    .addParameter(getClassForType(columnNameToTypeMapping.get(tableColumn).getColDataType().getDataType()), NameUtil.getFieldNameForDTO(tableColumn))
+                    .addStatement("this.", NameUtil.getFieldNameForDTO(tableColumn) + " = " + NameUtil.getFieldNameForDTO(tableColumn))
+                    .build();
+            methodSpecList.add(methodSpec);
+        }
+
+        return methodSpecList;
+    }
+
 
 }

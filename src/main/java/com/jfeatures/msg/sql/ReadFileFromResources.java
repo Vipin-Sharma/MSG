@@ -39,7 +39,12 @@ public class ReadFileFromResources {
                 tableName = tableName.trim();
                 tableName = tableName.replace("[", "");
                 tableName = tableName.replace("]", "");
-                ddlPerTableName.put(tableName, ddl.toString());
+
+                String ddlString = ddl.toString();
+                ddlString = ddlString.replace("[", "");
+                ddlString = ddlString.replace("]", "");
+
+                ddlPerTableName.put(tableName, ddlString);
                 ddl = new StringBuilder();
             }
             else

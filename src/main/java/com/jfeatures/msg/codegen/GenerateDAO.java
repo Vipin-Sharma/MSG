@@ -32,8 +32,7 @@ import java.util.Map;
 
 @Slf4j
 public class GenerateDAO {
-    public static JavaFile createDao(String businessPurposeOfSQL, List<DBColumn> predicateHavingLiterals, String sql, Map<String, String> ddlPerTableName) throws Exception
-    {
+    public static JavaFile createDao(String businessPurposeOfSQL, List<DBColumn> predicateHavingLiterals, String sql, Map<String, String> ddlPerTableName) throws Exception {
 
         String jdbcTemplateInstanceFieldName = "namedParameterJdbcTemplate";
 
@@ -71,27 +70,52 @@ public class GenerateDAO {
                 .build();
 
         Map<TableColumn, DBColumn> selectColumnDetailsToGetDataFromResultSet = MsgSqlParser.getDetailsOfColumnsUsedInSelect(sql, ddlPerTableName);
+        String codeToSetColumnValuesFromResultSet = "";
 
-        String codeToSetColumnValuesFromResultSet = ((ClassName) dtoTypeName).simpleName() + " dto = Builder.";
-        for (Map.Entry<TableColumn, DBColumn> entry : selectColumnDetailsToGetDataFromResultSet.entrySet())
-        {
-            TableColumn tableColumn = entry.getKey();
-            DBColumn dbColumn = entry.getValue();
-            String fieldName = NameUtil.getFieldNameForDTO(tableColumn);
-            codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet.concat(
-                    fieldName
-                    + "(rs.get" +
-                            dbColumn.jdbcType()
-                    + "(\""
-                    + (tableColumn.columnAliasIfAvailable() != null ? tableColumn.columnAliasIfAvailable() : tableColumn.columnName())
-                    + "\"))."
-                    + "\n"
-            );
+        if (selectColumnDetailsToGetDataFromResultSet.size() <= 255) {
+            TypeName builderTypeForDto = getBuilderType(dtoTypeName);
+            codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet.concat(((ClassName) builderTypeForDto).canonicalName() + " "
+                    + ((ClassName) builderTypeForDto).simpleName() + " = " + ((ClassName) dtoTypeName).canonicalName() + ".builder();\n");
+            codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet.concat(((ClassName) dtoTypeName).simpleName() + " dto = Builder.");
+            for (Map.Entry<TableColumn, DBColumn> entry : selectColumnDetailsToGetDataFromResultSet.entrySet()) {
+                TableColumn tableColumn = entry.getKey();
+                DBColumn dbColumn = entry.getValue();
+                String fieldName = NameUtil.getFieldNameForDTO(tableColumn);
+                codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet.concat(
+                        fieldName
+                                + "(rs.get" +
+                                dbColumn.jdbcType()
+                                + "(\""
+                                + (tableColumn.columnAliasIfAvailable() != null ? tableColumn.columnAliasIfAvailable() : tableColumn.columnName())
+                                + "\"))."
+                                + "\n"
+                );
+            }
+
+            codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet.concat("build();\n");
         }
-        codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet.concat("build();\n");
+        else {
+            codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet.concat( ((ClassName) dtoTypeName).canonicalName() + " dto = new " + ((ClassName) dtoTypeName).canonicalName() + "();\n");
+
+            for (Map.Entry<TableColumn, DBColumn> entry : selectColumnDetailsToGetDataFromResultSet.entrySet()) {
+                TableColumn tableColumn = entry.getKey();
+                DBColumn dbColumn = entry.getValue();
+                String fieldName = NameUtil.getFieldNameForDTO(tableColumn);
+                codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet.concat(
+                        "dto.set"
+                                + fieldName
+                                + "(rs.get" +
+                                dbColumn.jdbcType()
+                                + "(\""
+                                + (tableColumn.columnAliasIfAvailable() != null ? tableColumn.columnAliasIfAvailable() : tableColumn.columnName())
+                                + "\"))."
+                                + "\n"
+                );
+            }
+
+        }
         codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet.concat("result.add(dto)");
 
-        TypeName builderTypeForDto = getBuilderType(dtoTypeName);
         TypeSpec rowCallbackHandler = TypeSpec
                 .anonymousClassBuilder("")
                 .addSuperinterface(RowCallbackHandler.class)
@@ -100,7 +124,6 @@ public class GenerateDAO {
                         .addModifiers(Modifier.PUBLIC)
                         .addParameter(ResultSet.class, "rs")
                         .addException(SQLException.class)
-                        .addStatement("$T " + ((ClassName) builderTypeForDto).simpleName() + " = $T.builder()", builderTypeForDto, dtoTypeName)
                         .addStatement(codeToSetColumnValuesFromResultSet)
                         .build())
                 .build();
