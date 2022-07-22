@@ -11,7 +11,15 @@ This is a tool for generating microservices. You need to provide SQL and DDL inf
 
 === Provide input to the program as follows:
 
-    . Add your SQL into resources directory file name: sql_hardcoded_literal.sql
+    . Add your SQL into resources directory file name: sql_hardcoded_literal.sql.
+Sometimes we need to hardcode some values in SQL, for that we can use syntax like:
+        ```sql
+        SELECT * FROM table WHERE country = 'HARDCODE_AS_STRING{India}'
+        and customer_id = 'HARDCODE_AS_{300}'
+        and first_name = 'John'
+        ```
+    Here we have hardcoded country as India, customer_id as 300.
+    first_name will be passed as parameter to the rest API. first_name will be replaced with first_name = ? in SQL.
     . Add your DDLs into resources directory file name: ddls_for_test.txt
     . In java file name: MicroserviceGenerator.java update variable businessPurposeOfSQL with the business purpose of API that you want to generate.
 
