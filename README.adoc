@@ -23,6 +23,8 @@ Sometimes we need to hardcode some values in SQL, for that we can use syntax lik
     . Add your DDLs into resources directory file name: ddls_for_test.txt
     . In java file name: MicroserviceGenerator.java update variable businessPurposeOfSQL with the business purpose of API that you want to generate.
 
+_*In case you want to try this out you can use existing SQL and DDLs, no need to make any changes anywhere, just run the program MicroserviceGenerator.java and generate Spring boot microservice, this is explained in next section. To test the generated Rest API you need database which can be setup from instruction given at .dev/README.md*_
+
 === Generating the microservice application:
 . Run MicroServiceGenerator.java to generate spring boot application. Application will be generated in the user home directory.
 
@@ -44,11 +46,11 @@ Sometimes we need to hardcode some values in SQL, for that we can use syntax lik
 
 === List of tasks given in order of priority:
 
-. Read multiple table SQL and Map Select column with corresponding table so that we can find out column data type accurately. DONE
+. DONE [.line-through]#Read multiple table SQL and Map Select column with corresponding table so that we can find out column data type accurately.#
 
-. Add support to generate DTO for multiple tables, need to create a method that takes SQL and ddls and can provide column name vs datatype mapping. DONE
+. DONE [.line-through]#Add support to generate DTO for multiple tables, need to create a method that takes SQL and ddls and can provide column name vs datatype mapping. #
 
-. Generate Spring boot application classes
+. DONE [.line-through]#Generate Spring boot application classes#
 
     directory structure     DONE
     pom.xml                 DONE
@@ -58,28 +60,30 @@ Sometimes we need to hardcode some values in SQL, for that we can use syntax lik
     DAO with spring-jdbc.   DONE
     Check Rest Annotations. DONE
 
-. Add support for SQL having as clause in select columns. DONE.
+. DONE [.line-through]#Add support for SQL having as clause in select columns.#
 
-. plainSelect.getWhere(), plainSelect.getJoins() out of these wherever we have literals (city = 'Jaipur') use that to pass as parameter to rest API and SQL. DONE
+. DONE [.line-through]#plainSelect.getWhere(), plainSelect.getJoins() out of these wherever we have literals (city = 'Jaipur') use that to pass as parameter to rest API and SQL.#
 
-. Write code to convert Java type from SQL type, for this update class SQLServerDataTypeEnum. Added basic types need to add additional data types. Need to add tests along with new types, may be a DDL and SQL having all these types. WIP
+. WIP Write code to convert Java type from SQL type, for this update class SQLServerDataTypeEnum. Added basic types need to add additional data types. Need to add tests along with new types, may be a DDL and SQL having all these types.
 
-. Table ddl should be defined in a file and when application starts it should create a map of table name vs CreateTable object. TODO
+. DONE [.line-through]#Table ddl should be defined in a file and when application starts it should create a map of table name vs CreateTable object.#
 
-. Test SubQuery that is treated as table with alias. TODO
+. TODO Test SubQuery that is treated as table with alias.
 
-. Schema name is ignored in ReadDDL class so Table names should be unique across all schemas. This is a limitation right now, should be fixed. TODO
+. TODO Add support for grouping by and having aggregate functions in select clause.
 
-. Add support for grouping by and having aggregate functions in select clause. TODO
+. [.line-through]#Decide on license type(probably apache 2) and add it in repository.#
 
-. Decide on license type(probably apache 2) and add it in repository. TODO
+. DONE [.line-through]#Usages of code like `selectItem.getASTNode()` is not good idea replace it with better alternative, like `selectItem.getExpression()` and depending upon type of expression, call appropriate method to retrieve column/alias/table name.#
 
-. Usages of code like `selectItem.getASTNode()` is not good idea replace it with better alternative, like `selectItem.getExpression()` and depending upon type of expression, call appropriate method to retrieve column/alias/table name. DONE
+. DONE [.line-through]#Check and document why SQL and DDL converted in upper case. If it makes sense, SQL and DDL should be converted in upper case as first step. Verified, this is not required now, removing case conversion.#
 
-. Check and document why SQL and DDL converted in upper case. If it makes sense, SQL and DDL should be converted in upper case as first step. Verified, this is not required now, removing case conversion. DONE
+. TODO Remove sysout and add logger (Slf4j).
 
+=== Limitations:
 
-. Remove sysout and add logger (Slf4j). TODO
+. TODO: Schema name is ignored in ReadDDL class so Table names should be unique across all schemas. This is a limitation right now, should be fixed.
+. TODO: Table name is case-sensitive right now, ddl file and SQL should have same case, should be fixed.
 
 === Low Priority tasks:
 
