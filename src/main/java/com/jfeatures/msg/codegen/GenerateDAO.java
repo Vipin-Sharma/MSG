@@ -108,7 +108,7 @@ public class GenerateDAO {
                                 dbColumn.jdbcType()
                                 + "(\""
                                 + (tableColumn.columnAliasIfAvailable() != null ? tableColumn.columnAliasIfAvailable() : tableColumn.columnName())
-                                + "\"))."
+                                + "\"));"
                                 + "\n"
                 );
             }

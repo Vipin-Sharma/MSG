@@ -61,7 +61,7 @@ public class GenerateDTO {
         else
         {
             List<MethodSpec> methodSpecList = generateMethodSpecsForColumnDefinition(columnNameToTypeMapping);
-            MethodSpec constructorSpec = generateConstructorSpec(columnNameToTypeMapping);
+            MethodSpec constructorSpec = generateConstructorSpec();
 
             dto = TypeSpec.classBuilder(businessPurposeOfSQL + "DTO").
                     addModifiers(Modifier.PUBLIC, Modifier.FINAL).
@@ -86,7 +86,7 @@ public class GenerateDTO {
         return fieldSpecList;
     }
 
-    private static MethodSpec generateConstructorSpec(Map<TableColumn, ColumnDefinition> columnNameToTypeMapping) {
+    private static MethodSpec generateConstructorSpec() {
         return MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
                 .build();
@@ -108,7 +108,7 @@ public class GenerateDTO {
             MethodSpec methodSpec = MethodSpec.methodBuilder("set" + NameUtil.getFieldNameForDTO(tableColumn))
                     .addModifiers(Modifier.PUBLIC)
                     .addParameter(getClassForType(columnNameToTypeMapping.get(tableColumn).getColDataType().getDataType()), NameUtil.getFieldNameForDTO(tableColumn))
-                    .addStatement("this.", NameUtil.getFieldNameForDTO(tableColumn) + " = " + NameUtil.getFieldNameForDTO(tableColumn))
+                    .addStatement("this." + NameUtil.getFieldNameForDTO(tableColumn) + " = " + NameUtil.getFieldNameForDTO(tableColumn))
                     .build();
             methodSpecList.add(methodSpec);
         }
