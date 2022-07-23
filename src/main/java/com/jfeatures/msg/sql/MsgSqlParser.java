@@ -205,7 +205,7 @@ public class MsgSqlParser {
         if(joinList ==null || joinList.isEmpty()) {
             return Collections.emptyList();
         }
-        joinList.forEach(System.out::println);
+        joinList.forEach( joinItem -> log.info(joinItem.toString()));
 
         joinList.forEach(join ->
         {

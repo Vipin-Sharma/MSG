@@ -68,7 +68,7 @@ _*In case you want to try this out you can use existing SQL and DDLs, no need to
 
 . DONE +++<del>+++Table ddl should be defined in a file and when application starts it should create a map of table name vs CreateTable object.+++<del>+++
 
-. TODO Test SubQuery that is treated as table with alias.
+. DONE +++<del>+++Test SubQuery that is treated as table with alias.+++<del>+++
 
 . TODO Add support for grouping by and having aggregate functions in select clause.
 
