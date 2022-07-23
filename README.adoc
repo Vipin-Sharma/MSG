@@ -41,41 +41,6 @@ _*In case you want to try this out you can use existing SQL and DDLs, no need to
 . cd /home/<user>/<project-name>
 . mvn clean package spring-boot:run
 
-
-== Roadmap to finish MVP
-
-=== List of tasks given in order of priority:
-
-. DONE +++<del>+++Read multiple table SQL and Map Select column with corresponding table so that we can find out column data type accurately.+++<del>+++
-
-. DONE +++<del>+++Add support to generate DTO for multiple tables, need to create a method that takes SQL and ddls and can provide column name vs datatype mapping. +++<del>+++
-
-. DONE +++<del>+++Generate Spring boot application classes+++<del>+++
-
-    directory structure     DONE
-    pom.xml                 DONE
-    SpringBootApplication.  DONE
-    Controller              DONE
-    Controller              DONE
-    DAO with spring-jdbc.   DONE
-    Check Rest Annotations. DONE
-
-. DONE +++<del>+++Add support for SQL having as clause in select columns.+++<del>+++
-
-. DONE +++<del>+++plainSelect.getWhere(), plainSelect.getJoins() out of these wherever we have literals (city = 'Jaipur') use that to pass as parameter to rest API and SQL.+++<del>+++
-
-. DONE +++<del>+++Table ddl should be defined in a file and when application starts it should create a map of table name vs CreateTable object.+++<del>+++
-
-. DONE +++<del>+++Test SubQuery that is treated as table with alias.+++<del>+++
-
-. DONE +++<del>+++Decide on license type(probably apache 2) and add it in repository.+++<del>+++
-
-. DONE +++<del>+++Usages of code like `selectItem.getASTNode()` is not good idea replace it with better alternative, like `selectItem.getExpression()` and depending upon type of expression, call appropriate method to retrieve column/alias/table name.+++<del>+++
-
-. DONE +++<del>+++Check and document why SQL and DDL converted in upper case. If it makes sense, SQL and DDL should be converted in upper case as first step. Verified, this is not required now, removing case conversion.+++<del>+++
-
-. DONE +++<del>+++Remove sysout and add logger (Slf4j).+++<del>+++
-
 === Limitations:
 
 . TODO: Schema name is ignored in ReadDDL class so Table names should be unique across all schemas. This is a limitation right now, should be fixed.
@@ -84,14 +49,9 @@ _*In case you want to try this out you can use existing SQL and DDLs, no need to
 . WIP Need to add support for all data types and write tests.
 . TODO This is tested against MS SQL Server, need to test with other databases.
 
-=== Low Priority tasks:
+=== Here is the list of features that new contributor can help:
 
-. Implement JSQLParser as per recommendation, find if current approach has any limitations. WIP
-. Add support for SQL select columns having as clause. DONE
-
-=== List of tasks for new contributors:
-
-See https://github.com/users/Vipin-Sharma/projects/1
+https://github.com/users/Vipin-Sharma/projects/1[]
 
 === Project specific code conventions:
 TODO
