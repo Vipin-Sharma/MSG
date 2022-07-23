@@ -64,13 +64,9 @@ _*In case you want to try this out you can use existing SQL and DDLs, no need to
 
 . DONE +++<del>+++plainSelect.getWhere(), plainSelect.getJoins() out of these wherever we have literals (city = 'Jaipur') use that to pass as parameter to rest API and SQL.+++<del>+++
 
-. WIP Write code to convert Java type from SQL type, for this update class SQLServerDataTypeEnum. Added basic types need to add additional data types. Need to add tests along with new types, may be a DDL and SQL having all these types.
-
 . DONE +++<del>+++Table ddl should be defined in a file and when application starts it should create a map of table name vs CreateTable object.+++<del>+++
 
 . DONE +++<del>+++Test SubQuery that is treated as table with alias.+++<del>+++
-
-. TODO Add support for grouping by and having aggregate functions in select clause.
 
 . DONE +++<del>+++Decide on license type(probably apache 2) and add it in repository.+++<del>+++
 
@@ -84,6 +80,9 @@ _*In case you want to try this out you can use existing SQL and DDLs, no need to
 
 . TODO: Schema name is ignored in ReadDDL class so Table names should be unique across all schemas. This is a limitation right now, should be fixed.
 . TODO: Table name is case-sensitive right now, ddl file and SQL should have same case, should be fixed.
+. TODO Add support for aggregate functions in select clause is not available.
+. WIP Need to add support for all data types and write tests.
+. TODO This is tested against MS SQL Server, need to test with other databases.
 
 === Low Priority tasks:
 
