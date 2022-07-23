@@ -72,13 +72,13 @@ _*In case you want to try this out you can use existing SQL and DDLs, no need to
 
 . TODO Add support for grouping by and having aggregate functions in select clause.
 
-. +++<del>+++Decide on license type(probably apache 2) and add it in repository.+++<del>+++
+. DONE +++<del>+++Decide on license type(probably apache 2) and add it in repository.+++<del>+++
 
 . DONE +++<del>+++Usages of code like `selectItem.getASTNode()` is not good idea replace it with better alternative, like `selectItem.getExpression()` and depending upon type of expression, call appropriate method to retrieve column/alias/table name.+++<del>+++
 
 . DONE +++<del>+++Check and document why SQL and DDL converted in upper case. If it makes sense, SQL and DDL should be converted in upper case as first step. Verified, this is not required now, removing case conversion.+++<del>+++
 
-. TODO Remove sysout and add logger (Slf4j).
+. DONE +++<del>+++Remove sysout and add logger (Slf4j).+++<del>+++
 
 === Limitations:
 
