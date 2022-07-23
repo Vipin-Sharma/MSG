@@ -46,11 +46,11 @@ _*In case you want to try this out you can use existing SQL and DDLs, no need to
 
 === List of tasks given in order of priority:
 
-. DONE [.line-through]#Read multiple table SQL and Map Select column with corresponding table so that we can find out column data type accurately.#
+. DONE +++<del>+++Read multiple table SQL and Map Select column with corresponding table so that we can find out column data type accurately.+++<del>+++
 
-. DONE [.line-through]#Add support to generate DTO for multiple tables, need to create a method that takes SQL and ddls and can provide column name vs datatype mapping. #
+. DONE +++<del>+++Add support to generate DTO for multiple tables, need to create a method that takes SQL and ddls and can provide column name vs datatype mapping. +++<del>+++
 
-. DONE [.line-through]#Generate Spring boot application classes#
+. DONE +++<del>+++Generate Spring boot application classes+++<del>+++
 
     directory structure     DONE
     pom.xml                 DONE
@@ -60,23 +60,23 @@ _*In case you want to try this out you can use existing SQL and DDLs, no need to
     DAO with spring-jdbc.   DONE
     Check Rest Annotations. DONE
 
-. DONE [.line-through]#Add support for SQL having as clause in select columns.#
+. DONE +++<del>+++Add support for SQL having as clause in select columns.+++<del>+++
 
-. DONE [.line-through]#plainSelect.getWhere(), plainSelect.getJoins() out of these wherever we have literals (city = 'Jaipur') use that to pass as parameter to rest API and SQL.#
+. DONE +++<del>+++plainSelect.getWhere(), plainSelect.getJoins() out of these wherever we have literals (city = 'Jaipur') use that to pass as parameter to rest API and SQL.+++<del>+++
 
 . WIP Write code to convert Java type from SQL type, for this update class SQLServerDataTypeEnum. Added basic types need to add additional data types. Need to add tests along with new types, may be a DDL and SQL having all these types.
 
-. DONE [.line-through]#Table ddl should be defined in a file and when application starts it should create a map of table name vs CreateTable object.#
+. DONE +++<del>+++Table ddl should be defined in a file and when application starts it should create a map of table name vs CreateTable object.+++<del>+++
 
 . TODO Test SubQuery that is treated as table with alias.
 
 . TODO Add support for grouping by and having aggregate functions in select clause.
 
-. [.line-through]#Decide on license type(probably apache 2) and add it in repository.#
+. +++<del>+++Decide on license type(probably apache 2) and add it in repository.+++<del>+++
 
-. DONE [.line-through]#Usages of code like `selectItem.getASTNode()` is not good idea replace it with better alternative, like `selectItem.getExpression()` and depending upon type of expression, call appropriate method to retrieve column/alias/table name.#
+. DONE +++<del>+++Usages of code like `selectItem.getASTNode()` is not good idea replace it with better alternative, like `selectItem.getExpression()` and depending upon type of expression, call appropriate method to retrieve column/alias/table name.+++<del>+++
 
-. DONE [.line-through]#Check and document why SQL and DDL converted in upper case. If it makes sense, SQL and DDL should be converted in upper case as first step. Verified, this is not required now, removing case conversion.#
+. DONE +++<del>+++Check and document why SQL and DDL converted in upper case. If it makes sense, SQL and DDL should be converted in upper case as first step. Verified, this is not required now, removing case conversion.+++<del>+++
 
 . TODO Remove sysout and add logger (Slf4j).
 
