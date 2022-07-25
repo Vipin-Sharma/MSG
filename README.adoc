@@ -41,6 +41,8 @@ _*In case you want to try this out you can use existing SQL and DDLs, no need to
 . cd /home/<user>/<project-name>
 . mvn clean package spring-boot:run
 
+https://github.com/Vipin-Sharma/MSG/blob/master/src/main/resources/MSG_Intro.gif[Gif to show how to generate spring boot microservice]
+
 === Limitations:
 
 . TODO: Schema name is ignored in ReadDDL class so Table names should be unique across all schemas. This is a limitation right now, should be fixed.
