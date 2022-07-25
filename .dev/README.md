@@ -5,7 +5,7 @@ This is example of Microsoft SQL server in Docker (Linux) container, with initia
 # Running Database
 
 ## Build image
-To run the demo you just need to build the image (from root directory):
+To run the demo you just need to build the image (from .dev directory):
 ```
 docker build -t test-db .
 ```
