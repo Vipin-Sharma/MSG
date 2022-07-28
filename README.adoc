@@ -11,7 +11,7 @@ This is a tool for generating microservices. You need to provide SQL and DDL inf
 
 === Provide input to the program as follows:
 
-    . Add your SQL into resources directory file name: sql_hardcoded_literal.sql.
+    . Add your SQL into resources directory file name: sample_sql.sql.
 Sometimes we need to hardcode some values in SQL, for that we can use syntax like:
         ```sql
         SELECT * FROM table WHERE country = 'HARDCODE_AS_STRING{India}'
@@ -20,7 +20,7 @@ Sometimes we need to hardcode some values in SQL, for that we can use syntax lik
         ```
     Here we have hardcoded country as India, customer_id as 300.
     first_name will be passed as parameter to the rest API. first_name will be replaced with first_name = ? in SQL.
-    . Add your DDLs into resources directory file name: ddls_for_test.txt
+    . Add your DDLs into resources directory file name: sample_ddl.sql
     . In java file name: MicroserviceGenerator.java update variable businessPurposeOfSQL with the business purpose of API that you want to generate.
 
 _*In case you want to try this out you can use existing SQL and DDLs, no need to make any changes anywhere, just run the program MicroserviceGenerator.java and generate Spring boot microservice, this is explained in next section. To test the generated Rest API you need database which can be setup from instruction given at .dev/README.md*_

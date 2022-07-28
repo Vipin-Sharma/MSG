@@ -119,10 +119,10 @@ public class MicroServiceGenerator {
 
     private static String getSql() throws URISyntaxException
     {
-        return ReadFileFromResources.readFileFromResources("/sql_hardcoded_literal.sql");
+        return ReadFileFromResources.readFileFromResources("/sample_sql.sql");
     }
 
     private static Map<String, String> getDdlPerTable() throws IOException, URISyntaxException, JSQLParserException {
-        return ReadFileFromResources.readDDLsFromFile("/ddls_for_test.txt");
+        return ReadFileFromResources.readDDLsFromFile("/sample_ddl.sql");
     }
 }

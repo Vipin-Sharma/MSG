@@ -20,7 +20,7 @@ class ModifySQLTest
   @Test
   void modifySQLToUseNamedParameter() throws JSQLParserException, URISyntaxException
   {
-    String sql = ReadFileFromResources.readFileFromResources("/sql_hardcoded_literal.sql");
+    String sql = ReadFileFromResources.readFileFromResources("/sample_sql.sql");
     String modifiedSql = ModifySQL.modifySQLToUseNamedParameter(sql);
     System.out.println(modifiedSql);
   }
