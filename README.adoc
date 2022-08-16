@@ -45,11 +45,12 @@ https://github.com/Vipin-Sharma/MSG/blob/master/src/main/resources/MSG_Intro.gif
 
 === Limitations:
 
+. TODO This is tested against MS SQL Server, need to add support for other databases, it should be straightforward, just add files Similar to SQLServerDataTypeEnum for other databases and code should be able to understand DB type when we start the application to choose correct DB specific Enum class.
+
 . TODO: Schema name is ignored in ReadDDL class so Table names should be unique across all schemas. This is a limitation right now, should be fixed.
 . TODO: Table name is case-sensitive right now, ddl file and SQL should have same case, should be fixed.
 . TODO Add support for aggregate functions in select clause is not available.
 . WIP Need to add support for all data types and write tests.
-. TODO This is tested against MS SQL Server, need to test with other databases.
 
 === Here is the list of features that new contributor can help:
 

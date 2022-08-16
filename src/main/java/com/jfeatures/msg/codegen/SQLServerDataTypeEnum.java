@@ -15,28 +15,28 @@ public enum SQLServerDataTypeEnum {
     BIT("BIT", Boolean.class, "Boolean"),
     CHAR("CHAR", String.class, "String" ),
     DATE("DATE", java.sql.Date.class, "Date"),
-    DATETIME3("DATETIME3", java.sql.Timestamp.class, "Timestamp" ),
+    DATETIME("DATETIME", java.sql.Timestamp.class, "Timestamp" ),
     DATETIME2("DATETIME2", java.sql.Timestamp.class, "Timestamp" ),
-    //(datetimeoffset2, microsoft.sql.DateTimeOffset );
+    //DATETIMEOFFSET("DATETIMEOFFSET", microsoft.sql.DateTimeOffset.class, "microsoft.sql.Types.DATETIMEOFFSET" ),
     DECIMAL("DECIMAL", java.math.BigDecimal.class, "BigDecimal" ),
     INT("INT", Integer.class, "Int" ),
     FLOAT("FLOAT", Double.class, "Double" ),
-    /*(image, byte[] );*/
+    IMAGE("IMAGE", byte[].class, "Byte[]" ),
     MONEY("MONEY", java.math.BigDecimal.class, "BigDecimal" ),
     NCHAR("NCHAR", String.class, "String" ),
     NTEXT("NTEXT", String.class, "String" ),
     NUMERIC("NUMERIC", java.math.BigDecimal.class, "BigDecimal" ),
     NVARCHAR("NVARCHAR", String.class, "String"),
-    /*(nvarchar(max)   String );
-    (real, float );
-    (smalldatetime, java.sql.Timestamp );
-    (smallint, short );
-    (smallmoney, java.math.BigDecimal );*/
+    /*(nvarchar(max)   String );*/
+    REAL("REAL", Float.class, "Float" ),
+    SMALLDATETIME("SMALLDATETIME", java.sql.Timestamp.class, "Timestamp" ),
+    SMALLINT("SMALLINT", Integer.class, "Int" ),
+    SMALLMONEY("SMALLMONEY", java.math.BigDecimal.class, "BigDecimal" ),
     TEXT("TEXT", String.class, "String" ),
     TIME("TIME", java.sql.Time.class, "Time" ),
     TIMESTAMP("TIMESTAMP", java.sql.Timestamp.class, "Timestamp" ),
-    /*(tinyint, short );
-    (udt, byte[] );
+    TINYINT("TINYINT", Integer.class, "Int" ),
+    /*(udt, byte[] ),
     (uniqueidentifier, String );
     (varbinary, byte[] );
     (varbinar(max)   byte[] );*/
