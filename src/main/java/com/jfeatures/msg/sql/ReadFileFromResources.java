@@ -65,7 +65,7 @@ public class ReadFileFromResources {
     public static Map<String, Map<String, String>> readTableDetailsFromDatabase(String propertyFileName) throws IOException, ClassNotFoundException, SQLException {
         Properties properties = readPropertiesFromFile(propertyFileName);
 
-        String driverClassName = properties.getProperty("spring.datasource.driverClassName");
+        String driverClassName = properties.getProperty("spring.datasource.driver-class-name");
         Class.forName(driverClassName);
 
         Connection connection = DriverManager.getConnection(properties.getProperty("spring.datasource.url"), properties.getProperty("spring.datasource.username"), properties.getProperty("spring.datasource.password"));
