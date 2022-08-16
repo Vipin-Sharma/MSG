@@ -2,9 +2,7 @@ spring.datasource.url=jdbc:sqlserver://localhost:1433;databaseName=sakila;encryp
 spring.datasource.username=sa
 spring.datasource.password=Password@1
 spring.datasource.driverClassName=com.microsoft.sqlserver.jdbc.SQLServerDriver
-spring.logging.level=trace
+msg.currentSchema=dbo
+spring.logging.level=INFO
 spring.logging.log-path=logs/application.log
-spring.logging.log-stash.enabled=true
-spring.logging.org.springframework.jdbc.level=trace
-spring.logging.org.springframework.web.level=trace
-spring.logging=trace
+spring.logging.console.enabled=true
