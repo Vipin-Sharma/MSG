@@ -2,6 +2,7 @@ package com.jfeatures.msg.sql;
 
 import net.sf.jsqlparser.JSQLParserException;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -32,6 +33,7 @@ class ReadFileFromResourcesTest {
     }
 
     @Test
+    @Disabled("Need to use tescontainers for Database tests")
     void readDDLFromDatabaseWhenPassedValidConnectionShouldReturnDDL() throws IOException, ClassNotFoundException, SQLException {
         Map<String, Map<String, String>> tableDetailsFromDatabase = ReadFileFromResources.readTableDetailsFromDatabase("application_properties_file_for_tests.txt");
         Assertions.assertThat(tableDetailsFromDatabase.size()).isEqualTo(21);
