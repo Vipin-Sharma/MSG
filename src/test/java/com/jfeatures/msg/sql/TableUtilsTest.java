@@ -2,6 +2,7 @@ package com.jfeatures.msg.sql;
 
 import com.jfeatures.msg.codegen.domain.DBColumn;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -11,6 +12,7 @@ import java.util.Map;
 class TableUtilsTest {
 
     @Test
+    @Disabled("Need to use tescontainers for Database tests")
     void testGetColumnsPerTableNameShouldReturnCorrectResult() throws SQLException, IOException, ClassNotFoundException {
         Map<String, Map<String, DBColumn>> columnsPerTableName = TableUtils.getColumnsPerTableName("application_properties_file.txt");
         Assertions.assertThat(columnsPerTableName.size()).isEqualTo(21);
