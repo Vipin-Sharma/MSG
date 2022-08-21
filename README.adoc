@@ -1,4 +1,4 @@
-= MSG (Microservice Generator) image:https://sonarcloud.io/api/project_badges/measure?project=Vipin-Sharma_MSG&metric=alert_status["sonar status", link="https://sonarcloud.io/api/project_badges/measure?project=Vipin-Sharma_MSG&metric=alert_status"]
+= MSG (Microservice Generator) image:https://sonarcloud.io/api/project_badges/measure?project=Vipin-Sharma_MSG&metric=alert_status["sonar status", link="https://sonarcloud.io/api/project_badges/measure?project=Vipin-Sharma_MSG&metric=alert_status"] image:https://github.com/Vipin-Sharma/MSG/actions/workflows/maven.yml/badge.svg["build status", link="https://github.com/Vipin-Sharma/MSG/actions/workflows/maven.yml/badge.svg"]
 
 == Key tech used:
 - Java 18
