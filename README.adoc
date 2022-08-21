@@ -1,6 +1,4 @@
-= MSG (Microservice Generator)
-
-This is a tool for generating microservices. You need to provide SQL and DDL info, and it will generate Rest API that exposes data from SQL. It is a work in progress.
+= MSG (Microservice Generator) image:https://sonarcloud.io/api/project_badges/measure?project=Vipin-Sharma_MSG&metric=alert_status["sonar status", link="https://sonarcloud.io/api/project_badges/measure?project=Vipin-Sharma_MSG&metric=alert_status"]
 
 == Key tech used:
 - Java 18
