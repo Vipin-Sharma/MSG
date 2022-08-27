@@ -1,5 +1,6 @@
 package com.jfeatures.msg.sql;
 
+import lombok.extern.java.Log;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+@Log
 public class ReadFileFromResources {
     public static Map<String, String> readDDLsFromFile(String filePath) throws IOException, URISyntaxException, JSQLParserException {
 
@@ -108,7 +110,7 @@ public class ReadFileFromResources {
         try {
             fileContent = new String(Files.readAllBytes(path));
         } catch (IOException e) {
-            e.printStackTrace();
+            log.severe("Error reading file from resources" + e.getMessage());
         }
         return fileContent;
     }
