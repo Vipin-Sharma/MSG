@@ -6,8 +6,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.net.URISyntaxException;
-
 class ModifySQLTest
 {
   private static final String sql1 = """
@@ -18,9 +16,8 @@ class ModifySQLTest
             """;
 
   @Test
-  void modifySQLToUseNamedParameter() throws JSQLParserException, URISyntaxException
-  {
-    String sql = ReadFileFromResources.readFileFromResources("/sample_sql.sql");
+  void modifySQLToUseNamedParameter() throws Exception {
+    String sql = ReadFileFromResources.readFileFromResources("sample_sql.sql");
     String modifiedSql = ModifySQL.modifySQLToUseNamedParameter(sql);
     System.out.println(modifiedSql);
   }

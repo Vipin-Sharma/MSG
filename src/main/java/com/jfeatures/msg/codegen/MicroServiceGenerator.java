@@ -6,6 +6,8 @@ import com.jfeatures.msg.sql.ReadFileFromResources;
 import com.squareup.javapoet.JavaFile;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
+import picocli.CommandLine;
+import picocli.CommandLine.Option;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,9 +19,14 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+
+import static picocli.CommandLine.Command;
 
 @Slf4j
-public class MicroServiceGenerator {
+@Command(name = "MSG", mixinStandardHelpOptions = true, version = "MSG 1.0",
+        description = "Creates a microservice application.")
+public class MicroServiceGenerator implements Callable<Integer> {
 
     private static final String SRC = "src";
     private static final String MAIN = "main";
@@ -29,8 +36,16 @@ public class MicroServiceGenerator {
     private static final String JFEATURES = "jfeatures";
     private static final String RESOURCES = "resources";
 
-    public static void main(String[] args) throws Exception
-    {
+    @Option(names = {"-d", "--destination"}, description = "The destination directory of the generated application. Default value is \"user.home\" system property.")
+    private String destinationDirectory = System.getProperty("user.home");
+
+    public static void main(String... args) {
+        int exitCode = new CommandLine(new MicroServiceGenerator()).execute(args);
+        System.exit(exitCode);
+    }
+
+    @Override
+    public Integer call() throws Exception {
         String sql = getSql();
         Map<String, String> ddlPerTableName = getDdlPerTable();
         String businessPurposeOfSQL = "BusinessData";
@@ -43,8 +58,8 @@ public class MicroServiceGenerator {
         JavaFile controllerClass = GenerateController.createController(businessPurposeOfSQL, predicateHavingLiterals);
         JavaFile daoClass = GenerateDAO.createDao(businessPurposeOfSQL, predicateHavingLiterals, sql, ddlPerTableName);
 
-        String directoryNameWhereCodeWillBeGenerated = getCodeGenerationDirectory(businessPurposeOfSQL);
-        
+        String directoryNameWhereCodeWillBeGenerated = destinationDirectory + File.separator + businessPurposeOfSQL;
+
         Path srcPath = Paths.get( directoryNameWhereCodeWillBeGenerated
                 + File.separator + SRC
                 + File.separator + MAIN
@@ -80,6 +95,8 @@ public class MicroServiceGenerator {
                 + File.separator + "application.properties", "application_properties_file.txt");
 
         log.info("Generated spring boot application is available at: {}", directoryNameWhereCodeWillBeGenerated);
+
+        return 0;
     }
 
     private static ArrayList<DBColumn> getPredicateHavingLiterals(String sql, Map<String, String> ddlPerTableName) throws JSQLParserException
@@ -111,18 +128,12 @@ public class MicroServiceGenerator {
         Files.createDirectories(path);
     }
 
-    private static String getCodeGenerationDirectory(String businessPurposeOfSQL)
-    {
-        return System.getProperty("user.home")
-                + File.separator + businessPurposeOfSQL;
-    }
-
     private static String getSql() throws URISyntaxException
     {
-        return ReadFileFromResources.readFileFromResources("/sample_sql.sql");
+        return ReadFileFromResources.readFileFromResources("sample_sql.sql");
     }
 
-    private static Map<String, String> getDdlPerTable() throws IOException, URISyntaxException, JSQLParserException {
-        return ReadFileFromResources.readDDLsFromFile("/sample_ddl.sql");
+    private static Map<String, String> getDdlPerTable() throws IOException, JSQLParserException {
+        return ReadFileFromResources.readDDLsFromFile("sample_ddl.sql");
     }
 }

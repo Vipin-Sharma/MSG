@@ -1,12 +1,10 @@
 package com.jfeatures.msg.sql;
 
-import net.sf.jsqlparser.JSQLParserException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.Properties;
@@ -15,9 +13,8 @@ class ReadFileFromResourcesTest {
 
     //todo CreateTable ddlStatement = (CreateTable) CCJSqlParserUtil.parse(ddl.toString(), parser -> parser.withSquareBracketQuotation(true)); Adwentureworks_ddls_for_test throws error on this
     @Test
-    void readDDLsFromFile() throws IOException, URISyntaxException, JSQLParserException
-    {
-        Map<String, String> ddlStringPerDdlName = ReadFileFromResources.readDDLsFromFile("/sample_ddl_for_tests.sql");
+    void readDDLsFromFile() throws Exception {
+        Map<String, String> ddlStringPerDdlName = ReadFileFromResources.readDDLsFromFile("sample_ddl_for_tests.sql");
         Assertions.assertThat(ddlStringPerDdlName).hasSize(16);
         Assertions.assertThat(ddlStringPerDdlName.get("country"))
                 .isEqualTo("CREATE TABLE country (  country_id INT NOT NULL IDENTITY ,  country VARCHAR(50) NOT NULL,  last_update DATETIME);");
