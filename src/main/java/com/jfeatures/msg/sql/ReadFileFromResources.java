@@ -70,9 +70,10 @@ public class ReadFileFromResources {
         String driverClassName = properties.getProperty("spring.datasource.driver-class-name");
         Class.forName(driverClassName);
 
-        Connection connection = DriverManager.getConnection(properties.getProperty("spring.datasource.url"), properties.getProperty("spring.datasource.username"), properties.getProperty("spring.datasource.password"));
-
-        DatabaseMetaData databaseMetaData = connection.getMetaData();
+        DatabaseMetaData databaseMetaData;
+        try (Connection connection = DriverManager.getConnection(properties.getProperty("spring.datasource.url"), properties.getProperty("spring.datasource.username"), properties.getProperty("spring.datasource.password"))) {
+             databaseMetaData = connection.getMetaData();
+        }
         ResultSet metaDataColumns = databaseMetaData.getColumns(null, properties.getProperty("msg.currentSchema"), "%", "%");
         Map<String, Map<String, String>> ddlPerTableName = new HashMap<>();
         while (metaDataColumns.next()) {

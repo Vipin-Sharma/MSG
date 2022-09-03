@@ -96,9 +96,10 @@ public class MicroServiceGenerator {
     private static void writeFileFromResources(String pathToGenerateFile, String nameOfFileFromResourcesDir) throws IOException
     {
         Path pomFilePath = Paths.get(pathToGenerateFile);
-        InputStream inputStream = MicroServiceGenerator.class.getClassLoader().getResourceAsStream(nameOfFileFromResourcesDir);
-        assert inputStream != null;
-        Files.write(pomFilePath, inputStream.readAllBytes());
+        try (InputStream inputStream = MicroServiceGenerator.class.getClassLoader().getResourceAsStream(nameOfFileFromResourcesDir)) {
+            assert inputStream != null;
+            Files.write(pomFilePath, inputStream.readAllBytes());
+        }
     }
 
     private static void writeJavaFile(JavaFile javaFile, Path srcPath) throws IOException

@@ -113,15 +113,13 @@ public class ModifySQL
       joins.forEach(join -> {
         Collection<Expression> onExpressions = join.getOnExpressions();
 
-        FromItem joinRightItem = join.getRightItem();
-
         //todo what about other possible cases other than SubSelect
-        if (joinRightItem instanceof SubSelect)
+        if (join.getRightItem() instanceof SubSelect joinRightItem)
         {
           try
           {
-            String modifiedSqlFromJoinRightItem = modifySQLToUseNamedParameter(((SubSelect) joinRightItem).getSelectBody().toString());
-            stringsToReplace.put(((SubSelect) joinRightItem).getSelectBody().toString(), modifiedSqlFromJoinRightItem);
+            String modifiedSqlFromJoinRightItem = modifySQLToUseNamedParameter(joinRightItem.getSelectBody().toString());
+            stringsToReplace.put(joinRightItem.getSelectBody().toString(), modifiedSqlFromJoinRightItem);
           } catch (JSQLParserException e)
           {
             throw new RuntimeException(e);
