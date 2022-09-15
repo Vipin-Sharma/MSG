@@ -54,7 +54,7 @@ mvn spring-boot:run -Dspring-boot.run.arguments="--destination /tmp/test"
 java -jar MSG-1.0-SNAPSHOT.jar --destination /tmp/test
 ----
 
-Run MSG to generate the microservice application. The microservice application will be generated in the user home directory.
+Run MSG to generate the microservice application. The microservice application will be generated in the destination defined in the command line, or in the  user home directory in case the destination is not defined.
 
 ==== User home for 3 Major OS:
 
