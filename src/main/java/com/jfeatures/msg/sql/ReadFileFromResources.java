@@ -100,7 +100,7 @@ public class ReadFileFromResources {
         try (var inputStream = ReadFileFromResources.class.getClassLoader().getResourceAsStream(fileName)) {
             return new String(inputStream.readAllBytes());
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException("Error reading file from resources: " + e.getMessage(), e);
         }
     }
 }
