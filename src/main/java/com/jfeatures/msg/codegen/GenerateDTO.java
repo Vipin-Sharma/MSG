@@ -76,9 +76,9 @@ public class GenerateDTO {
 
     private static List<FieldSpec> generateFieldSpecsForColumnDefinition(Map<TableColumn, ColumnDefinition> columnNameToTypeMapping) {
         ArrayList<FieldSpec> fieldSpecList = new ArrayList<>();
-        for (TableColumn tableColumn : columnNameToTypeMapping.keySet()) {
-            Class<?> type = getClassForType(columnNameToTypeMapping.get(tableColumn).getColDataType().getDataType());
-            String fieldName = NameUtil.getFieldNameForDTO(tableColumn);
+        for (Map.Entry<TableColumn, ColumnDefinition> entry : columnNameToTypeMapping.entrySet()) {
+            Class<?> type = getClassForType(entry.getValue().getColDataType().getDataType());
+            String fieldName = NameUtil.getFieldNameForDTO(entry.getKey());
             FieldSpec fieldSpec = FieldSpec.builder(type, fieldName)
                     .build();
             fieldSpecList.add(fieldSpec);
@@ -95,19 +95,21 @@ public class GenerateDTO {
     private static List<MethodSpec> generateMethodSpecsForColumnDefinition(Map<TableColumn, ColumnDefinition> columnNameToTypeMapping) {
         ArrayList<MethodSpec> methodSpecList = new ArrayList<>();
 
-        for (TableColumn tableColumn : columnNameToTypeMapping.keySet()) {
+        for (Map.Entry<TableColumn, ColumnDefinition> entry : columnNameToTypeMapping.entrySet()) {
+            TableColumn tableColumn = entry.getKey();
             MethodSpec methodSpec = MethodSpec.methodBuilder("get" + NameUtil.getFieldNameForDTO(tableColumn))
                     .addModifiers(Modifier.PUBLIC)
-                    .returns(getClassForType(columnNameToTypeMapping.get(tableColumn).getColDataType().getDataType()))
+                    .returns(getClassForType(entry.getValue().getColDataType().getDataType()))
                     .addStatement("return $L", NameUtil.getFieldNameForDTO(tableColumn))
                     .build();
             methodSpecList.add(methodSpec);
         }
 
-        for (TableColumn tableColumn : columnNameToTypeMapping.keySet()) {
+        for (Map.Entry<TableColumn, ColumnDefinition> entry : columnNameToTypeMapping.entrySet()) {
+            TableColumn tableColumn = entry.getKey();
             MethodSpec methodSpec = MethodSpec.methodBuilder("set" + NameUtil.getFieldNameForDTO(tableColumn))
                     .addModifiers(Modifier.PUBLIC)
-                    .addParameter(getClassForType(columnNameToTypeMapping.get(tableColumn).getColDataType().getDataType()), NameUtil.getFieldNameForDTO(tableColumn))
+                    .addParameter(getClassForType(entry.getValue().getColDataType().getDataType()), NameUtil.getFieldNameForDTO(tableColumn))
                     .addStatement("this." + NameUtil.getFieldNameForDTO(tableColumn) + " = " + NameUtil.getFieldNameForDTO(tableColumn))
                     .build();
             methodSpecList.add(methodSpec);

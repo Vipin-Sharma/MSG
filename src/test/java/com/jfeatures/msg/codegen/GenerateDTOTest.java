@@ -1,10 +1,8 @@
 package com.jfeatures.msg.codegen;
 
 import com.squareup.javapoet.JavaFile;
-import net.sf.jsqlparser.JSQLParserException;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class GenerateDTOTest {
 
     @Test
-    public void testGenerateDTOForMultipleTables() throws JSQLParserException, IOException {
+    public void testGenerateDTOForMultipleTables() throws Exception {
         String sql = "Select tableC.a, tableC.b, tableD.c, tableD.d, e from tableC as tableC, tableD as tableD, tableE";
         Map<String, String> ddlPerTableName = new HashMap<>();
         ddlPerTableName.put("tableC", "CREATE TABLE tableC (a INT, b NVARCHAR(50))");
@@ -30,7 +28,7 @@ class GenerateDTOTest {
 
 
     @Test
-    public void testGenerateDTOForMultipleTablesComplexSQL1() throws JSQLParserException, IOException {
+    public void testGenerateDTOForMultipleTablesComplexSQL1() throws Exception {
         String sql = "Select tableC.a, tableC.b, tableD.c, tableD.d, e from tableC as tableC, tableD as tableD, tableE";
         Map<String, String> ddlPerTableName = new HashMap<>();
         ddlPerTableName.put("tableC", "CREATE TABLE tableC (a INT, b NVARCHAR(50))");

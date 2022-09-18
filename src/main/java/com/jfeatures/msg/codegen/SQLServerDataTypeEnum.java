@@ -2,7 +2,6 @@ package com.jfeatures.msg.codegen;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Source of these types is: <a href="https://docs.microsoft.com/en-us/sql/connect/jdbc/using-basic-data-types?view=sql-server-ver16">...</a>
@@ -62,7 +61,7 @@ public enum SQLServerDataTypeEnum {
 
     public static Class<?> getClassForType(String type)
     {
-        List<SQLServerDataTypeEnum> TypeList = Arrays.stream(SQLServerDataTypeEnum.values())
+        List<SQLServerDataTypeEnum> TypeList = Arrays.stream(values())
                 .filter(SQLServerDataTypeEnum -> SQLServerDataTypeEnum.getDbDataType().equalsIgnoreCase( type))
                 .toList();
         return TypeList.get(0).getJavaClassType();
@@ -78,7 +77,7 @@ public enum SQLServerDataTypeEnum {
 
     public static String getJdbcTypeForDBType(String DbDataType)
     {
-        List<SQLServerDataTypeEnum> TypeList = Arrays.stream(SQLServerDataTypeEnum.values())
+        List<SQLServerDataTypeEnum> TypeList = Arrays.stream(values())
                 .filter(SQLServerDataTypeEnum -> SQLServerDataTypeEnum.getDbDataType().equalsIgnoreCase( DbDataType))
                 .toList();
         return TypeList.get(0).jdbcType;

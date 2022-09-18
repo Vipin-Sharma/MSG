@@ -17,13 +17,11 @@ public class BinaryExpressionUtil
       }
 
       List<BinaryExpression> binaryExpressionList = new ArrayList<>();
-      if(binaryExpression.getLeftExpression() instanceof BinaryExpression)
-      {
-          binaryExpressionList.addAll(getIndividualBinaryExpression((BinaryExpression) binaryExpression.getLeftExpression()));
+      if (binaryExpression.getLeftExpression() instanceof BinaryExpression leftExpression) {
+          binaryExpressionList.addAll(getIndividualBinaryExpression(leftExpression));
       }
-      if(binaryExpression.getRightExpression() instanceof BinaryExpression)
-      {
-          binaryExpressionList.addAll(getIndividualBinaryExpression((BinaryExpression) binaryExpression.getRightExpression()));
+      if (binaryExpression.getRightExpression() instanceof BinaryExpression rightExpression) {
+          binaryExpressionList.addAll(getIndividualBinaryExpression(rightExpression));
       }
 
       return binaryExpressionList;

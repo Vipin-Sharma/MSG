@@ -74,47 +74,43 @@ public class GenerateDAO {
 
         if (selectColumnDetailsToGetDataFromResultSet.size() <= 255) {
             TypeName builderTypeForDto = getBuilderType(dtoTypeName);
-            codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet.concat(((ClassName) builderTypeForDto).canonicalName() + " "
-                    + ((ClassName) builderTypeForDto).simpleName() + " = " + ((ClassName) dtoTypeName).canonicalName() + ".builder();\n");
-            codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet.concat(((ClassName) dtoTypeName).simpleName() + " dto = Builder.");
+            codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet + ((ClassName) builderTypeForDto).canonicalName() + " "
+                    + ((ClassName) builderTypeForDto).simpleName() + " = " + ((ClassName) dtoTypeName).canonicalName() + ".builder();\n";
+            codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet + ((ClassName) dtoTypeName).simpleName() + " dto = Builder.";
             for (Map.Entry<TableColumn, DBColumn> entry : selectColumnDetailsToGetDataFromResultSet.entrySet()) {
                 TableColumn tableColumn = entry.getKey();
                 DBColumn dbColumn = entry.getValue();
                 String fieldName = NameUtil.getFieldNameForDTO(tableColumn);
-                codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet.concat(
-                        fieldName
-                                + "(rs.get" +
-                                dbColumn.jdbcType()
-                                + "(\""
-                                + (tableColumn.columnAliasIfAvailable() != null ? tableColumn.columnAliasIfAvailable() : tableColumn.columnName())
-                                + "\"))."
-                                + "\n"
-                );
+                codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet + fieldName
+                        + "(rs.get" +
+                        dbColumn.jdbcType()
+                        + "(\""
+                        + (tableColumn.columnAliasIfAvailable() != null ? tableColumn.columnAliasIfAvailable() : tableColumn.columnName())
+                        + "\"))."
+                        + "\n";
             }
 
-            codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet.concat("build();\n");
+            codeToSetColumnValuesFromResultSet += "build();\n";
         }
         else {
-            codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet.concat( ((ClassName) dtoTypeName).canonicalName() + " dto = new " + ((ClassName) dtoTypeName).canonicalName() + "();\n");
+            codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet + ((ClassName) dtoTypeName).canonicalName() + " dto = new " + ((ClassName) dtoTypeName).canonicalName() + "();\n";
 
             for (Map.Entry<TableColumn, DBColumn> entry : selectColumnDetailsToGetDataFromResultSet.entrySet()) {
                 TableColumn tableColumn = entry.getKey();
                 DBColumn dbColumn = entry.getValue();
                 String fieldName = NameUtil.getFieldNameForDTO(tableColumn);
-                codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet.concat(
-                        "dto.set"
-                                + fieldName
-                                + "(rs.get" +
-                                dbColumn.jdbcType()
-                                + "(\""
-                                + (tableColumn.columnAliasIfAvailable() != null ? tableColumn.columnAliasIfAvailable() : tableColumn.columnName())
-                                + "\"));"
-                                + "\n"
-                );
+                codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet + "dto.set"
+                        + fieldName
+                        + "(rs.get" +
+                        dbColumn.jdbcType()
+                        + "(\""
+                        + (tableColumn.columnAliasIfAvailable() != null ? tableColumn.columnAliasIfAvailable() : tableColumn.columnName())
+                        + "\"));"
+                        + "\n";
             }
 
         }
-        codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet.concat("result.add(dto)");
+        codeToSetColumnValuesFromResultSet += "result.add(dto)";
 
         TypeSpec rowCallbackHandler = TypeSpec
                 .anonymousClassBuilder("")
