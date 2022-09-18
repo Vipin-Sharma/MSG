@@ -23,16 +23,52 @@ Sometimes we need to hardcode some values in SQL, for that we can use syntax lik
 
 _*In case you want to try this out you can use existing SQL and DDLs, no need to make any changes anywhere, just run the program MicroserviceGenerator.java and generate Spring boot microservice, this is explained in next section. To test the generated Rest API you need database which can be setup from instruction given at .dev/README.md*_
 
+=== Building the application from source
+
+Run the following command to generate a runnable jar:
+
+[source,shell]
+----
+mvn package
+----
+
+A jar named `MSG-1.0-SNAPSHOT.jar` will be generated in the `target` directory.
+
 === Generating the microservice application:
-. Run MicroServiceGenerator.java to generate spring boot application. Application will be generated in the user home directory.
 
-        user home for 3 Major OS:
-          - Windows: C:\Users\[username]
-          - Linux: /home/[username]
-          - Mac: /Users/[username]
+There are two ways you can run MSG:
 
-    At the end of program execution, you will see the message having directory path of generated spring boot application.
-    e.g. "Generated spring boot application is available at: /Users/nitinkumarsharma/BusinessData"
+. From sources with Maven:
+
++
+[source,shell]
+----
+mvn spring-boot:run -Dspring-boot.run.arguments="--destination /tmp/test"
+----
+
+. Running the jar:
+
++
+[source,shell]
+----
+java -jar MSG-1.0-SNAPSHOT.jar --destination /tmp/test
+----
+
+Run MSG to generate the microservice application. The microservice application will be generated in the destination defined in the command line, or in the  user home directory in case the destination is not defined.
+
+==== User home for 3 Major OS:
+
+- Windows: `C:\Users\[username]`
+- Linux: `/home/[username]`
+- Mac: `/Users/[username]`
+
+At the end of program execution, you will see the message having directory path of generated spring boot application.
+    e.g.
+
+[source,shell]
+----
+Generated spring boot application is available at: /Users/nitinkumarsharma/BusinessData
+----
 
 === Running and testing the generated spring boot application.
 

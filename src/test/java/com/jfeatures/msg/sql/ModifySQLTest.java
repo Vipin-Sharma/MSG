@@ -17,7 +17,7 @@ class ModifySQLTest
 
   @Test
   void modifySQLToUseNamedParameter() throws Exception {
-    String sql = ReadFileFromResources.readFileFromResources("/sample_sql.sql");
+    String sql = ReadFileFromResources.readFileFromResources("sample_sql.sql");
     String modifiedSql = ModifySQL.modifySQLToUseNamedParameter(sql);
     System.out.println(modifiedSql);
   }

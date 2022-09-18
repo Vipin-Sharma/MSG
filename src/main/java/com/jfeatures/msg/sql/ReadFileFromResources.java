@@ -7,34 +7,29 @@ import net.sf.jsqlparser.statement.create.table.CreateTable;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 @Log
 public class ReadFileFromResources {
-    public static Map<String, String> readDDLsFromFile(String filePath) throws IOException, URISyntaxException, JSQLParserException {
-
-        URL resource = ReadFileFromResources.class.getResource(filePath);
-        assert resource != null;
-        Path path = Path.of(resource.toURI());
-        List<String> allLines = Files.readAllLines(path);
-
+    public static Map<String, String> readDDLsFromFile(String filePath) throws IOException, JSQLParserException {
+        String content;
+        try (var inputStream = ReadFileFromResources.class.getResourceAsStream("/" + filePath)) {
+            content = new String(inputStream.readAllBytes());
+        }
         Map<String, String> ddlPerTableName = new HashMap<>();
 
         StringBuilder ddl = new StringBuilder();
 
-        for (String line : allLines) {
+        for (String line : content.split(System.lineSeparator())) {
             if(line.contains("CREATE TABLE"))
             {
                 ddl = new StringBuilder(line);
@@ -102,17 +97,11 @@ public class ReadFileFromResources {
         return prop;
     }
 
-    public static String readFileFromResources(String fileName) throws URISyntaxException
-    {
-        URL resource = ReadFileFromResources.class.getResource(fileName);
-        assert resource != null;
-        Path path = Path.of(resource.toURI());
-        String fileContent = "";
-        try {
-            fileContent = new String(Files.readAllBytes(path));
+    public static String readFileFromResources(String fileName) {
+        try (var inputStream = ReadFileFromResources.class.getClassLoader().getResourceAsStream(fileName)) {
+            return new String(inputStream.readAllBytes());
         } catch (IOException e) {
-            log.severe("Error reading file from resources" + e.getMessage());
+            throw new UncheckedIOException("Error reading file from resources: " + e.getMessage(), e);
         }
-        return fileContent;
     }
 }
