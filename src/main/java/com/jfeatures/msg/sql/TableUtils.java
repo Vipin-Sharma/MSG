@@ -20,10 +20,10 @@ public class TableUtils {
     }
 
     static String findTableNameByColumnName(String columnName, Map<String, String> ddlPerTableName) {
-        for (String tableName : ddlPerTableName.keySet()) {
-            Optional<ColumnDefinition> columnDefinitionOptional = ColumnUtils.getColumnDefinition(columnName, ddlPerTableName.get(tableName));
+        for (Map.Entry<String, String> entry : ddlPerTableName.entrySet()) {
+            Optional<ColumnDefinition> columnDefinitionOptional = ColumnUtils.getColumnDefinition(columnName, entry.getValue());
             if (columnDefinitionOptional.isPresent()) {
-                return tableName;
+                return entry.getKey();
             }
         }
         return null;
@@ -35,13 +35,15 @@ public class TableUtils {
 
         Map<String, Map<String, String>> columnDetailsPerTableName = ReadFileFromResources.readTableDetailsFromDatabase(propertyFileName);
 
-        for (String tableName : columnDetailsPerTableName.keySet()) {
-            Map<String, String> columnDetails = columnDetailsPerTableName.get(tableName);
+        for (Map.Entry<String, Map<String, String>> entry : columnDetailsPerTableName.entrySet()) {
+            String tableName = entry.getKey();
+            Map<String, String> columnDetails = entry.getValue();
 
             Map<String, DBColumn> columnsPerTableName = new HashMap<>();
-            for (String columnName : columnDetails.keySet()) {
+            for (Map.Entry<String, String> column : columnDetails.entrySet()) {
+                String columnName = column.getKey();
                 // Used split to cover cases like "int identity"
-                String columnType = columnDetails.get(columnName).split(" ")[0];
+                String columnType = column.getValue().split(" ")[0];
                 String jdbcType = SQLServerDataTypeEnum.getJdbcTypeForDBType(columnType);
                 DBColumn dbColumn = new DBColumn(tableName, columnName, columnType, jdbcType);
                 columnsPerTableName.put(columnName, dbColumn);

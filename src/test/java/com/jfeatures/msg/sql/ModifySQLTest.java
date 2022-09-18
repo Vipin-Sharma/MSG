@@ -51,7 +51,7 @@ class ModifySQLTest
   }
 
   @ParameterizedTest(name = "testExtractPredicateHavingLiteralsFromWhereClause: {0}")
-  @ValueSource(strings = { sql1})
+  @ValueSource(strings = sql1)
   void testModifySQLHavingJoinClauseWithLiteralsToUseNamedParameter(String sql) throws JSQLParserException {
     String modifiedSQL = ModifySQL.modifySQLToUseNamedParameter(sql);
     System.out.println(modifiedSQL);

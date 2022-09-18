@@ -12,8 +12,8 @@
     . Add your SQL into resources directory file name: sample_sql.sql.
 Sometimes we need to hardcode some values in SQL, for that we can use syntax like:
         ```sql
-        SELECT * FROM table WHERE country = 'HARDCODE_AS_STRING{India}'
-        and customer_id = 'HARDCODE_AS_{300}'
+        SELECT * FROM table WHERE country = 'HARDCODE_AS_STRING\{India}'
+        and customer_id = 'HARDCODE_AS_\{300}'
         and first_name = 'John'
         ```
     Here we have hardcoded country as India, customer_id as 300.

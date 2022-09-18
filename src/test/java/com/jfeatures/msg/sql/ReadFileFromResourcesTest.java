@@ -6,8 +6,11 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.sql.SQLException;
+
 import java.util.Map;
 import java.util.Properties;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class ReadFileFromResourcesTest {
 
@@ -25,15 +28,15 @@ class ReadFileFromResourcesTest {
     {
         Properties properties = ReadFileFromResources.readPropertiesFromFile("application_properties_file_for_tests.txt");
         properties.forEach((key, value) -> System.out.println(key + ": " + value));
-        Assertions.assertThat(properties.size()).isEqualTo(8);
-        Assertions.assertThat(properties.getProperty("spring.datasource.driver-class-name")).isEqualTo("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+        assertThat(properties).hasSize(8);
+        assertThat(properties.getProperty("spring.datasource.driver-class-name")).isEqualTo("com.microsoft.sqlserver.jdbc.SQLServerDriver");
     }
 
     @Test
     @Disabled("Need to use tescontainers for Database tests")
-    void readDDLFromDatabaseWhenPassedValidConnectionShouldReturnDDL() throws IOException, ClassNotFoundException, SQLException {
+    void readDDLFromDatabaseWhenPassedValidConnectionShouldReturnDDL() throws Exception {
         Map<String, Map<String, String>> tableDetailsFromDatabase = ReadFileFromResources.readTableDetailsFromDatabase("application_properties_file_for_tests.txt");
-        Assertions.assertThat(tableDetailsFromDatabase.size()).isEqualTo(21);
-        Assertions.assertThat(tableDetailsFromDatabase.get("country").get("country_id")).isEqualTo("int identity");
+        assertThat(tableDetailsFromDatabase).hasSize(21);
+        assertThat(tableDetailsFromDatabase.get("country")).containsEntry("country_id", "int identity");
     }
 }

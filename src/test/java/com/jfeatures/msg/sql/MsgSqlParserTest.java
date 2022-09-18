@@ -4,7 +4,6 @@ import com.jfeatures.msg.codegen.domain.DBColumn;
 import com.jfeatures.msg.codegen.domain.TableColumn;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -12,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MsgSqlParserTest {
 
@@ -98,20 +99,20 @@ class MsgSqlParserTest {
         List<DBColumn> dbColumnList = MsgSqlParser.extractPredicateHavingLiteralsFromWhereClause(sql, ddlPerTableName);
         dbColumnList.forEach(System.out::println);
 
-        Assertions.assertEquals(3, dbColumnList.size());
-        Assertions.assertTrue(dbColumnList.stream().anyMatch(dbColumn ->
+        assertEquals(3, dbColumnList.size());
+        assertTrue(dbColumnList.stream().anyMatch(dbColumn ->
                 "tableC".equals(dbColumn.tableName())
                         && "a".equals(dbColumn.columnName())
                         && "Int".equals(dbColumn.jdbcType())
                         && "Integer".equals(dbColumn.javaType())
         ));
-        Assertions.assertTrue(dbColumnList.stream().anyMatch(dbColumn ->
+        assertTrue(dbColumnList.stream().anyMatch(dbColumn ->
                 "tableC".equals(dbColumn.tableName())
                         && "b".equals(dbColumn.columnName())
                         && "String".equals(dbColumn.jdbcType())
                         && "String".equals(dbColumn.javaType())
         ));
-        Assertions.assertTrue(dbColumnList.stream().anyMatch(dbColumn ->
+        assertTrue(dbColumnList.stream().anyMatch(dbColumn ->
                 "tableE".equals(dbColumn.tableName())
                         && "e".equals(dbColumn.columnName())
                         && "Int".equals(dbColumn.jdbcType())
@@ -133,15 +134,15 @@ class MsgSqlParserTest {
         List<DBColumn> dbColumnList = MsgSqlParser.extractPredicateHavingLiteralsFromWhereClause(sql, ddlPerTableName);
         dbColumnList.forEach(System.out::println);
 
-        Assertions.assertEquals(1, dbColumnList.size());
+        assertEquals(1, dbColumnList.size());
 
-        Assertions.assertTrue(dbColumnList.stream().anyMatch(dbColumn ->
+        assertTrue(dbColumnList.stream().anyMatch(dbColumn ->
                 "tableC".equals(dbColumn.tableName())
                         && "a".equals(dbColumn.columnName())
                         && "Int".equals(dbColumn.jdbcType())
                         && "Integer".equals(dbColumn.javaType())
         ));
-        Assertions.assertFalse(dbColumnList.stream().anyMatch(dbColumn ->
+        assertFalse(dbColumnList.stream().anyMatch(dbColumn ->
                 "tableC".equals(dbColumn.tableName())
                         && "b".equals(dbColumn.columnName())
                         && "String".equals(dbColumn.jdbcType())
@@ -163,14 +164,14 @@ class MsgSqlParserTest {
         ddlPerTableName.put("tableE", tableE);
         List<DBColumn> dbColumnList = MsgSqlParser.extractPredicateHavingLiteralsFromJoinsClause(sql, ddlPerTableName);
         dbColumnList.forEach(System.out::println);
-        Assertions.assertEquals(2, dbColumnList.size());
-        Assertions.assertTrue(dbColumnList.stream().anyMatch(dbColumn ->
+        assertEquals(2, dbColumnList.size());
+        assertTrue(dbColumnList.stream().anyMatch(dbColumn ->
                 "tableC".equals(dbColumn.tableName())
                 && "a".equals(dbColumn.columnName())
                 && "Int".equals(dbColumn.jdbcType())
                 && "Integer".equals(dbColumn.javaType())
                 ));
-        Assertions.assertTrue(dbColumnList.stream().anyMatch(dbColumn ->
+        assertTrue(dbColumnList.stream().anyMatch(dbColumn ->
                 "tableC".equals(dbColumn.tableName())
                 && "b".equals(dbColumn.columnName())
                 && "String".equals(dbColumn.jdbcType())
@@ -192,14 +193,14 @@ class MsgSqlParserTest {
         ddlPerTableName.put("tableE", tableE);
         List<DBColumn> dbColumnList = MsgSqlParser.extractPredicateHavingLiteralsFromJoinsClause(sql, ddlPerTableName);
         dbColumnList.forEach(System.out::println);
-        Assertions.assertEquals(1, dbColumnList.size());
-        Assertions.assertTrue(dbColumnList.stream().anyMatch(dbColumn ->
+        assertEquals(1, dbColumnList.size());
+        assertTrue(dbColumnList.stream().anyMatch(dbColumn ->
                 "tableC".equals(dbColumn.tableName())
                         && "a".equals(dbColumn.columnName())
                         && "Int".equals(dbColumn.jdbcType())
                         && "Integer".equals(dbColumn.javaType())
         ));
-        Assertions.assertFalse(dbColumnList.stream().anyMatch(dbColumn ->
+        assertFalse(dbColumnList.stream().anyMatch(dbColumn ->
                 "tableC".equals(dbColumn.tableName())
                         && "b".equals(dbColumn.columnName())
                         && "String".equals(dbColumn.jdbcType())
@@ -220,7 +221,7 @@ class MsgSqlParserTest {
         ddlPerTableName.put("tableE", tableE);
         ddlPerTableName.put("tableF", tableF);
         Map<TableColumn, DBColumn> listOfColumnsDataTypes = MsgSqlParser.getDetailsOfColumnsUsedInSelect(sql, ddlPerTableName);
-        listOfColumnsDataTypes.keySet().forEach(tableColumn -> System.out.println(tableColumn + " " + listOfColumnsDataTypes.get(tableColumn)));
+        listOfColumnsDataTypes.forEach((tableColumn, dbColumn) -> System.out.println(tableColumn + " " + dbColumn));
     }
 
     @Test
@@ -243,6 +244,6 @@ class MsgSqlParserTest {
         ddlPerTableName.put("tableE", tableE);
         ddlPerTableName.put("tableF", tableF);
         Map<TableColumn, DBColumn> listOfColumnsDataTypes = MsgSqlParser.getDetailsOfColumnsUsedInSelect(sql, ddlPerTableName);
-        listOfColumnsDataTypes.keySet().forEach(tableColumn -> System.out.println(tableColumn + " " + listOfColumnsDataTypes.get(tableColumn)));
+        listOfColumnsDataTypes.forEach((tableColumn, dbColumn) -> System.out.println(tableColumn + " " + dbColumn));
     }
 }

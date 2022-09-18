@@ -4,16 +4,11 @@ import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
-import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
-import org.apache.commons.text.CaseUtils;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 public class GenerateSpringBootApp {
     public static JavaFile createSpringBootApp(String businessPurposeOfSQL) throws IOException {

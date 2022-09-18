@@ -10,8 +10,9 @@ import java.util.Properties;
 public class DBVendorInfo {
     public static String getDatabaseProductName(String propertyFileName) throws SQLException, IOException {
         Properties properties = ReadFileFromResources.readPropertiesFromFile(propertyFileName);
-        Connection connection = DriverManager.getConnection(properties.getProperty("spring.datasource.url"), properties.getProperty("spring.datasource.username"), properties.getProperty("spring.datasource.password"));
-        DatabaseMetaData metaData = connection.getMetaData();
-        return metaData.getDatabaseProductName();
+        try (Connection connection = DriverManager.getConnection(properties.getProperty("spring.datasource.url"), properties.getProperty("spring.datasource.username"), properties.getProperty("spring.datasource.password"))) {
+            DatabaseMetaData metaData = connection.getMetaData();
+            return metaData.getDatabaseProductName();
+        }
     }
 }
