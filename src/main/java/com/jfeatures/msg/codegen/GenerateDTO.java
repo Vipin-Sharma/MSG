@@ -45,9 +45,11 @@ public class GenerateDTO {
         return javaFile;
     }
 
+
     private static TypeSpec getDto(String businessPurposeOfSQL, Map<TableColumn, ColumnDefinition> columnNameToTypeMapping, List<FieldSpec> fieldSpecList) {
 
         TypeSpec dto;
+        //TODO: why 255?
         if(fieldSpecList.size() <= 255)
         {
             dto = TypeSpec.classBuilder(businessPurposeOfSQL + "DTO").

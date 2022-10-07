@@ -3,6 +3,13 @@ package com.jfeatures.msg.sql;
 import com.jfeatures.msg.codegen.SQLServerDataTypeEnum;
 import com.jfeatures.msg.codegen.domain.DBColumn;
 import com.jfeatures.msg.codegen.domain.TableColumn;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Alias;
@@ -20,64 +27,56 @@ import net.sf.jsqlparser.statement.select.Join;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
+import net.sf.jsqlparser.statement.select.SelectItem;
+import net.sf.jsqlparser.statement.select.SelectItemVisitorAdapter;
 import net.sf.jsqlparser.statement.select.SubSelect;
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class MsgSqlParser {
 
-    public static Map<TableColumn, ColumnDefinition> dataTypePerColumnWithTableInfo(String sql, Map<String, String> ddlPerTableName) throws JSQLParserException {
-        Statement sqlStatement = CCJSqlParserUtil.parse(sql);
-        Select selectStatement = (Select) sqlStatement;
+  /**
+   * @param sql             - statement used to create DTO
+   * @param ddlPerTableName - tables ddl
+   * @return map with columns details ( columnName, Alias, tableName) and definition ( NVARCHAR,
+   * INT)
+   * @throws JSQLParserException
+   */
+  public static Map<TableColumn, ColumnDefinition> dataTypePerColumnWithTableInfo(String sql,
+      Map<String, String> ddlPerTableName) throws JSQLParserException {
 
-        PlainSelect plainSelect = (PlainSelect) selectStatement.getSelectBody();
-        ArrayList<String> columnNameList = plainSelect.getSelectItems()
-                .stream()
-                .map(selectItem -> ((Column) ((SelectExpressionItem) selectItem).getExpression()).getColumnName())
-                .collect(Collectors.toCollection(ArrayList::new));
+    Select selectStatement = (Select) CCJSqlParserUtil.parse(sql);
+    Map<TableColumn, ColumnDefinition> resultMap = new HashMap<>();
+    Map<String, String> tableAliasToTableName = getAliasToTableName((PlainSelect) selectStatement.getSelectBody());
 
-        ArrayList<String> tableAliasList = plainSelect.getSelectItems()
-                .stream()
-                .map(selectItem -> ((Column) ((SelectExpressionItem) selectItem).getExpression()).getTable() != null
-                        ? ((Column) ((SelectExpressionItem) selectItem).getExpression()).getTable().getName()
-                        : null)
-                .collect(Collectors.toCollection(ArrayList::new));
-
-        ArrayList<String> columnAliasList = plainSelect.getSelectItems()
-                .stream()
-                .map(selectItem -> ((SelectExpressionItem) selectItem).getAlias()!=null
-                        ? ((SelectExpressionItem) selectItem).getAlias().getName()
-                        : null)
-                .collect(Collectors.toCollection(ArrayList::new));
-
-        Map<TableColumn, ColumnDefinition> resultMap = new HashMap<>();
-
-        for (int i = 0; i < columnNameList.size(); i++) {
-            ColumnDefinition columnDefinition;
-            String tableName;
-            if (isSelectColumnWithOutTableAlias(tableAliasList.get(i))) {
-                columnDefinition = ColumnUtils.findColumnByColumnNameWhenTableAliasIsNotAvailable(ddlPerTableName, columnNameList.get(i));
-                tableName = TableUtils.findTableNameByColumnName(columnNameList.get(i), ddlPerTableName);
-            } else {
-                Map<String, String> tableAliasToTableName = getAliasToTableName(plainSelect);
-                tableName = TableUtils.getTableName(tableAliasList.get(i), columnNameList.get(i), tableAliasToTableName, ddlPerTableName);
-                columnDefinition = ColumnUtils.getColumnDefinition(columnNameList.get(i), ddlPerTableName.get(tableName)).get();
-            }
-            resultMap.put(new TableColumn(columnNameList.get(i), columnAliasList.get(i), tableName) , columnDefinition);
-
+    for (SelectItem selectItem : ((PlainSelect) selectStatement.getSelectBody()).getSelectItems()) {
+      selectItem.accept(new SelectItemVisitorAdapter() {
+        @Override
+        public void visit(SelectExpressionItem item) {
+          Column column = (Column) item.getExpression();
+          var tableAlias = column.getTable() != null ? column.getTable().getName() : null;
+          var columnAlias = item.getAlias() != null ? item.getAlias().getName() : null;
+          ColumnDefinition columnDefinition;
+          String tableName;
+          if (isSelectColumnWithOutTableAlias(tableAlias)) {
+            tableName = TableUtils.findTableNameByColumnName(column.getColumnName(),
+                ddlPerTableName);
+            columnDefinition = ColumnUtils.findColumnByColumnNameWhenTableAliasIsNotAvailable(
+                ddlPerTableName, column.getColumnName());
+          } else {
+            tableName = TableUtils.getTableName(tableAlias, column.getColumnName(),
+                tableAliasToTableName, ddlPerTableName);
+            columnDefinition = ColumnUtils.getColumnDefinition(column.getColumnName(),
+                ddlPerTableName.get(tableName)).orElseThrow();
+          }
+          resultMap.put(new TableColumn(column.getColumnName(), columnAlias, tableName),
+              columnDefinition);
         }
-
-        return resultMap;
+      });
     }
+
+    return resultMap;
+  }
 
     private static Map<String, String> getAliasToTableName(PlainSelect plainSelect) {
         Map<String, String> tableAliasToTableName = new HashMap<>();
