@@ -23,7 +23,7 @@ import java.util.Map;
 import static com.jfeatures.msg.codegen.SQLServerDataTypeEnum.getClassForType;
 
 public class GenerateDTO {
-
+    static final int MAX_NUMBER_PARAMETERS_METHOD = 255;
     /**
      * @param sql                  SQL to generate DTO
      * @param ddlPerTableName      DDL per Table.
@@ -46,11 +46,18 @@ public class GenerateDTO {
     }
 
 
+    /**
+     *
+     * @param businessPurposeOfSQL It can be a string like productCatalog
+     * @param columnNameToTypeMapping map with columns details ( columnName, Alias, tableName) and definition ( NVARCHAR,
+     *    * INT)
+     * @param fieldSpecList List of fields to be created. It will use Lombok if size <= 255 and POJO if not.
+     * @return A generated DTO represent by TypeSpec
+     */
     private static TypeSpec getDto(String businessPurposeOfSQL, Map<TableColumn, ColumnDefinition> columnNameToTypeMapping, List<FieldSpec> fieldSpecList) {
 
         TypeSpec dto;
-        //TODO: why 255?
-        if(fieldSpecList.size() <= 255)
+        if(fieldSpecList.size() <= MAX_NUMBER_PARAMETERS_METHOD)
         {
             dto = TypeSpec.classBuilder(businessPurposeOfSQL + "DTO").
                     addModifiers(Modifier.PUBLIC).
