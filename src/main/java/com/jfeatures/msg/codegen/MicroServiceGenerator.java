@@ -5,11 +5,9 @@ import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.SqlMetadata;
 import com.jfeatures.msg.codegen.domain.DBColumn;
 import com.jfeatures.msg.controller.CodeGenController;
-import com.jfeatures.msg.sql.MsgSqlParser;
 import com.jfeatures.msg.sql.ReadFileFromResources;
 import com.squareup.javapoet.JavaFile;
 import lombok.extern.slf4j.Slf4j;
-import net.sf.jsqlparser.JSQLParserException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
@@ -19,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.sql.SQLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -52,7 +51,7 @@ public class MicroServiceGenerator implements Callable<Integer> {
 
     @Override
     public Integer call() throws Exception {
-        String sql = getSql("sample_plain_sql_without_parameters.sql");
+        String sql = getSql("sample_parameterized_sql.sql");
         String businessPurposeOfSQL = "BusinessData";
 
         Application application = new Application();
@@ -66,15 +65,15 @@ public class MicroServiceGenerator implements Callable<Integer> {
         JavaFile dtoForMultiTableSQL = GenerateDTO.dtoFromColumnMetadata(selectColumnMetadata, businessPurposeOfSQL);
         JavaFile springBootApplication = GenerateSpringBootApp.createSpringBootApp(businessPurposeOfSQL);
 
-        Map<String, String> ddlPerTableName = getDdlPerTable();
-        ArrayList<DBColumn> predicateHavingLiterals = getPredicateHavingLiterals(sql, ddlPerTableName);
+        ArrayList<DBColumn> predicateHavingLiterals = getPredicateHavingLiterals(sql, dataSource);
 
-        //Controller is using where clause, that is needed to expose parameters, for that right now we need to use existing method.
-        // This is lot of work using parser but keep user happy because user doesn't need to explain which parameters should be exposed.
+        //Controller is using parameter metadata from PreparedStatement, no complex SQL parsing needed.
+        // This is much simpler and more reliable than complex AST parsing.
         JavaFile controllerClass = GenerateController.createController(businessPurposeOfSQL, predicateHavingLiterals);
 
         //DONE so far. todo work on dao.
 
+        Map<String, String> ddlPerTableName = getDdlPerTable();
         JavaFile daoClass = GenerateDAO.createDao(businessPurposeOfSQL, predicateHavingLiterals, sql, ddlPerTableName);
 
         String directoryNameWhereCodeWillBeGenerated = destinationDirectory + File.separator + businessPurposeOfSQL;
@@ -118,15 +117,11 @@ public class MicroServiceGenerator implements Callable<Integer> {
         return 0;
     }
 
-    private static ArrayList<DBColumn> getPredicateHavingLiterals(String sql, Map<String, String> ddlPerTableName) throws JSQLParserException
+    private static ArrayList<DBColumn> getPredicateHavingLiterals(String sql, DataSource dataSource) throws SQLException
     {
-        List<DBColumn> predicateHavingLiteralsInFromClause = MsgSqlParser.extractPredicateHavingLiteralsFromWhereClause(sql, ddlPerTableName);
-        List<DBColumn> predicatesHavingLiteralsInJoinClause = MsgSqlParser.extractPredicateHavingLiteralsFromJoinsClause(sql, ddlPerTableName);
-
-        ArrayList<DBColumn> predicateHavingLiterals = new ArrayList<>();
-        predicateHavingLiterals.addAll(predicateHavingLiteralsInFromClause);
-        predicateHavingLiterals.addAll(predicatesHavingLiteralsInJoinClause);
-        return predicateHavingLiterals;
+        ParameterMetadataExtractor extractor = new ParameterMetadataExtractor(dataSource);
+        List<DBColumn> parameters = extractor.extractParameters(sql);
+        return new ArrayList<>(parameters);
     }
 
     private static void writeFileFromResources(String pathToGenerateFile, String nameOfFileFromResourcesDir) throws IOException
