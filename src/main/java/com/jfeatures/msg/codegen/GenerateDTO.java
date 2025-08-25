@@ -1,5 +1,6 @@
 package com.jfeatures.msg.codegen;
 
+import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.domain.TableColumn;
 import com.jfeatures.msg.codegen.util.NameUtil;
 import com.jfeatures.msg.sql.MsgSqlParser;
@@ -33,7 +34,7 @@ public class GenerateDTO {
     public static JavaFile dtoFromSqlAndDdl(String sql, Map<String, String> ddlPerTableName, String businessPurposeOfSQL) throws JSQLParserException, IOException {
         Map<TableColumn, ColumnDefinition> columnNameToTypeMapping = MsgSqlParser.dataTypePerColumnWithTableInfo(sql, ddlPerTableName);
 
-        List<FieldSpec> fieldSpecList = generateFieldSpecsForColumnDefinition(columnNameToTypeMapping);
+        List<FieldSpec> fieldSpecList = generateFieldSpecsFromColumnMetadata(columnNameToTypeMapping);
 
         TypeSpec dto = getDto(businessPurposeOfSQL, columnNameToTypeMapping, fieldSpecList);
 
@@ -83,7 +84,7 @@ public class GenerateDTO {
         return dto;
     }
 
-    private static List<FieldSpec> generateFieldSpecsForColumnDefinition(Map<TableColumn, ColumnDefinition> columnNameToTypeMapping) {
+    private static List<FieldSpec> generateFieldSpecsFromColumnMetadata(Map<TableColumn, ColumnDefinition> columnNameToTypeMapping) {
         ArrayList<FieldSpec> fieldSpecList = new ArrayList<>();
         for (Map.Entry<TableColumn, ColumnDefinition> entry : columnNameToTypeMapping.entrySet()) {
             Class<?> type = getClassForType(entry.getValue().getColDataType().getDataType());
@@ -128,4 +129,41 @@ public class GenerateDTO {
     }
 
 
+    /**
+     * This method has limitation of number of fields lesser than 255, due to Lombok limitation. After that, we will need to generate POJO.
+     */
+    public static JavaFile dtoFromColumnMetadata(List<ColumnMetadata> selectColumnMetadata, String businessPurposeOfSQL) throws ClassNotFoundException, IOException {
+        ArrayList<FieldSpec> fieldSpecs = generateFieldSpecsFromColumnMetadata(selectColumnMetadata);
+
+        TypeSpec dto = TypeSpec.classBuilder(businessPurposeOfSQL + "DTO").
+                addModifiers(Modifier.PUBLIC).
+                addFields(fieldSpecs).
+                addAnnotation(AnnotationSpec.builder(Builder.class).addMember("builderClassName", "$S", "Builder").build()).
+                addAnnotation(AnnotationSpec.builder(Value.class).build()).
+                addAnnotation(AnnotationSpec.builder(Jacksonized.class).build()).
+                build();
+
+        JavaFile javaFile = JavaFile.builder(NameUtil.getPackageName(businessPurposeOfSQL, "dto"), dto)
+                .build();
+
+        javaFile.writeTo(System.out);
+
+        return javaFile;
+    }
+
+    private static ArrayList<FieldSpec> generateFieldSpecsFromColumnMetadata(List<ColumnMetadata> selectColumnMetadata) throws ClassNotFoundException {
+        ArrayList<FieldSpec> fieldSpecList = new ArrayList<>();
+        for (ColumnMetadata columnMetadata : selectColumnMetadata) {
+            Class<?> type = getClassFromStringType(columnMetadata.getColumnClassName());
+            String fieldName = columnMetadata.getColumnAlias() != null ? columnMetadata.getColumnAlias() : columnMetadata.getColumnName();
+            FieldSpec fieldSpec = FieldSpec.builder(type, fieldName)
+                    .build();
+            fieldSpecList.add(fieldSpec);
+        }
+        return fieldSpecList;
+    }
+
+    private static Class<?> getClassFromStringType(String columnClassName) throws ClassNotFoundException {
+        return Class.forName(columnClassName);
+    }
 }

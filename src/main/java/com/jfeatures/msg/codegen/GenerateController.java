@@ -1,5 +1,6 @@
 package com.jfeatures.msg.codegen;
 
+import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.domain.DBColumn;
 import com.jfeatures.msg.codegen.util.NameUtil;
 import com.jfeatures.msg.codegen.util.TypeUtil;
@@ -104,4 +105,7 @@ public class GenerateController {
         return javaFile;
     }
 
+    /*public static JavaFile createController(String businessPurposeOfSQL, List<ColumnMetadata> selectColumnMetadata) {
+        return null;
+    }*/
 }
