@@ -8,6 +8,7 @@ import com.jfeatures.msg.controller.CodeGenController;
 import com.jfeatures.msg.sql.ReadFileFromResources;
 import com.squareup.javapoet.JavaFile;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.jsqlparser.JSQLParserException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
