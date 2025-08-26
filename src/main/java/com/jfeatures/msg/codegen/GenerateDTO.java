@@ -9,6 +9,7 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
+import org.apache.commons.text.CaseUtils;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
@@ -155,7 +156,9 @@ public class GenerateDTO {
         ArrayList<FieldSpec> fieldSpecList = new ArrayList<>();
         for (ColumnMetadata columnMetadata : selectColumnMetadata) {
             Class<?> type = getClassFromStringType(columnMetadata.getColumnClassName());
-            String fieldName = columnMetadata.getColumnAlias() != null ? columnMetadata.getColumnAlias() : columnMetadata.getColumnName();
+            String rawFieldName = columnMetadata.getColumnAlias() != null ? columnMetadata.getColumnAlias() : columnMetadata.getColumnName();
+            // Convert snake_case to camelCase for proper Java field naming
+            String fieldName = CaseUtils.toCamelCase(rawFieldName, false, '_');
             FieldSpec fieldSpec = FieldSpec.builder(type, fieldName)
                     .build();
             fieldSpecList.add(fieldSpec);

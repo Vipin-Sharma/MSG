@@ -8,7 +8,6 @@ import com.jfeatures.msg.controller.CodeGenController;
 import com.jfeatures.msg.sql.ReadFileFromResources;
 import com.squareup.javapoet.JavaFile;
 import lombok.extern.slf4j.Slf4j;
-import net.sf.jsqlparser.JSQLParserException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
@@ -72,10 +71,8 @@ public class MicroServiceGenerator implements Callable<Integer> {
         // This is much simpler and more reliable than complex AST parsing.
         JavaFile controllerClass = GenerateController.createController(businessPurposeOfSQL, predicateHavingLiterals);
 
-        //DONE so far. todo work on dao.
-
-        Map<String, String> ddlPerTableName = getDdlPerTable();
-        JavaFile daoClass = GenerateDAO.createDao(businessPurposeOfSQL, predicateHavingLiterals, sql, ddlPerTableName);
+        //DAO generation using metadata approach - much simpler and more reliable than SQL parsing
+        JavaFile daoClass = GenerateDAO.createDaoFromMetadata(businessPurposeOfSQL, selectColumnMetadata, predicateHavingLiterals, sql);
 
         String directoryNameWhereCodeWillBeGenerated = destinationDirectory + File.separator + businessPurposeOfSQL;
 
@@ -149,7 +146,4 @@ public class MicroServiceGenerator implements Callable<Integer> {
         return ReadFileFromResources.readFileFromResources(fileName);
     }
 
-    private static Map<String, String> getDdlPerTable() throws IOException, JSQLParserException {
-        return ReadFileFromResources.readDDLsFromFile("sample_ddl.sql");
-    }
 }
