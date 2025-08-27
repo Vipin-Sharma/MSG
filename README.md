@@ -1,10 +1,23 @@
 # MSG - Microservice Generator
 
-## 🎯 Project Philosophy & Purpose
+**From SQL to Service - Eliminating microservices boilerplate, one API at a time** 🚀
 
-### Why MSG Exists
+MSG transforms a single SQL statement into a complete, production-ready Spring Boot microservice with REST APIs, DTOs, DAOs, and configuration in seconds.
 
-Modern microservices development often involves repetitive boilerplate code creation - writing DTOs, Controllers, DAOs, and configuration classes for basic CRUD operations. **MSG (Microservice Generator)** was created to eliminate this tedium by generating complete, production-ready Spring Boot microservices directly from SQL statements.
+---
+
+## 📖 Documentation Structure
+
+- **[User Guide](#-user-guide)** - For developers using MSG to generate microservices
+- **[Developer Guide](#-developer-guide)** - For contributors and maintainers of MSG
+
+---
+
+# 👤 User Guide
+
+## 🎯 What is MSG?
+
+Modern microservices development involves repetitive boilerplate code creation - writing DTOs, Controllers, DAOs, and configuration classes for basic CRUD operations. **MSG (Microservice Generator)** eliminates this tedium by generating complete, production-ready Spring Boot microservices directly from SQL statements.
 
 ### Core Philosophy: "From SQL to Service"
 
@@ -12,118 +25,14 @@ MSG follows a **metadata-driven approach** where a single SQL statement becomes 
 - **Input**: SQL file (SELECT, INSERT, UPDATE, or DELETE)
 - **Output**: Complete Spring Boot microservice with REST APIs, DTOs, DAOs, and configuration
 
-### Design Principles
-
-**1. Vipin's Principle**: Every class has exactly one public method, focused on a single responsibility.
-
-**2. Clean Code Architecture**: Following SOLID, DRY, and YAGNI principles with:
-- Self-documenting class and method names
-- Single responsibility per class
-- Orchestration pattern for complex workflows
-- Value objects for data encapsulation
-
-**3. Metadata-Driven Generation**: Uses database metadata and JDBC parameter extraction instead of complex SQL parsing for reliability and accuracy.
-
-**4. Convention Over Configuration**: Follows Spring Boot and REST API conventions for predictable, maintainable output.
-
----
-
-## 🏗️ Architecture Overview
-
-### High-Level Architecture
-
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────────┐
-│   SQL File      │───▶│ MicroService     │───▶│   Generated         │
-│   (Input)       │    │ Generator        │    │   Microservice      │
-│                 │    │ (Orchestrator)   │    │   (Spring Boot)     │
-└─────────────────┘    └──────────────────┘    └─────────────────────┘
-```
-
-### Core Components
-
-#### 1. Main Orchestrator
-- **`MicroServiceGenerator`**: CLI entry point and orchestration hub
-- **`SqlFileResolver`**: Locates and reads SQL files with intelligent fallback
-- **`SqlStatementDetector`**: Identifies SQL statement type (SELECT/INSERT/UPDATE/DELETE)
-
-#### 2. Operation-Specific Generators
-Each CRUD operation has its own specialized generator following the orchestration pattern:
-
-```
-SelectMicroserviceGenerator     ┌─→ GenerateDTO
-InsertMicroserviceGenerator ────┼─→ GenerateController  
-UpdateMicroserviceGenerator     │  GenerateDAO
-DeleteMicroserviceGenerator     └─→ GenerateSpringBootApp
-```
-
-#### 3. Metadata Extraction Layer
-- **`SqlMetadata`**: Extracts SELECT result set metadata
-- **`UpdateMetadataExtractor`**: Analyzes UPDATE SET and WHERE clauses
-- **`InsertMetadataExtractor`**: Extracts INSERT column information
-- **`DeleteMetadataExtractor`**: Analyzes DELETE WHERE conditions
-- **`ParameterMetadataExtractor`**: Extracts SQL parameter information via JDBC
-
-#### 4. Code Generation Layer
-- **DTO Generators**: Create type-safe data transfer objects with validation
-- **Controller Generators**: Generate REST endpoints with proper HTTP methods
-- **DAO Generators**: Create data access objects with parameterized SQL
-- **Configuration Generators**: Generate Spring Boot configuration classes
-
-#### 5. File System Layer
-- **`MicroserviceProjectWriter`**: Orchestrates complete project writing
-- **`ProjectDirectoryBuilder`**: Creates Maven-standard directory structure
-- **`MicroserviceDirectoryCleaner`**: Cleans target directories safely
-
-### Generated Project Structure
-
-```
-generated-microservice/
-├── pom.xml
-├── src/
-│   ├── main/
-│   │   ├── java/
-│   │   │   └── com/jfeatures/msg/{domain}/
-│   │   │       ├── Application.java
-│   │   │       ├── controller/
-│   │   │       │   └── {Domain}Controller.java
-│   │   │       ├── dao/
-│   │   │       │   └── {Domain}DAO.java
-│   │   │       ├── dto/
-│   │   │       │   └── {Domain}DTO.java
-│   │   │       └── config/
-│   │   │           └── DatabaseConfig.java
-│   │   └── resources/
-│   │       └── application.properties
-│   └── test/java/com/jfeatures/
-└── target/
-```
-
-### Technology Stack
-
-- **Java 21**: Modern Java features including text blocks and records
-- **Spring Boot 3.x**: Latest Spring Boot framework
-- **Spring Data JDBC**: For database operations
-- **JavaPoet**: Code generation library
-- **Lombok**: Reduces boilerplate code
-- **Jakarta Validation**: Input validation
-- **OpenAPI/Swagger**: API documentation
-- **Picocli**: Command-line interface
-- **Maven**: Build and dependency management
-
----
-
-## 🚀 Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
-
 - Java 21 or later
 - Maven 3.8+
 - SQL Server database (for metadata extraction)
-- IDE with Lombok support
 
-### Build the Project
-
+### Installation
 ```bash
 # Clone the repository
 git clone <repository-url>
@@ -131,105 +40,271 @@ cd MSG
 
 # Compile the project
 mvn clean compile
+```
 
-# Build executable JAR (optional)
-mvn clean package
+### Basic Usage
+```bash
+# Generate a microservice from SQL
+mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
+  -Dexec.args="--name Customer --destination ./output --sql-file sample_select.sql"
 ```
 
 ---
 
-## 💻 Usage Instructions
-
-### Command Structure
-
-```bash
-mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
-  -Dexec.args="[OPTIONS]"
-```
-
-**Options:**
-- `--name, -n`: Business domain name (default: "Customer")
-- `--destination, -d`: Output directory (default: "/home/vipin/BusinessData")  
-- `--sql-file, -f`: Specific SQL file to use (optional)
-
-### 📋 Complete CRUD API Generation Guide
-
-#### 1. SELECT API Generation
+### 1. 🔍 SELECT API Generation (GET Endpoints)
 
 Creates **GET** endpoints for data retrieval with query parameters.
 
-```bash
-# Using specific SELECT SQL file
-mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
-  -Dexec.args="--name Product --destination ./output --sql-file sample_parameterized_sql.sql"
-
-# Using default fallback (will find sample_parameterized_sql.sql)
-mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
-  -Dexec.args="--name Product --destination ./output"
+**SQL File Required:** `src/main/resources/sample_parameterized_sql.sql`
+```sql
+SELECT 
+    c.customer_id,
+    c.first_name,
+    c.last_name,
+    c.email,
+    a.address
+FROM customer c
+JOIN address a ON c.address_id = a.address_id  
+WHERE c.active = ? 
+  AND c.created_date >= ?
 ```
 
-**Generated API:**
-- **Endpoint**: `GET /api/Product?param1=value1&param2=value2`
-- **Response**: `200 OK` with JSON array
-- **Features**: Query parameters from WHERE clause, result mapping to DTO
+**Generation Command:**
+```bash
+# Generate SELECT API
+mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
+  -Dexec.args="--name Customer --destination ./output --sql-file sample_parameterized_sql.sql"
+```
 
-#### 2. INSERT API Generation
+**Generated API Features:**
+- **Endpoint**: `GET /api/customer?active=Y&createdDate=2023-01-01`
+- **Response**: `200 OK` with JSON array of customer records
+- **Query Parameters**: Auto-generated from WHERE clause parameters
+
+**Testing the Generated SELECT API:**
+```bash
+# Start the generated microservice
+cd ./output && mvn spring-boot:run
+
+# Test the GET endpoint with query parameters
+curl -X GET "http://localhost:8080/api/customer?active=Y&createdDate=2023-01-01" \
+  -H "Accept: application/json"
+
+# Expected Response:
+[
+  {
+    "customerId": 1,
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john.doe@example.com",
+    "address": "123 Main St"
+  }
+]
+```
+
+---
 
 Creates **POST** endpoints for data creation with request body validation.
 
+**SQL File Required:** `src/main/resources/sample_insert_parameterized.sql`
+```sql
+INSERT INTO customer (
+    first_name, 
+    last_name, 
+    email, 
+    address_id, 
+    active,
+    create_date
+) VALUES (?, ?, ?, ?, ?, ?)
+```
+
+**Generation Command:**
 ```bash
 # Generate INSERT API
 mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
   -Dexec.args="--name Customer --destination ./output --sql-file sample_insert_parameterized.sql"
 ```
 
-**Generated API:**
-- **Endpoint**: `POST /api/Customer`
-- **Request Body**: JSON with required fields
+**Generated API Features:**
+- **Endpoint**: `POST /api/customer`
+- **Request Body**: JSON with validated fields
 - **Response**: `201 Created` on success, `400 Bad Request` for validation errors
-- **Features**: Jakarta validation annotations, proper HTTP status codes
 
-**Example Request:**
-```json
+**Testing the Generated INSERT API:**
+```bash
+# Start the generated microservice
+cd ./output && mvn spring-boot:run
+
+# Test the POST endpoint with JSON payload
+curl -X POST "http://localhost:8080/api/customer" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john.doe@example.com", 
+    "addressId": 123,
+    "active": "Y",
+    "createDate": "2023-12-01T10:30:00.000Z"
+  }'
+
+# Expected Response (201 Created):
+"customer created successfully"
+
+# Test validation error (missing required field)
+curl -X POST "http://localhost:8080/api/customer" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "lastName": "Doe",
+    "email": "john.doe@example.com"
+  }'
+
+# Expected Response (400 Bad Request):
 {
-  "firstName": "John",
-  "lastName": "Doe", 
-  "email": "john.doe@example.com",
-  "addressId": 123,
-  "active": "Y"
+  "timestamp": "2023-12-01T10:30:00.000Z",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "firstName is required for customer creation"
 }
 ```
 
-#### 3. UPDATE API Generation
+---
 
 Creates **PUT** endpoints for data modification with request body.
 
-```bash
-# Generate UPDATE API  
-mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
-  -Dexec.args="--name Order --destination ./output --sql-file sample_update_parameterized.sql"
+**SQL File Required:** `src/main/resources/sample_update_parameterized.sql`
+```sql
+UPDATE customer 
+SET first_name = ?, 
+    last_name = ?, 
+    email = ?
+WHERE customer_id = ? 
+  AND active = ?
 ```
 
-**Generated API:**
-- **Endpoint**: `PUT /api/Order`
-- **Request Body**: JSON with fields to update + WHERE clause parameters
-- **Response**: `200 OK` on success, `404 Not Found` if no rows affected
-- **Features**: Separate DTOs for SET values and WHERE conditions
+**Generation Command:**
+```bash
+# Generate UPDATE API
+mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
+  -Dexec.args="--name Customer --destination ./output --sql-file sample_update_parameterized.sql"
+```
 
-#### 4. DELETE API Generation
+**Generated API Features:**
+- **Endpoint**: `PUT /api/customer/{id}`
+- **Path Variable**: Primary identifier from WHERE clause
+- **Request Body**: JSON with fields to update
+- **Response**: `200 OK` on success, `404 Not Found` if no rows affected
+
+**Testing the Generated UPDATE API:**
+```bash
+# Start the generated microservice
+cd ./output && mvn spring-boot:run
+
+# Test the PUT endpoint with path variable and JSON payload
+curl -X PUT "http://localhost:8080/api/customer/123" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{
+    "firstName": "Jane",
+    "lastName": "Smith",
+    "email": "jane.smith@example.com"
+  }'
+
+# Expected Response (200 OK):
+"customer updated successfully"
+
+# Test with non-existent ID
+curl -X PUT "http://localhost:8080/api/customer/999999" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "firstName": "Test",
+    "lastName": "User",
+    "email": "test@example.com"
+  }'
+
+# Expected Response (404 Not Found):
+"customer not found"
+
+# Test with invalid request body (empty JSON)
+curl -X PUT "http://localhost:8080/api/customer/123" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+
+# Expected Response (400 Bad Request):
+{
+  "timestamp": "2023-12-01T10:30:00.000Z",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Validation failed for object='customerUpdateDTO'"
+}
+```
+
+---
 
 Creates **DELETE** endpoints for data removal with query parameters.
 
+**SQL File Required:** `src/main/resources/sample_delete_parameterized.sql`
+```sql
+DELETE FROM customer 
+WHERE customer_id = ? 
+  AND active = ?
+```
+
+**Generation Command:**
 ```bash
 # Generate DELETE API
 mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
-  -Dexec.args="--name Invoice --destination ./output --sql-file sample_delete_parameterized.sql"
+  -Dexec.args="--name Customer --destination ./output --sql-file sample_delete_parameterized.sql"
 ```
 
-**Generated API:**
-- **Endpoint**: `DELETE /api/Invoice?customerId=123&status=active`
+**Generated API Features:**
+- **Endpoint**: `DELETE /api/customer?customerId=123&active=Y`
+- **Query Parameters**: Auto-generated from WHERE clause
 - **Response**: `204 No Content` on success, `404 Not Found` if no rows found
-- **Features**: Query parameters from WHERE clause, proper deletion semantics
+
+**Testing the Generated DELETE API:**
+```bash
+# Start the generated microservice
+cd ./output && mvn spring-boot:run
+
+# Test the DELETE endpoint with query parameters
+curl -X DELETE "http://localhost:8080/api/customer?customerId=123&active=Y" \
+  -H "Accept: application/json"
+
+# Expected Response (204 No Content):
+"customer deleted successfully"
+
+# Test with non-existent record
+curl -X DELETE "http://localhost:8080/api/customer?customerId=999999&active=Y" \
+  -H "Accept: application/json"
+
+# Expected Response (404 Not Found):
+"customer not found"
+
+# Test with missing required parameters
+curl -X DELETE "http://localhost:8080/api/customer?customerId=123" \
+  -H "Accept: application/json"
+
+# Expected Response (400 Bad Request):
+{
+  "timestamp": "2023-12-01T10:30:00.000Z",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Required request parameter 'active' is missing"
+}
+
+# Test with invalid parameter types
+curl -X DELETE "http://localhost:8080/api/customer?customerId=abc&active=Y" \
+  -H "Accept: application/json"
+
+# Expected Response (400 Bad Request):
+{
+  "timestamp": "2023-12-01T10:30:00.000Z", 
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Failed to convert value of type 'java.lang.String' to required type 'java.lang.Integer'"
+}
+```
 
 ### 📁 SQL File Requirements
 
@@ -457,21 +532,72 @@ curl -X DELETE "http://localhost:8080/api/customer?customerId=123&active=Y"
 
 ---
 
-## 🛠️ Development & Extension
+## 🎯 All 4 CRUD API Generation Commands
 
-### Adding New SQL Statement Types
-1. Create new metadata extractor in `dbmetadata` package
-2. Create specialized generator classes (DTO, Controller, DAO)
-3. Add orchestrator in `generator` package  
-4. Update `MicroServiceGenerator` switch statement
-5. Add SQL file constants and fallback logic
+Here are the complete command-line examples for generating all 4 types of CRUD APIs:
 
-### Contributing Guidelines
-- Follow Vipin's Principle: One public method per class
-- Use self-documenting class and method names
-- Add comprehensive JavaDoc documentation
-- Include unit tests for new functionality
-- Follow existing code formatting and patterns
+### 1. SELECT API Generation
+```bash
+mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
+  -Dexec.args="--name Customer --destination ./output --sql-file sample_parameterized_sql.sql"
+```
+
+### 2. INSERT API Generation  
+```bash
+mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
+  -Dexec.args="--name Customer --destination ./output --sql-file sample_insert_parameterized.sql"
+```
+
+### 3. UPDATE API Generation
+```bash
+mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
+  -Dexec.args="--name Customer --destination ./output --sql-file sample_update_parameterized.sql"
+```
+
+### 4. DELETE API Generation
+```bash
+mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
+  -Dexec.args="--name Customer --destination ./output --sql-file sample_delete_parameterized.sql"
+```
+
+---
+
+## 🔄 Batch Generation & Advanced Usage
+
+### Generate Multiple APIs for Different Domains
+```bash
+# E-commerce system APIs
+mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
+  -Dexec.args="--name Product --destination ./ecommerce/product-service --sql-file product_select.sql"
+
+mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
+  -Dexec.args="--name Order --destination ./ecommerce/order-service --sql-file order_insert.sql"
+
+mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
+  -Dexec.args="--name Customer --destination ./ecommerce/customer-service --sql-file customer_update.sql"
+
+mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
+  -Dexec.args="--name Invoice --destination ./ecommerce/invoice-service --sql-file invoice_delete.sql"
+```
+
+### Automated Batch Generation Script
+```bash
+#!/bin/bash
+DOMAINS=("Customer" "Product" "Order" "Invoice")
+BASE_DIR="./generated-services"
+
+for domain in "${DOMAINS[@]}"; do
+    mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
+      -Dexec.args="--name $domain --destination $BASE_DIR/${domain,,}-service"
+done
+```
+
+### Default Fallback Behavior
+When no `--sql-file` is specified, MSG tries files in priority order:
+1. **UPDATE** (`sample_update_parameterized.sql`)
+2. **INSERT** (`sample_insert_parameterized.sql`)  
+3. **DELETE** (`sample_delete_parameterized.sql`)
+4. **SELECT** (`sample_parameterized_sql.sql`)
 
 ---
 
@@ -523,28 +649,478 @@ MSG transforms microservices development by:
 
 ---
 
-## 📝 License & Contributing
+## 📝 License
 
-**License**: [Specify your license]
+This project is licensed under the **Apache License 2.0**. See the [LICENSE](LICENSE) file for details.
 
-**Contributing**: 
-- Fork the repository
-- Follow coding standards and architecture patterns
-- Submit pull requests with comprehensive tests
-- Maintain backward compatibility
+```
+Copyright 2023 MSG Contributors
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```
 
 ---
 
-## 👥 Team & Acknowledgments
+## 👥 Team & Contributors
+
+MSG is developed and maintained by a dedicated team of contributors:
+
+### 🏗️ Project Lead & Core Developer
+- **Vipin Sharma** ([@vipinsharma85](mailto:vipinsharma85@gmail.com))
+
+### 💻 Code Contributors
+- **Helber Belmiro** ([@helber-belmiro](mailto:helber.belmiro@gmail.com))
+- **Bruno Alves** ([@brunobaiano](mailto:brunobaiano@users.noreply.github.com))
+- **Nikita Koselev** ([@nikitakoselev](mailto:nikitakoselev@users.noreply.github.com))
+- **Bruno Souza**
+
+### 📋 Contributing
+
+We welcome contributions from the community! Here's how to get involved:
+
+**Getting Started:**
+- Fork the repository
+- Follow our coding standards and architecture patterns
+- Ensure comprehensive test coverage for new functionality
+- Maintain backward compatibility with existing features
+
+**Contribution Guidelines:**
+- Follow single responsibility principle: One public method per class
+- Write self-documenting class and method names
+- Add comprehensive JavaDoc documentation
+- Include unit tests for all new functionality
+- Follow existing code formatting and architectural patterns
+
+**Pull Request Process:**
+1. Create a feature branch from `main`
+2. Make your changes following the established patterns
+3. Add tests and ensure all tests pass
+4. Update documentation including README and JavaDoc
+5. Submit a pull request with a detailed description
+
+### 🏆 Acknowledgments
 
 **Created with clean code principles and architectural excellence in mind.**
 
-**Special thanks to the principles that guide this project:**
-- **Clean Code** by Robert Martin
-- **SOLID Principles** for maintainable software design
-- **Spring Boot** framework conventions
-- **Vipin's Principle** for focused class design
+**Special thanks to the principles and technologies that guide this project:**
+- **Clean Code** by Robert Martin - Foundation for maintainable code
+- **SOLID Principles** - Core design principles for sustainable software
+- **Spring Boot** framework conventions - Industry-standard practices
+- **JavaPoet** - Elegant code generation capabilities
+- **Apache Software Foundation** - For the foundational technologies
 
 ---
 
-*MSG: From SQL to Service - Eliminating microservices boilerplate, one API at a time.* 🚀
+# 🔧 Developer Guide
+
+## 🎯 Project Philosophy & Design Principles
+
+### Core Philosophy: "From SQL to Service"
+MSG eliminates microservices boilerplate by transforming SQL statements into complete Spring Boot applications through metadata-driven generation.
+
+### Design Principles
+
+**1. Single Responsibility Principle**: Every class has exactly one public method, focused on a single responsibility.
+
+**2. Clean Code Architecture**: Following SOLID, DRY, and YAGNI principles with:
+- Self-documenting class and method names
+- Single responsibility per class  
+- Orchestration pattern for complex workflows
+- Value objects for data encapsulation
+
+**3. Metadata-Driven Generation**: Uses database metadata and JDBC parameter extraction instead of complex SQL parsing for reliability and accuracy.
+
+**4. Convention Over Configuration**: Follows Spring Boot and REST API conventions for predictable, maintainable output.
+
+---
+
+## 🏗️ System Architecture
+
+### High-Level Architecture
+
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────────┐
+│   SQL File      │───▶│ MicroService     │───▶│   Generated         │
+│   (Input)       │    │ Generator        │    │   Microservice      │
+│                 │    │ (Orchestrator)   │    │   (Spring Boot)     │
+└─────────────────┘    └──────────────────┘    └─────────────────────┘
+```
+
+### Core Components
+
+#### 1. Main Orchestrator Layer
+- **`MicroServiceGenerator`**: CLI entry point and orchestration hub
+- **`SqlFileResolver`**: Locates and reads SQL files with intelligent fallback
+- **`SqlStatementDetector`**: Identifies SQL statement type (SELECT/INSERT/UPDATE/DELETE)
+
+#### 2. Operation-Specific Generator Layer
+Each CRUD operation has its own specialized generator following the orchestration pattern:
+
+```
+SelectMicroserviceGenerator     ┌─→ GenerateDTO
+InsertMicroserviceGenerator ────┼─→ GenerateController  
+UpdateMicroserviceGenerator     │  GenerateDAO
+DeleteMicroserviceGenerator     └─→ GenerateSpringBootApp
+```
+
+**Key Classes:**
+- `SelectMicroserviceGenerator.java`
+- `InsertMicroserviceGenerator.java` 
+- `UpdateMicroserviceGenerator.java`
+- `DeleteMicroserviceGenerator.java`
+
+#### 3. Metadata Extraction Layer
+- **`SqlMetadata`**: Extracts SELECT result set metadata
+- **`UpdateMetadataExtractor`**: Analyzes UPDATE SET and WHERE clauses
+- **`InsertMetadataExtractor`**: Extracts INSERT column information
+- **`DeleteMetadataExtractor`**: Analyzes DELETE WHERE conditions (legacy)
+- **`ParameterMetadataExtractor`**: Extracts SQL parameter information via JDBC (used by DELETE)
+
+#### 4. Code Generation Layer
+**DTO Generators:**
+- `GenerateDTO.java` (SELECT)
+- `GenerateInsertDTO.java` (INSERT)
+- `GenerateUpdateDTO.java` (UPDATE)
+- `GenerateDeleteDTO.java` (DELETE)
+
+**Controller Generators:**
+- `GenerateController.java` (SELECT)
+- `GenerateInsertController.java` (INSERT)
+- `GenerateUpdateController.java` (UPDATE) 
+- `GenerateDeleteController.java` (DELETE)
+
+**DAO Generators:**
+- `GenerateDAO.java` (SELECT)
+- `GenerateInsertDAO.java` (INSERT)
+- `GenerateUpdateDAO.java` (UPDATE)
+- `GenerateDeleteDAO.java` (DELETE)
+
+**Configuration Generators:**
+- `GenerateSpringBootApp.java`
+- `GenerateDatabaseConfig.java`
+
+#### 5. File System Layer
+- **`MicroserviceProjectWriter`**: Orchestrates complete project writing
+- **`ProjectDirectoryBuilder`**: Creates Maven-standard directory structure
+- **`MicroserviceDirectoryCleaner`**: Cleans target directories safely
+
+### Generated Project Structure
+
+```
+generated-microservice/
+├── pom.xml
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/jfeatures/msg/{domain}/
+│   │   │       ├── Application.java
+│   │   │       ├── controller/
+│   │   │       │   └── {Domain}Controller.java
+│   │   │       ├── dao/
+│   │   │       │   └── {Domain}DAO.java
+│   │   │       ├── dto/
+│   │   │       │   └── {Domain}DTO.java
+│   │   │       └── config/
+│   │   │           └── DatabaseConfig.java
+│   │   └── resources/
+│   │       └── application.properties
+│   └── test/java/com/jfeatures/
+└── target/
+```
+
+### Technology Stack
+
+- **Java 21**: Modern Java features including text blocks and records
+- **Spring Boot 3.x**: Latest Spring Boot framework
+- **Spring Data JDBC**: For database operations
+- **JavaPoet**: Code generation library
+- **Lombok**: Reduces boilerplate code
+- **Jakarta Validation**: Input validation
+- **OpenAPI/Swagger**: API documentation
+- **Picocli**: Command-line interface
+- **Maven**: Build and dependency management
+
+---
+
+## 🔧 Development Workflow
+
+### Adding New SQL Statement Types
+
+1. **Create Metadata Extractor** in `dbmetadata` package:
+   ```java
+   public class NewStatementMetadataExtractor {
+       public NewStatementMetadata extractMetadata(String sql) throws Exception {
+           // Implementation following single responsibility principle
+       }
+   }
+   ```
+
+2. **Create Metadata Value Object**:
+   ```java
+   public record NewStatementMetadata(
+       String tableName,
+       List<ColumnMetadata> columns,
+       String originalSql
+   ) {}
+   ```
+
+3. **Create Code Generators**:
+   - `GenerateNewStatementDTO.java`
+   - `GenerateNewStatementController.java`
+   - `GenerateNewStatementDAO.java`
+
+4. **Create Orchestrator** in `generator` package:
+   ```java
+   public class NewStatementMicroserviceGenerator {
+       public GeneratedMicroservice generateMicroservice(...) {
+           // Orchestration logic following established patterns
+       }
+   }
+   ```
+
+5. **Update Main Generator** switch statement in `MicroServiceGenerator.java`
+
+6. **Add SQL File Constants** and fallback logic in `SqlFileResolver.java`
+
+### Code Generation Patterns
+
+#### JavaPoet Usage Examples
+
+**Field Generation:**
+```java
+FieldSpec fieldSpec = FieldSpec.builder(String.class, "fieldName")
+    .addModifiers(Modifier.PRIVATE)
+    .addAnnotation(AnnotationSpec.builder(NotNull.class)
+        .addMember("message", "$S", "Field is required")
+        .build())
+    .build();
+```
+
+**Method Generation:**
+```java
+MethodSpec methodSpec = MethodSpec.methodBuilder("methodName")
+    .addModifiers(Modifier.PUBLIC)
+    .returns(ResponseEntity.class)
+    .addParameter(ParameterSpec.builder(RequestDTO.class, "request")
+        .addAnnotation(Valid.class)
+        .addAnnotation(RequestBody.class)
+        .build())
+    .addStatement("// Implementation")
+    .build();
+```
+
+**SQL Text Blocks:**
+```java
+String sql = """
+    SELECT column1, column2 
+    FROM table_name 
+    WHERE condition = :parameter
+    """;
+```
+
+### Database Type Mapping
+
+MSG uses `SQLServerDataTypeEnum` for database-to-Java type mapping:
+
+```java
+// JDBC Type → Database Type → Java Type
+"INTEGER" → "INT" → Integer.class
+"VARCHAR" → "NVARCHAR" → String.class  
+"CHAR" → "CHAR" → String.class
+"TIMESTAMP" → "DATETIME2" → Timestamp.class
+```
+
+### Parameter Extraction Strategy
+
+**SELECT/UPDATE/INSERT**: Database metadata extraction via `InsertMetadataExtractor`, `UpdateMetadataExtractor`
+
+**DELETE**: JDBC parameter extraction via `ParameterMetadataExtractor` for reliability
+```java
+List<DBColumn> parameters = parameterExtractor.extractParameters(sql);
+// Handles parameter-to-column name mapping automatically
+```
+
+---
+
+## 🧪 Testing & Quality Assurance
+
+### Running Tests
+
+```bash
+# Run unit tests
+mvn test
+
+# Run integration tests  
+mvn integration-test
+
+# Generate test coverage report
+mvn jacoco:report
+```
+
+### Code Quality Checks
+
+```bash
+# Static analysis
+mvn spotbugs:check
+
+# Code formatting
+mvn formatter:format
+
+# Dependency vulnerability scan
+mvn dependency-check:check
+```
+
+### Manual Testing Workflow
+
+1. **Generate Sample Microservices:**
+   ```bash
+   # Test each CRUD operation
+   mvn exec:java -Dexec.args="--name TestSelect --sql-file sample_parameterized_sql.sql"
+   mvn exec:java -Dexec.args="--name TestInsert --sql-file sample_insert_parameterized.sql"
+   mvn exec:java -Dexec.args="--name TestUpdate --sql-file sample_update_parameterized.sql"  
+   mvn exec:java -Dexec.args="--name TestDelete --sql-file sample_delete_parameterized.sql"
+   ```
+
+2. **Verify Generated Code Compiles:**
+   ```bash
+   cd ./generated-output && mvn clean compile
+   ```
+
+3. **Test Runtime Functionality:**
+   ```bash
+   mvn spring-boot:run
+   # Test APIs with curl commands from User Guide
+   ```
+
+---
+
+## 🛠️ Extending MSG
+
+### Custom Database Support
+
+To add support for PostgreSQL/MySQL:
+
+1. **Create Database-Specific Enum:**
+   ```java
+   public enum PostgreSQLDataTypeEnum {
+       INTEGER("integer", Integer.class),
+       VARCHAR("varchar", String.class),
+       // ... other types
+   }
+   ```
+
+2. **Update Metadata Extractors** to use appropriate type mapping
+
+3. **Create Database-Specific Configuration** generators
+
+### Adding New Annotation Support
+
+For additional validation annotations:
+
+1. **Extend DTO Generators** with new annotation logic
+2. **Update Field Generation** patterns
+3. **Add Configuration** for annotation behavior
+
+### Custom Code Templates
+
+MSG uses JavaPoet for code generation. To customize templates:
+
+1. **Modify Generator Classes** in respective packages
+2. **Update CodeBlock/MethodSpec** builders
+3. **Test Generated Output** thoroughly
+
+---
+
+## 📋 Contributing Guidelines
+
+### Code Standards
+
+- **Follow single responsibility principle**: One public method per class
+- **Use self-documenting names**: Class and method names should describe purpose
+- **Add comprehensive JavaDoc**: Document all public methods and classes
+- **Include unit tests**: Test coverage for new functionality
+- **Follow existing patterns**: Maintain consistency with established architecture
+
+### Pull Request Process
+
+1. **Fork the repository** and create feature branch
+2. **Follow naming conventions**: `feature/add-postgresql-support`
+3. **Write comprehensive tests** for new functionality
+4. **Update documentation** including README and JavaDoc
+5. **Ensure backward compatibility** with existing functionality
+6. **Submit PR** with detailed description of changes
+
+### Development Environment Setup
+
+```bash
+# Clone repository
+git clone <repository-url>
+cd MSG
+
+# Install dependencies
+mvn clean install
+
+# Run tests to verify setup
+mvn test
+
+# Setup IDE with:
+# - Lombok plugin
+# - Java 21 support
+# - Maven integration
+```
+
+---
+
+## 🚨 Debugging & Troubleshooting
+
+### Common Development Issues
+
+**1. JavaPoet Compilation Errors**
+```java
+// ❌ Incorrect annotation syntax
+.member("value", "string")
+
+// ✅ Correct annotation syntax  
+.addMember("value", "$S", "string")
+```
+
+**2. Parameter Count Mismatches**
+- Use `ParameterMetadataExtractor` for reliable parameter detection
+- Implement JDBC-to-database type mapping for consistency
+
+**3. SQL Text Block Formatting**
+```java
+// ✅ Proper formatting with consistent indentation
+String sql = """
+    SELECT column1, column2
+    FROM table_name  
+    WHERE condition = :parameter
+    """;
+```
+
+### Debug Mode Analysis
+
+Enable verbose logging:
+```bash
+mvn -X exec:java -Dexec.args="--name Debug --destination ./debug-output"
+```
+
+### Performance Considerations
+
+- **Database Connection Pooling**: Use for metadata extraction
+- **Caching Strategy**: Consider caching metadata for repeated generations
+- **Memory Usage**: Monitor JavaPoet object creation for large schemas
+
+---
+
+*MSG Developer Guide - Building the future of microservices generation* 🚀
