@@ -81,9 +81,10 @@ public class GenerateDAO {
         formattedSQL = formattedSQL.replace(": ", ":");
         log.info("Generated SQL for DAO: {}", formattedSQL);
         
+        // Use text block for SQL formatting
         FieldSpec sqlFieldSpec = FieldSpec.builder(String.class, CodeGenerationConstants.SQL_FIELD_NAME, 
                 Modifier.PRIVATE, Modifier.FINAL, Modifier.STATIC)
-                .initializer("$S", formattedSQL)
+                .initializer("\"\"\"\n$L\"\"\"", formattedSQL)
                 .build();
         
         // DTO type
