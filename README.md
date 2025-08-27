@@ -717,7 +717,6 @@ We welcome contributions from the community! Here's how to get involved:
 - **SOLID Principles** - Core design principles for sustainable software
 - **Spring Boot** framework conventions - Industry-standard practices
 - **JavaPoet** - Elegant code generation capabilities
-- **Apache Software Foundation** - For the foundational technologies
 
 ---
 
