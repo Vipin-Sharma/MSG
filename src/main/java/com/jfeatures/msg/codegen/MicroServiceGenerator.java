@@ -8,6 +8,8 @@ import com.jfeatures.msg.codegen.filesystem.MicroserviceDirectoryCleaner;
 import com.jfeatures.msg.codegen.filesystem.MicroserviceProjectWriter;
 import com.jfeatures.msg.codegen.generator.SelectMicroserviceGenerator;
 import com.jfeatures.msg.codegen.generator.UpdateMicroserviceGenerator;
+import com.jfeatures.msg.codegen.generator.InsertMicroserviceGenerator;
+import com.jfeatures.msg.codegen.generator.DeleteMicroserviceGenerator;
 import com.jfeatures.msg.codegen.sql.SqlFileResolver;
 import com.jfeatures.msg.codegen.util.SqlStatementDetector;
 import com.jfeatures.msg.codegen.util.SqlStatementType;
@@ -70,10 +72,12 @@ public class MicroServiceGenerator implements Callable<Integer> {
                 .generateSelectMicroservice(sql, businessPurposeName, databaseConnection);
             case UPDATE -> new UpdateMicroserviceGenerator()
                 .generateUpdateMicroservice(sql, businessPurposeName, databaseConnection);
-            case INSERT, DELETE -> throw new UnsupportedOperationException(
-                "SQL statement type '" + statementType + "' is not yet supported. Currently supported: SELECT, UPDATE");
+            case INSERT -> new InsertMicroserviceGenerator()
+                .generateInsertMicroservice(sql, businessPurposeName, databaseConnection);
+            case DELETE -> new DeleteMicroserviceGenerator()
+                .generateDeleteMicroservice(sql, businessPurposeName, databaseConnection);
             default -> throw new IllegalArgumentException(
-                "Unknown or unsupported SQL statement type: '" + statementType + "'. Please provide a valid SELECT or UPDATE statement.");
+                "Unknown or unsupported SQL statement type: '" + statementType + "'. Please provide a valid SELECT, UPDATE, INSERT, or DELETE statement.");
         };
         
         // Write complete microservice to filesystem

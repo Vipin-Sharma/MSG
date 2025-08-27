@@ -43,6 +43,8 @@ public final class ProjectConstants {
     // SQL file names
     public static final String DEFAULT_UPDATE_SQL_FILE = "sample_update_parameterized.sql";
     public static final String DEFAULT_SELECT_SQL_FILE = "sample_parameterized_sql.sql";
+    public static final String DEFAULT_INSERT_SQL_FILE = "sample_insert_parameterized.sql";
+    public static final String DEFAULT_DELETE_SQL_FILE = "sample_delete_parameterized.sql";
     
     // Package path components
     public static final String JFEATURES_PACKAGE_PATH = COM + File.separator + JFEATURES;

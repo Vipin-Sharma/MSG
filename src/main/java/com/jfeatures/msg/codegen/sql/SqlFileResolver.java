@@ -14,7 +14,7 @@ public class SqlFileResolver {
     
     /**
      * Locates and reads the appropriate SQL file for microservice generation.
-     * If no specific file is provided, attempts UPDATE file first, then falls back to SELECT.
+     * If no specific file is provided, attempts files in order: UPDATE, INSERT, DELETE, then SELECT.
      * 
      * @param specifiedSqlFileName the SQL file name specified by user, or null for default behavior
      * @return the SQL content as a string
@@ -26,20 +26,49 @@ public class SqlFileResolver {
             return readSqlFromResources(specifiedSqlFileName);
         }
         
-        // Default behavior: try UPDATE first, then fall back to SELECT
-        return tryUpdateThenSelectSqlFiles();
+        // Default behavior: try files in priority order: UPDATE, INSERT, DELETE, then SELECT
+        return tryDefaultSqlFiles();
     }
     
-    private String tryUpdateThenSelectSqlFiles() throws Exception {
+    private String tryDefaultSqlFiles() throws Exception {
+        // Try UPDATE first (most common)
         try {
             String sql = readSqlFromResources(ProjectConstants.DEFAULT_UPDATE_SQL_FILE);
             log.info("Using UPDATE SQL file: {}", ProjectConstants.DEFAULT_UPDATE_SQL_FILE);
             return sql;
         } catch (Exception e) {
-            log.info("UPDATE SQL file not found, falling back to SELECT SQL file");
+            log.debug("UPDATE SQL file not found, trying INSERT");
+        }
+        
+        // Try INSERT second
+        try {
+            String sql = readSqlFromResources(ProjectConstants.DEFAULT_INSERT_SQL_FILE);
+            log.info("Using INSERT SQL file: {}", ProjectConstants.DEFAULT_INSERT_SQL_FILE);
+            return sql;
+        } catch (Exception e) {
+            log.debug("INSERT SQL file not found, trying DELETE");
+        }
+        
+        // Try DELETE third
+        try {
+            String sql = readSqlFromResources(ProjectConstants.DEFAULT_DELETE_SQL_FILE);
+            log.info("Using DELETE SQL file: {}", ProjectConstants.DEFAULT_DELETE_SQL_FILE);
+            return sql;
+        } catch (Exception e) {
+            log.debug("DELETE SQL file not found, trying SELECT");
+        }
+        
+        // Fall back to SELECT (last resort)
+        try {
             String sql = readSqlFromResources(ProjectConstants.DEFAULT_SELECT_SQL_FILE);
             log.info("Using SELECT SQL file: {}", ProjectConstants.DEFAULT_SELECT_SQL_FILE);
             return sql;
+        } catch (Exception e) {
+            throw new Exception("No default SQL files found. Please provide a specific SQL file or ensure at least one of the following files exists: " +
+                    ProjectConstants.DEFAULT_UPDATE_SQL_FILE + ", " + 
+                    ProjectConstants.DEFAULT_INSERT_SQL_FILE + ", " + 
+                    ProjectConstants.DEFAULT_DELETE_SQL_FILE + ", " + 
+                    ProjectConstants.DEFAULT_SELECT_SQL_FILE);
         }
     }
     
