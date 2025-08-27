@@ -51,8 +51,8 @@ public class MicroServiceGenerator implements Callable<Integer> {
     @Option(names = {"-d", "--destination"}, description = "The destination directory of the generated application. Default value is \"/home/vipin/BusinessData\".")
     private String destinationDirectory = "/home/vipin/BusinessData";
 
-    @Option(names = {"-n", "--name"}, description = "Business purpose name for the generated microservice (e.g., 'Customer', 'Product', 'Order'). Default is 'BusinessData'.")
-    private String businessPurposeName = "BusinessData";
+    @Option(names = {"-n", "--name"}, description = "Business purpose name for the generated microservice (e.g., 'Customer', 'Product', 'Order'). Default is 'Customer'.")
+    private String businessPurposeName = "Customer";
 
     @Option(names = {"-f", "--sql-file"}, description = "SQL file to use for generation. Default tries UPDATE first, then SELECT.")
     private String sqlFileName;

@@ -132,7 +132,7 @@ public class GenerateUpdateDAO {
         // Build SET clause with named parameters
         List<String> setClauses = new ArrayList<>();
         for (ColumnMetadata column : updateMetadata.setColumns()) {
-            String paramName = CaseUtils.toCamelCase(column.getColumnName(), false);
+            String paramName = CaseUtils.toCamelCase(column.getColumnName(), false, '_');
             setClauses.add(column.getColumnName() + " = :" + paramName);
         }
         sql.append(String.join(", ", setClauses));
@@ -163,8 +163,8 @@ public class GenerateUpdateDAO {
         
         // Add SET parameters from DTO
         for (ColumnMetadata column : updateMetadata.setColumns()) {
-            String paramName = CaseUtils.toCamelCase(column.getColumnName(), false);
-            String getterMethod = "get" + CaseUtils.toCamelCase(column.getColumnName(), true);
+            String paramName = CaseUtils.toCamelCase(column.getColumnName(), false, '_');
+            String getterMethod = "get" + CaseUtils.toCamelCase(column.getColumnName(), true, '_');
             codeBuilder.addStatement("paramMap.put($S, updateDto.$N())", paramName, getterMethod);
         }
         
@@ -185,7 +185,7 @@ public class GenerateUpdateDAO {
         
         // If column name is meaningful, use it
         if (!columnName.startsWith("whereParam")) {
-            return CaseUtils.toCamelCase(columnName, false);
+            return CaseUtils.toCamelCase(columnName, false, '_');
         }
         
         // Generate names based on common patterns

@@ -203,7 +203,7 @@ public class GenerateUpdateController {
         
         // If column name is meaningful, use it
         if (!columnName.startsWith("whereParam")) {
-            return CaseUtils.toCamelCase(columnName, false);
+            return CaseUtils.toCamelCase(columnName, false, '_');
         }
         
         // Generate names based on common patterns
