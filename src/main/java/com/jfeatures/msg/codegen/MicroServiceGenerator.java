@@ -48,8 +48,14 @@ public class MicroServiceGenerator implements Callable<Integer> {
     private static final String JFEATURES = "jfeatures";
     private static final String RESOURCES = "resources";
 
-    @Option(names = {"-d", "--destination"}, description = "The destination directory of the generated application. Default value is \"user.home\" system property.")
-    private String destinationDirectory = System.getProperty("user.home");
+    @Option(names = {"-d", "--destination"}, description = "The destination directory of the generated application. Default value is \"/home/vipin/BusinessData\".")
+    private String destinationDirectory = "/home/vipin/BusinessData";
+
+    @Option(names = {"-n", "--name"}, description = "Business purpose name for the generated microservice (e.g., 'Customer', 'Product', 'Order'). Default is 'BusinessData'.")
+    private String businessPurposeName = "BusinessData";
+
+    @Option(names = {"-f", "--sql-file"}, description = "SQL file to use for generation. Default tries UPDATE first, then SELECT.")
+    private String sqlFileName;
 
     public static void main(String... args) {
         int exitCode = new CommandLine(new MicroServiceGenerator()).execute(args);
@@ -58,14 +64,14 @@ public class MicroServiceGenerator implements Callable<Integer> {
 
     @Override
     public Integer call() throws Exception {
-        // For testing, try UPDATE statement first, then fall back to SELECT
-        String sql;
-        try {
-            sql = getSql("sample_update_parameterized.sql");
-        } catch (Exception e) {
-            sql = getSql("sample_parameterized_sql.sql");
-        }
-        String businessPurposeOfSQL = "BusinessData";
+        // Clean destination directory
+        cleanDestinationDirectory();
+
+        // Determine SQL file to use
+        String sql = determineSqlFile();
+        
+        log.info("Using business purpose name: {}", businessPurposeName);
+        log.info("Generating code in directory: {}", destinationDirectory);
 
         Application application = new Application();
         DataSource dataSource = application.dataSource();
@@ -76,13 +82,13 @@ public class MicroServiceGenerator implements Callable<Integer> {
         SqlStatementType statementType = SqlStatementDetector.detectStatementType(sql);
         log.info("Detected SQL statement type: {}", statementType);
 
-        JavaFile springBootApplication = GenerateSpringBootApp.createSpringBootApp(businessPurposeOfSQL);
-        String databaseConfigContent = GenerateDatabaseConfig.createDatabaseConfig(businessPurposeOfSQL);
+        JavaFile springBootApplication = GenerateSpringBootApp.createSpringBootApp(businessPurposeName);
+        String databaseConfigContent = GenerateDatabaseConfig.createDatabaseConfig(businessPurposeName);
 
         if (statementType == SqlStatementType.UPDATE) {
-            return generateUpdateMicroservice(sql, businessPurposeOfSQL, dataSource, namedParameterJdbcTemplate, springBootApplication, databaseConfigContent);
+            return generateUpdateMicroservice(sql, businessPurposeName, dataSource, namedParameterJdbcTemplate, springBootApplication, databaseConfigContent);
         } else {
-            return generateSelectMicroservice(sql, businessPurposeOfSQL, dataSource, jdbcTemplate, springBootApplication, databaseConfigContent);
+            return generateSelectMicroservice(sql, businessPurposeName, dataSource, jdbcTemplate, springBootApplication, databaseConfigContent);
         }
     }
 
@@ -129,7 +135,7 @@ public class MicroServiceGenerator implements Callable<Integer> {
                                           String databaseConfigContent, JavaFile updateDTO, 
                                           JavaFile updateDAO, JavaFile updateController) throws Exception {
 
-        String directoryNameWhereCodeWillBeGenerated = destinationDirectory + File.separator + businessPurposeOfSQL + "Update";
+        String directoryNameWhereCodeWillBeGenerated = destinationDirectory;
 
         Path srcPath = Paths.get( directoryNameWhereCodeWillBeGenerated
                 + File.separator + SRC
@@ -175,7 +181,7 @@ public class MicroServiceGenerator implements Callable<Integer> {
                                           String databaseConfigContent, JavaFile dtoForMultiTableSQL, 
                                           JavaFile controllerClass, JavaFile daoClass) throws Exception {
 
-        String directoryNameWhereCodeWillBeGenerated = destinationDirectory + File.separator + businessPurposeOfSQL;
+        String directoryNameWhereCodeWillBeGenerated = destinationDirectory;
 
         Path srcPath = Paths.get( directoryNameWhereCodeWillBeGenerated
                 + File.separator + SRC
@@ -215,6 +221,40 @@ public class MicroServiceGenerator implements Callable<Integer> {
         log.info("Generated SELECT spring boot application is available at: {}", directoryNameWhereCodeWillBeGenerated);
 
         return 0;
+    }
+
+    private void cleanDestinationDirectory() throws Exception {
+        Path destPath = Paths.get(destinationDirectory);
+        if (Files.exists(destPath)) {
+            log.info("Cleaning destination directory: {}", destinationDirectory);
+            Files.walk(destPath)
+                 .sorted((a, b) -> b.compareTo(a)) // Reverse order to delete children first
+                 .forEach(path -> {
+                     try {
+                         Files.delete(path);
+                     } catch (Exception e) {
+                         log.warn("Could not delete path: {} - {}", path, e.getMessage());
+                     }
+                 });
+        }
+    }
+
+    private String determineSqlFile() throws Exception {
+        if (sqlFileName != null) {
+            log.info("Using specified SQL file: {}", sqlFileName);
+            return getSql(sqlFileName);
+        }
+
+        // Default behavior: try UPDATE first, then fall back to SELECT
+        try {
+            String sql = getSql("sample_update_parameterized.sql");
+            log.info("Using UPDATE SQL file: sample_update_parameterized.sql");
+            return sql;
+        } catch (Exception e) {
+            String sql = getSql("sample_parameterized_sql.sql");
+            log.info("Using SELECT SQL file: sample_parameterized_sql.sql");
+            return sql;
+        }
     }
 
     private static ArrayList<DBColumn> getPredicateHavingLiterals(String sql, DataSource dataSource) throws SQLException
