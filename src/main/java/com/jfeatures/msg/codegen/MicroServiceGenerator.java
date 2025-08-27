@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -74,6 +75,9 @@ public class MicroServiceGenerator implements Callable<Integer> {
         //DAO generation using metadata approach - much simpler and more reliable than SQL parsing
         JavaFile daoClass = GenerateDAO.createDaoFromMetadata(businessPurposeOfSQL, selectColumnMetadata, predicateHavingLiterals, sql);
 
+        //Database configuration class generation
+        String databaseConfigContent = GenerateDatabaseConfig.createDatabaseConfig(businessPurposeOfSQL);
+
         String directoryNameWhereCodeWillBeGenerated = destinationDirectory + File.separator + businessPurposeOfSQL;
 
         Path srcPath = Paths.get( directoryNameWhereCodeWillBeGenerated
@@ -101,6 +105,7 @@ public class MicroServiceGenerator implements Callable<Integer> {
         writeJavaFile(springBootApplication, srcPath);
         writeJavaFile(controllerClass, srcPath);
         writeJavaFile(daoClass, srcPath);
+        writeDatabaseConfigFile(databaseConfigContent, businessPurposeOfSQL, srcPath);
 
         writeFileFromResources(directoryNameWhereCodeWillBeGenerated + File.separator + "pom.xml", "pom_file.xml");
 
@@ -134,6 +139,14 @@ public class MicroServiceGenerator implements Callable<Integer> {
     private static void writeJavaFile(JavaFile javaFile, Path srcPath) throws IOException
     {
         javaFile.writeTo(srcPath);
+    }
+
+    private static void writeDatabaseConfigFile(String content, String businessPurpose, Path srcPath) throws IOException
+    {
+        Path configPackagePath = srcPath.resolve("com/jfeatures/" + businessPurpose.toLowerCase() + "/config");
+        Files.createDirectories(configPackagePath);
+        Path configFilePath = configPackagePath.resolve("DatabaseConfig.java");
+        Files.write(configFilePath, content.getBytes(StandardCharsets.UTF_8));
     }
 
     private static void createDirectory(Path path) throws IOException
