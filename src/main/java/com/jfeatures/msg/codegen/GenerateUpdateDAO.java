@@ -32,10 +32,19 @@ public class GenerateUpdateDAO {
     
     /**
      * Creates DAO with UPDATE method using database metadata approach.
+     * Follows clean code principles with single responsibility - one public method per class.
      */
     public static JavaFile createUpdateDAO(String businessPurposeOfSQL, UpdateMetadata updateMetadata) throws Exception {
         
         String jdbcTemplateInstanceFieldName = "namedParameterJdbcTemplate";
+        
+        // Generate SQL constant using text block for better readability
+        String namedParameterSql = generateNamedParameterSql(updateMetadata);
+        FieldSpec sqlConstant = FieldSpec.builder(String.class, "SQL")
+                .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                .initializer("\"\"\"\n$L\"\"\"", SqlFormatter.format(namedParameterSql))
+                .addJavadoc("SQL statement for updating $L records", businessPurposeOfSQL.toLowerCase())
+                .build();
         
         // Constructor
         CodeBlock constructorCodeBlock = CodeBlock.builder()
@@ -47,7 +56,7 @@ public class GenerateUpdateDAO {
                 .addCode(constructorCodeBlock)
                 .build();
         
-        // Generate UPDATE method
+        // Generate UPDATE method (single public method following clean code principles)
         MethodSpec updateMethod = createUpdateMethod(businessPurposeOfSQL, updateMetadata, jdbcTemplateInstanceFieldName);
         
         // Create DAO class
@@ -58,6 +67,7 @@ public class GenerateUpdateDAO {
                 .addField(FieldSpec.builder(NamedParameterJdbcTemplate.class, jdbcTemplateInstanceFieldName)
                         .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                         .build())
+                .addField(sqlConstant)
                 .addMethod(constructorSpec)
                 .addMethod(updateMethod)
                 .build();
@@ -79,7 +89,7 @@ public class GenerateUpdateDAO {
         // Build parameter specifications
         List<ParameterSpec> parameterSpecs = new ArrayList<>();
         parameterSpecs.add(ParameterSpec.builder(updateDtoType, "updateDto")
-                .addAnnotation(ClassName.get("javax.validation", "Valid"))
+                .addAnnotation(ClassName.get("jakarta.validation", "Valid"))
                 .build());
         
         // Add WHERE parameters
@@ -93,22 +103,18 @@ public class GenerateUpdateDAO {
             parameterSpecs.add(ParameterSpec.builder(paramType, paramName).build());
         }
         
-        // Generate SQL with named parameters
-        String namedParameterSql = generateNamedParameterSql(updateMetadata);
-        
         // Build parameter map construction code
         CodeBlock paramMapCode = buildParameterMapCode(updateMetadata, whereParamNames);
         
-        // Build method body
+        // Build method body using SQL constant (clean code practice)
         CodeBlock methodBody = CodeBlock.builder()
                 .addStatement("$T<String, Object> paramMap = new $T<>()", Map.class, HashMap.class)
                 .add(paramMapCode)
                 .add("\n")
-                .addStatement("String sql = $S", SqlFormatter.format(namedParameterSql))
-                .addStatement("log.info(\"Executing UPDATE: {}\", sql)")
+                .addStatement("log.info(\"Executing UPDATE: {}\", SQL)")
                 .addStatement("log.debug(\"Parameters: {}\", paramMap)")
                 .add("\n")
-                .addStatement("int rowsUpdated = $N.update(sql, paramMap)", jdbcTemplateFieldName)
+                .addStatement("int rowsUpdated = $N.update(SQL, paramMap)", jdbcTemplateFieldName)
                 .addStatement("log.info(\"Updated {} rows for {}\", rowsUpdated, $S)", businessPurposeOfSQL)
                 .addStatement("return rowsUpdated")
                 .build();

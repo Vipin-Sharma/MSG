@@ -10,7 +10,7 @@ import com.squareup.javapoet.TypeSpec;
 import lombok.Data;
 
 import javax.lang.model.element.Modifier;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;

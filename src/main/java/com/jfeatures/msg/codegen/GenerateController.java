@@ -105,7 +105,4 @@ public class GenerateController {
         return javaFile;
     }
 
-    /*public static JavaFile createController(String businessPurposeOfSQL, List<ColumnMetadata> selectColumnMetadata) {
-        return null;
-    }*/
 }

@@ -62,6 +62,18 @@ class GenerateUpdateDAOTest {
         
         // Check package
         assertThat(generatedCode).contains("package com.jfeatures.msg.Customer.dao");
+        
+        // Verify clean code practices: SQL as private constant and single public method
+        assertThat(generatedCode).contains("private static final String SQL");
+        assertThat(generatedCode).contains("UPDATE customer SET first_name = :firstName, email = :email WHERE id = :id");
+        assertThat(generatedCode).contains("namedParameterJdbcTemplate.update(SQL, paramMap)");
+        assertThat(generatedCode).contains("\"\"\""); // Check for text block usage
+        
+        // Count public methods to ensure single responsibility (only one public method)
+        long publicMethodCount = generatedCode.lines()
+            .filter(line -> line.trim().startsWith("public") && line.contains("("))
+            .count();
+        assertThat(publicMethodCount).isEqualTo(1);
     }
 
     @Test
@@ -131,6 +143,10 @@ class GenerateUpdateDAOTest {
         // Check parameter mapping only for SET columns
         assertThat(generatedCode).contains("paramMap.put(\"active\", updateDto.getActive())");
         assertThat(generatedCode).contains("paramMap.put(\"lastUpdate\", updateDto.getLastUpdate())");
+        
+        // Check SQL constant is used instead of inline SQL
+        assertThat(generatedCode).contains("private static final String SQL");
+        assertThat(generatedCode).contains("namedParameterJdbcTemplate.update(SQL, paramMap)");
     }
 
     @Test
@@ -189,7 +205,7 @@ class GenerateUpdateDAOTest {
         
         // Check @Valid annotation on DTO parameter
         assertThat(generatedCode).contains("@Valid");
-        assertThat(generatedCode).contains("import javax.validation.Valid");
+        assertThat(generatedCode).contains("import jakarta.validation.Valid");
     }
 
     @Test

@@ -69,7 +69,7 @@ public class MicroServiceGenerator implements Callable<Integer> {
 
         // Determine SQL file to use
         String sql = determineSqlFile();
-        
+
         log.info("Using business purpose name: {}", businessPurposeName);
         log.info("Generating code in directory: {}", destinationDirectory);
 
@@ -85,10 +85,16 @@ public class MicroServiceGenerator implements Callable<Integer> {
         JavaFile springBootApplication = GenerateSpringBootApp.createSpringBootApp(businessPurposeName);
         String databaseConfigContent = GenerateDatabaseConfig.createDatabaseConfig(businessPurposeName);
 
-        if (statementType == SqlStatementType.UPDATE) {
-            return generateUpdateMicroservice(sql, businessPurposeName, dataSource, namedParameterJdbcTemplate, springBootApplication, databaseConfigContent);
-        } else {
-            return generateSelectMicroservice(sql, businessPurposeName, dataSource, jdbcTemplate, springBootApplication, databaseConfigContent);
+        switch (statementType) {
+            case SELECT:
+                return generateSelectMicroservice(sql, businessPurposeName, dataSource, jdbcTemplate, springBootApplication, databaseConfigContent);
+            case UPDATE:
+                return generateUpdateMicroservice(sql, businessPurposeName, dataSource, namedParameterJdbcTemplate, springBootApplication, databaseConfigContent);
+            case INSERT:
+            case DELETE:
+                throw new UnsupportedOperationException("SQL statement type '" + statementType + "' is not yet supported. Currently supported: SELECT, UPDATE");
+            default:
+                throw new IllegalArgumentException("Unknown or unsupported SQL statement type: '" + statementType + "'. Please provide a valid SELECT or UPDATE statement.");
         }
     }
 
@@ -225,9 +231,25 @@ public class MicroServiceGenerator implements Callable<Integer> {
 
     private void cleanDestinationDirectory() throws Exception {
         Path destPath = Paths.get(destinationDirectory);
-        if (Files.exists(destPath)) {
-            log.info("Cleaning destination directory: {}", destinationDirectory);
-            Files.walk(destPath)
+        if (!Files.exists(destPath)) {
+            return;
+        }
+        
+        log.info("Cleaning generated source directories only, preserving IDE configurations: {}", destinationDirectory);
+        
+        // Clean specific directories that contain generated code
+        cleanDirectoryIfExists(destPath.resolve("src/main/java/com/jfeatures"));
+        cleanDirectoryIfExists(destPath.resolve("src/test/java/com/jfeatures"));
+        
+        // Clean specific files that get regenerated
+        deleteFileIfExists(destPath.resolve("pom.xml"));
+        deleteFileIfExists(destPath.resolve("src/main/resources/application.properties"));
+    }
+    
+    private void cleanDirectoryIfExists(Path dirPath) throws Exception {
+        if (Files.exists(dirPath)) {
+            log.info("Cleaning directory: {}", dirPath);
+            Files.walk(dirPath)
                  .sorted((a, b) -> b.compareTo(a)) // Reverse order to delete children first
                  .forEach(path -> {
                      try {
@@ -236,6 +258,17 @@ public class MicroServiceGenerator implements Callable<Integer> {
                          log.warn("Could not delete path: {} - {}", path, e.getMessage());
                      }
                  });
+        }
+    }
+    
+    private void deleteFileIfExists(Path filePath) {
+        if (Files.exists(filePath)) {
+            try {
+                Files.delete(filePath);
+                log.info("Deleted file: {}", filePath);
+            } catch (Exception e) {
+                log.warn("Could not delete file: {} - {}", filePath, e.getMessage());
+            }
         }
     }
 

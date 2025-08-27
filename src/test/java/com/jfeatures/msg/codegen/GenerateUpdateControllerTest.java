@@ -198,7 +198,7 @@ class GenerateUpdateControllerTest {
         assertThat(generatedCode).contains("import org.springframework.http.ResponseEntity");
         
         // Check validation annotations
-        assertThat(generatedCode).contains("import javax.validation.Valid");
+        assertThat(generatedCode).contains("import jakarta.validation.Valid");
         
         // Check Swagger imports
         assertThat(generatedCode).contains("import io.swagger.v3.oas.annotations.Operation");
