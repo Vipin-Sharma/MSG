@@ -2,8 +2,8 @@ package com.jfeatures.msg.codegen;
 
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.domain.DBColumn;
-import com.jfeatures.msg.codegen.util.NameUtil;
-import com.jfeatures.msg.codegen.util.TypeUtil;
+import com.jfeatures.msg.codegen.util.JavaPackageNameBuilder;
+import com.jfeatures.msg.codegen.util.JavaPoetTypeNameBuilder;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -30,8 +30,8 @@ import java.util.List;
 public class GenerateController {
     public static JavaFile createController(String businessPurposeOfSQL, List<DBColumn> predicateHavingLiterals) throws IOException
     {
-        TypeName daoTypeName = TypeUtil.getJavaClassTypeName(businessPurposeOfSQL, "dao", "DAO");
-        TypeName dtoTypeName = TypeUtil.getJavaClassTypeName(businessPurposeOfSQL, "dto", "DTO");
+        TypeName daoTypeName = JavaPoetTypeNameBuilder.buildJavaPoetTypeNameForClass(businessPurposeOfSQL, "dao", "DAO");
+        TypeName dtoTypeName = JavaPoetTypeNameBuilder.buildJavaPoetTypeNameForClass(businessPurposeOfSQL, "dto", "DTO");
 
         String daoInstanceFieldName = CaseUtils.toCamelCase(businessPurposeOfSQL, false) + "DAO";
         FieldSpec fieldSpec = FieldSpec.builder(daoTypeName, daoInstanceFieldName)
@@ -49,7 +49,7 @@ public class GenerateController {
 
         ClassName listClass = ClassName.get("java.util", "List");
 
-        ParameterizedTypeName parameterizedTypeName = TypeUtil.getParameterizedTypeName(dtoTypeName, listClass);
+        ParameterizedTypeName parameterizedTypeName = JavaPoetTypeNameBuilder.buildParameterizedTypeName(dtoTypeName, listClass);
         List<ParameterSpec> parameterSpecs = new ArrayList<>();
         ArrayList<String> getDataParameters       = predicateHavingLiterals.stream().collect(ArrayList::new,
                 (list, dbColumn) -> list.add(CaseUtils.toCamelCase(dbColumn.columnName(), false)),
@@ -97,7 +97,7 @@ public class GenerateController {
                         .build())
                 .build();
 
-        JavaFile javaFile = JavaFile.builder(NameUtil.getPackageName(businessPurposeOfSQL, "controller"), controller)
+        JavaFile javaFile = JavaFile.builder(JavaPackageNameBuilder.buildJavaPackageName(businessPurposeOfSQL, "controller"), controller)
                 .build();
 
         javaFile.writeTo(System.out);

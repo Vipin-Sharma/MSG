@@ -2,8 +2,8 @@ package com.jfeatures.msg.codegen;
 
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.UpdateMetadata;
-import com.jfeatures.msg.codegen.util.NameUtil;
-import com.jfeatures.msg.codegen.util.TypeUtil;
+import com.jfeatures.msg.codegen.util.JavaPackageNameBuilder;
+import com.jfeatures.msg.codegen.util.JavaPoetTypeNameBuilder;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -44,8 +44,8 @@ public class GenerateUpdateController {
      */
     public static JavaFile createUpdateController(String businessPurposeOfSQL, UpdateMetadata updateMetadata) throws IOException {
         
-        TypeName updateDaoTypeName = TypeUtil.getJavaClassTypeName(businessPurposeOfSQL, "dao", "UpdateDAO");
-        TypeName updateDtoTypeName = TypeUtil.getJavaClassTypeName(businessPurposeOfSQL, "dto", "UpdateDTO");
+        TypeName updateDaoTypeName = JavaPoetTypeNameBuilder.buildJavaPoetTypeNameForClass(businessPurposeOfSQL, "dao", "UpdateDAO");
+        TypeName updateDtoTypeName = JavaPoetTypeNameBuilder.buildJavaPoetTypeNameForClass(businessPurposeOfSQL, "dto", "UpdateDTO");
         
         String daoInstanceFieldName = CaseUtils.toCamelCase(businessPurposeOfSQL, false) + "UpdateDAO";
         
@@ -83,7 +83,7 @@ public class GenerateUpdateController {
                         .build())
                 .build();
         
-        JavaFile javaFile = JavaFile.builder(NameUtil.getPackageName(businessPurposeOfSQL, "controller"), controller)
+        JavaFile javaFile = JavaFile.builder(JavaPackageNameBuilder.buildJavaPackageName(businessPurposeOfSQL, "controller"), controller)
                 .build();
         
         javaFile.writeTo(System.out);

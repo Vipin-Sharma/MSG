@@ -1,6 +1,6 @@
 package com.jfeatures.msg.codegen;
 
-import com.jfeatures.msg.codegen.util.NameUtil;
+import com.jfeatures.msg.codegen.util.JavaPackageNameBuilder;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,7 +21,7 @@ public class GenerateDatabaseConfig {
             }
             
             String template = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-            String packageName = NameUtil.getPackageName(businessPurposeOfSQL, "config");
+            String packageName = JavaPackageNameBuilder.buildJavaPackageName(businessPurposeOfSQL, "config");
             
             return template
                     .replace("${packageName}", packageName)

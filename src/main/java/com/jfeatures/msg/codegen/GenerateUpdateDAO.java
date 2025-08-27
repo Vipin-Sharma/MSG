@@ -3,8 +3,8 @@ package com.jfeatures.msg.codegen;
 import com.github.vertical_blank.sqlformatter.SqlFormatter;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.UpdateMetadata;
-import com.jfeatures.msg.codegen.util.NameUtil;
-import com.jfeatures.msg.codegen.util.TypeUtil;
+import com.jfeatures.msg.codegen.util.JavaPackageNameBuilder;
+import com.jfeatures.msg.codegen.util.JavaPoetTypeNameBuilder;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
@@ -72,7 +72,7 @@ public class GenerateUpdateDAO {
                 .addMethod(updateMethod)
                 .build();
         
-        JavaFile javaFile = JavaFile.builder(NameUtil.getPackageName(businessPurposeOfSQL, "dao"), daoClass)
+        JavaFile javaFile = JavaFile.builder(JavaPackageNameBuilder.buildJavaPackageName(businessPurposeOfSQL, "dao"), daoClass)
                 .build();
         
         javaFile.writeTo(System.out);
@@ -84,7 +84,7 @@ public class GenerateUpdateDAO {
      */
     private static MethodSpec createUpdateMethod(String businessPurposeOfSQL, UpdateMetadata updateMetadata, String jdbcTemplateFieldName) {
         
-        TypeName updateDtoType = TypeUtil.getJavaClassTypeName(businessPurposeOfSQL, "dto", "UpdateDTO");
+        TypeName updateDtoType = JavaPoetTypeNameBuilder.buildJavaPoetTypeNameForClass(businessPurposeOfSQL, "dto", "UpdateDTO");
         
         // Build parameter specifications
         List<ParameterSpec> parameterSpecs = new ArrayList<>();

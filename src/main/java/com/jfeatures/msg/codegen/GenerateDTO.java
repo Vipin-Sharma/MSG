@@ -1,7 +1,7 @@
 package com.jfeatures.msg.codegen;
 
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
-import com.jfeatures.msg.codegen.util.NameUtil;
+import com.jfeatures.msg.codegen.util.JavaPackageNameBuilder;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
@@ -33,7 +33,7 @@ public class GenerateDTO {
                 addAnnotation(AnnotationSpec.builder(Jacksonized.class).build()).
                 build();
 
-        JavaFile javaFile = JavaFile.builder(NameUtil.getPackageName(businessPurposeOfSQL, "dto"), dto)
+        JavaFile javaFile = JavaFile.builder(JavaPackageNameBuilder.buildJavaPackageName(businessPurposeOfSQL, "dto"), dto)
                 .build();
 
         javaFile.writeTo(System.out);

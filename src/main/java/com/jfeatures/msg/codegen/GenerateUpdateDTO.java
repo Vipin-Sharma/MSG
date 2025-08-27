@@ -2,7 +2,8 @@ package com.jfeatures.msg.codegen;
 
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.UpdateMetadata;
-import com.jfeatures.msg.codegen.util.NameUtil;
+import com.jfeatures.msg.codegen.util.JavaPackageNameBuilder;
+import com.jfeatures.msg.codegen.util.DtoFieldNameConverter;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
@@ -34,7 +35,7 @@ public class GenerateUpdateDTO {
                 .addJavadoc("DTO for updating $L entity.\nContains fields that can be updated via PUT API.", businessPurposeOfSQL.toLowerCase())
                 .build();
         
-        JavaFile javaFile = JavaFile.builder(NameUtil.getPackageName(businessPurposeOfSQL, "dto"), updateDTO)
+        JavaFile javaFile = JavaFile.builder(JavaPackageNameBuilder.buildJavaPackageName(businessPurposeOfSQL, "dto"), updateDTO)
                 .build();
         
         javaFile.writeTo(System.out);
@@ -59,7 +60,7 @@ public class GenerateUpdateDTO {
                 .addJavadoc("DTO for WHERE clause parameters in $L update operations.", businessPurposeOfSQL.toLowerCase())
                 .build();
         
-        JavaFile javaFile = JavaFile.builder(NameUtil.getPackageName(businessPurposeOfSQL, "dto"), whereDTO)
+        JavaFile javaFile = JavaFile.builder(JavaPackageNameBuilder.buildJavaPackageName(businessPurposeOfSQL, "dto"), whereDTO)
                 .build();
         
         javaFile.writeTo(System.out);
@@ -74,7 +75,7 @@ public class GenerateUpdateDTO {
         
         for (ColumnMetadata column : setColumns) {
             Class<?> fieldType = SQLServerDataTypeEnum.getClassForType(column.getColumnTypeName());
-            String fieldName = NameUtil.getFieldNameForDTO(column.getColumnName());
+            String fieldName = DtoFieldNameConverter.convertToJavaCamelCase(column.getColumnName());
             
             FieldSpec.Builder fieldBuilder = FieldSpec.builder(fieldType, fieldName)
                     .addModifiers(Modifier.PRIVATE);
@@ -133,7 +134,7 @@ public class GenerateUpdateDTO {
         
         // If column name is meaningful (not generic like "whereParam1"), use it
         if (!columnName.startsWith("whereParam")) {
-            return NameUtil.getFieldNameForDTO(columnName);
+            return DtoFieldNameConverter.convertToJavaCamelCase(columnName);
         }
         
         // Generate names based on common WHERE clause patterns
