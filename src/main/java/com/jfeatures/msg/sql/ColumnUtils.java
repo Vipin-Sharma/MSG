@@ -56,16 +56,4 @@ public class ColumnUtils {
                 .findAny();
 
     }
-
-    public static ColumnDefinition findColumnByColumnNameWhenTableAliasIsNotAvailable(Map<String, String> ddlPerTableName, String columnName) {
-        ColumnDefinition columnDefinition = null;
-        for (String ddl : ddlPerTableName.values()) {
-            Optional<ColumnDefinition> columnDefinitionOptional = getColumnDefinition(columnName, ddl);
-            if (columnDefinitionOptional.isPresent()) {
-                columnDefinition = columnDefinitionOptional.get();
-                break;
-            }
-        }
-        return columnDefinition;
-    }
 }

@@ -25,4 +25,9 @@ public class NameUtil {
             return CaseUtils.toCamelCase(tableColumn.columnName(), false, '_');
         }
     }
+
+    public static String getFieldNameForDTO(String columnName)
+    {
+        return CaseUtils.toCamelCase(columnName, false, '_');
+    }
 }
