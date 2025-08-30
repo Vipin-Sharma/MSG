@@ -17,7 +17,7 @@ class SqlParameterReplacerTest {
         String sql = "SELECT * FROM customers WHERE customer_id = ? AND status = ?";
         List<DBColumn> parameters = Arrays.asList(
             new DBColumn("customer_id", "Integer", "INTEGER"),
-            new DBColumn("status", "String", "VARCHAR")
+            new DBColumn("table", "status", "String", "VARCHAR")
         );
         
         // When
@@ -35,7 +35,7 @@ class SqlParameterReplacerTest {
         List<DBColumn> parameters = Arrays.asList(
             new DBColumn("first_name", "String", "VARCHAR"),
             new DBColumn("last_name", "String", "VARCHAR"),
-            new DBColumn("customer_id", "Integer", "INTEGER")
+            new DBColumn("table", "customer_id", "Integer", "INTEGER")
         );
         
         // When
@@ -51,7 +51,7 @@ class SqlParameterReplacerTest {
         // Given
         String sql = "DELETE FROM customers WHERE customer_id = ?";
         List<DBColumn> parameters = Arrays.asList(
-            new DBColumn("customer_id", "Integer", "INTEGER")
+            new DBColumn("table", "customer_id", "Integer", "INTEGER")
         );
         
         // When
@@ -87,7 +87,7 @@ class SqlParameterReplacerTest {
         List<DBColumn> parameters = Arrays.asList(
             new DBColumn("customer_id", "Integer", "INTEGER"),
             new DBColumn("order_date", "Date", "DATE"),
-            new DBColumn("status", "String", "VARCHAR")
+            new DBColumn("table", "status", "String", "VARCHAR")
         );
         
         // When
@@ -109,7 +109,7 @@ class SqlParameterReplacerTest {
         String sql = "SELECT * FROM customers WHERE date_of_birth = ? AND created_at_timestamp = ?";
         List<DBColumn> parameters = Arrays.asList(
             new DBColumn("date_of_birth", "Date", "DATE"),
-            new DBColumn("created_at_timestamp", "Timestamp", "TIMESTAMP")
+            new DBColumn("table", "created_at_timestamp", "Timestamp", "TIMESTAMP")
         );
         
         // When
@@ -126,7 +126,7 @@ class SqlParameterReplacerTest {
         String sql = "SELECT * FROM customers WHERE customerId = ? AND customerName = ?";
         List<DBColumn> parameters = Arrays.asList(
             new DBColumn("customerId", "Integer", "INTEGER"),
-            new DBColumn("customerName", "String", "VARCHAR")
+            new DBColumn("table", "customerName", "String", "VARCHAR")
         );
         
         // When
@@ -188,7 +188,7 @@ class SqlParameterReplacerTest {
         String sql = "SELECT * FROM customers WHERE id = ? AND name = ? AND status = ?";
         List<DBColumn> parameters = Arrays.asList(
             new DBColumn("id", "Integer", "INTEGER"),
-            new DBColumn("name", "String", "VARCHAR")
+            new DBColumn("table", "name", "String", "VARCHAR")
             // Missing third parameter
         );
         
@@ -298,7 +298,7 @@ class SqlParameterReplacerTest {
         // Given - Note: This test assumes the method should only replace parameter placeholders, not ? in strings
         String sql = "SELECT * FROM customers WHERE description LIKE '%What?%' AND id = ?";
         List<DBColumn> parameters = Arrays.asList(
-            new DBColumn("id", "Integer", "INTEGER")
+            new DBColumn("table", "id", "Integer", "INTEGER")
         );
         
         // When

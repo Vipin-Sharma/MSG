@@ -65,8 +65,8 @@ class SelectMicroserviceGeneratorTest {
         
         // Setup mock parameters
         mockParameters = new ArrayList<>();
-        mockParameters.add(new DBColumn("customerId", "int", 1));
-        mockParameters.add(new DBColumn("status", "varchar", 2));
+        mockParameters.add(new DBColumn("table", "customerId", "java.lang.String", "int"));
+        mockParameters.add(new DBColumn("table", "status", "java.lang.String", "varchar"));
         
         // Setup database connection mocks
         when(databaseConnection.jdbcTemplate()).thenReturn(jdbcTemplate);
@@ -98,7 +98,7 @@ class SelectMicroserviceGeneratorTest {
             // Then
             assertNotNull(result);
             assertEquals(businessDomainName, result.businessDomainName());
-            assertEquals(SqlStatementType.SELECT, result.sqlStatementType());
+            assertEquals(SqlStatementType.SELECT, result.statementType());
             assertNotNull(result.springBootApplication());
             assertNotNull(result.dtoFile());
             assertNotNull(result.controllerFile());
@@ -262,9 +262,9 @@ class SelectMicroserviceGeneratorTest {
         );
         
         ArrayList<DBColumn> complexParameters = new ArrayList<>();
-        complexParameters.add(new DBColumn("customerId", "int", 1));
-        complexParameters.add(new DBColumn("orderDate", "datetime", 2));
-        complexParameters.add(new DBColumn("category", "varchar", 3));
+        complexParameters.add(new DBColumn("table", "customerId", "java.lang.String", "int"));
+        complexParameters.add(new DBColumn("table", "orderDate", "java.lang.String", "datetime"));
+        complexParameters.add(new DBColumn("table", "category", "java.lang.String", "varchar"));
         
         try (MockedStatic<SqlMetadata> sqlMetadataMock = mockStatic(SqlMetadata.class);
              MockedStatic<CodeGenController> controllerMock = mockStatic(CodeGenController.class);
@@ -283,7 +283,7 @@ class SelectMicroserviceGeneratorTest {
             // Then
             assertNotNull(result);
             assertEquals(businessDomainName, result.businessDomainName());
-            assertEquals(SqlStatementType.SELECT, result.sqlStatementType());
+            assertEquals(SqlStatementType.SELECT, result.statementType());
             
             verify(codeGenController).selectColumnMetadata();
             verify(parameterExtractor).extractParameters(complexSql);
@@ -314,7 +314,7 @@ class SelectMicroserviceGeneratorTest {
             // Then
             assertNotNull(result);
             assertEquals(businessDomainName, result.businessDomainName());
-            assertEquals(SqlStatementType.SELECT, result.sqlStatementType());
+            assertEquals(SqlStatementType.SELECT, result.statementType());
             
             verify(parameterExtractor).extractParameters(sqlWithoutParams);
         }

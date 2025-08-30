@@ -45,8 +45,8 @@ class DeleteMicroserviceGeneratorTest {
         
         // Setup mock parameters
         mockParameters = Arrays.asList(
-            new DBColumn("customerId", "INTEGER", 1),
-            new DBColumn("status", "VARCHAR", 2)
+            new DBColumn("table", "customerId", "java.lang.String", "INTEGER"),
+            new DBColumn("table", "status", "java.lang.String", "VARCHAR")
         );
     }
     
@@ -70,7 +70,7 @@ class DeleteMicroserviceGeneratorTest {
             // Then
             assertNotNull(result);
             assertEquals(businessDomainName, result.businessDomainName());
-            assertEquals(SqlStatementType.DELETE, result.sqlStatementType());
+            assertEquals(SqlStatementType.DELETE, result.statementType());
             assertNotNull(result.springBootApplication());
             assertNotNull(result.dtoFile());
             assertNotNull(result.controllerFile());
@@ -193,7 +193,7 @@ class DeleteMicroserviceGeneratorTest {
             // Then
             assertNotNull(result);
             assertEquals(businessDomainName, result.businessDomainName());
-            assertEquals(SqlStatementType.DELETE, result.sqlStatementType());
+            assertEquals(SqlStatementType.DELETE, result.statementType());
             
             verify(parameterExtractor).extractParameters(sql);
         }
@@ -212,10 +212,10 @@ class DeleteMicroserviceGeneratorTest {
         String businessDomainName = "Customer";
         
         List<DBColumn> complexParameters = Arrays.asList(
-            new DBColumn("customerId", "INTEGER", 1),
-            new DBColumn("status", "VARCHAR", 2),
-            new DBColumn("createdDate", "TIMESTAMP", 3),
-            new DBColumn("region", "VARCHAR", 4)
+            new DBColumn("table", "customerId", "java.lang.String", "INTEGER"),
+            new DBColumn("table", "status", "java.lang.String", "VARCHAR"),
+            new DBColumn("table", "createdDate", "java.lang.String", "TIMESTAMP"),
+            new DBColumn("table", "region", "java.lang.String", "VARCHAR")
         );
         
         try (MockedStatic<ParameterMetadataExtractor> extractorMock = mockStatic(ParameterMetadataExtractor.class)) {
@@ -231,7 +231,7 @@ class DeleteMicroserviceGeneratorTest {
             // Then
             assertNotNull(result);
             assertEquals(businessDomainName, result.businessDomainName());
-            assertEquals(SqlStatementType.DELETE, result.sqlStatementType());
+            assertEquals(SqlStatementType.DELETE, result.statementType());
             
             verify(parameterExtractor).extractParameters(complexSql);
         }
@@ -249,7 +249,7 @@ class DeleteMicroserviceGeneratorTest {
         String businessDomainName = "Customer";
         
         List<DBColumn> subqueryParameters = Arrays.asList(
-            new DBColumn("orderDate", "TIMESTAMP", 1)
+            new DBColumn("table", "orderDate", "java.lang.String", "TIMESTAMP")
         );
         
         try (MockedStatic<ParameterMetadataExtractor> extractorMock = mockStatic(ParameterMetadataExtractor.class)) {
@@ -265,7 +265,7 @@ class DeleteMicroserviceGeneratorTest {
             // Then
             assertNotNull(result);
             assertEquals(businessDomainName, result.businessDomainName());
-            assertEquals(SqlStatementType.DELETE, result.sqlStatementType());
+            assertEquals(SqlStatementType.DELETE, result.statementType());
             
             verify(parameterExtractor).extractParameters(subquerySql);
         }
@@ -333,7 +333,7 @@ class DeleteMicroserviceGeneratorTest {
             // Then
             assertNotNull(result);
             assertEquals(businessDomainName, result.businessDomainName());
-            assertEquals(SqlStatementType.DELETE, result.sqlStatementType());
+            assertEquals(SqlStatementType.DELETE, result.statementType());
         }
     }
     
@@ -356,7 +356,7 @@ class DeleteMicroserviceGeneratorTest {
             // Then
             assertNotNull(result);
             assertEquals(businessDomainName, result.businessDomainName());
-            assertEquals(SqlStatementType.DELETE, result.sqlStatementType());
+            assertEquals(SqlStatementType.DELETE, result.statementType());
             
             verify(parameterExtractor).extractParameters(sql);
         }

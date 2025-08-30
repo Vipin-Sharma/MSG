@@ -70,7 +70,7 @@ class UpdateMicroserviceGeneratorTest {
             // Then
             assertNotNull(result);
             assertEquals(businessDomainName, result.businessDomainName());
-            assertEquals(SqlStatementType.UPDATE, result.sqlStatementType());
+            assertEquals(SqlStatementType.UPDATE, result.statementType());
             assertNotNull(result.springBootApplication());
             assertNotNull(result.dtoFile());
             assertNotNull(result.controllerFile());
@@ -207,7 +207,7 @@ class UpdateMicroserviceGeneratorTest {
             // Then
             assertNotNull(result);
             assertEquals(businessDomainName, result.businessDomainName());
-            assertEquals(SqlStatementType.UPDATE, result.sqlStatementType());
+            assertEquals(SqlStatementType.UPDATE, result.statementType());
             
             verify(updateMetadataExtractor).extractUpdateMetadata(complexSql);
         }
@@ -236,7 +236,7 @@ class UpdateMicroserviceGeneratorTest {
             // Then
             assertNotNull(result);
             assertEquals(businessDomainName, result.businessDomainName());
-            assertEquals(SqlStatementType.UPDATE, result.sqlStatementType());
+            assertEquals(SqlStatementType.UPDATE, result.statementType());
             
             verify(updateMetadataExtractor).extractUpdateMetadata(namedParamSql);
         }
@@ -267,7 +267,7 @@ class UpdateMicroserviceGeneratorTest {
             // Then
             assertNotNull(result);
             assertEquals(businessDomainName, result.businessDomainName());
-            assertEquals(SqlStatementType.UPDATE, result.sqlStatementType());
+            assertEquals(SqlStatementType.UPDATE, result.statementType());
             
             verify(updateMetadataExtractor).extractUpdateMetadata(joinUpdateSql);
         }
@@ -298,7 +298,7 @@ class UpdateMicroserviceGeneratorTest {
             // Then
             assertNotNull(result);
             assertEquals(businessDomainName, result.businessDomainName());
-            assertEquals(SqlStatementType.UPDATE, result.sqlStatementType());
+            assertEquals(SqlStatementType.UPDATE, result.statementType());
             
             verify(updateMetadataExtractor).extractUpdateMetadata(subquerySql);
         }

@@ -104,7 +104,7 @@ class CompleteScenarioCoverageTest {
         
         // Then: Verify complete microservice generation
         assertNotNull(result, "Microservice should be generated");
-        assertEquals(SqlStatementType.SELECT, result.sqlStatementType(), "Should detect SELECT statement");
+        assertEquals(SqlStatementType.SELECT, result.statementType(), "Should detect SELECT statement");
         assertEquals(businessDomainName, result.businessDomainName(), "Should use correct business domain name");
         
         // Verify all components are generated
@@ -155,7 +155,7 @@ class CompleteScenarioCoverageTest {
         
         // Then: Verify INSERT microservice generation
         assertNotNull(result, "INSERT microservice should be generated");
-        assertEquals(SqlStatementType.INSERT, result.sqlStatementType(), "Should detect INSERT statement");
+        assertEquals(SqlStatementType.INSERT, result.statementType(), "Should detect INSERT statement");
         
         // Verify INSERT-specific components
         validateGeneratedComponents(result, "Product", "POST");
@@ -199,7 +199,7 @@ class CompleteScenarioCoverageTest {
         
         // Then: Verify UPDATE microservice generation
         assertNotNull(result, "UPDATE microservice should be generated");
-        assertEquals(SqlStatementType.UPDATE, result.sqlStatementType(), "Should detect UPDATE statement");
+        assertEquals(SqlStatementType.UPDATE, result.statementType(), "Should detect UPDATE statement");
         
         // Verify UPDATE-specific components
         validateGeneratedComponents(result, "CustomerUpdate", "PUT");
@@ -239,7 +239,7 @@ class CompleteScenarioCoverageTest {
         
         // Then: Verify DELETE microservice generation
         assertNotNull(result, "DELETE microservice should be generated");
-        assertEquals(SqlStatementType.DELETE, result.sqlStatementType(), "Should detect DELETE statement");
+        assertEquals(SqlStatementType.DELETE, result.statementType(), "Should detect DELETE statement");
         
         // Verify DELETE-specific components
         validateGeneratedComponents(result, "OrderItem", "DELETE");
@@ -260,27 +260,27 @@ class CompleteScenarioCoverageTest {
     void testSqlStatementDetection_AllTypes_DetectsCorrectly() {
         // Test SELECT detection
         assertEquals(SqlStatementType.SELECT, 
-            sqlStatementDetector.detectSqlStatementType("SELECT * FROM customers WHERE id = ?"));
+            sqlStatementDetector.detectStatementType("SELECT * FROM customers WHERE id = ?"));
         assertEquals(SqlStatementType.SELECT, 
-            sqlStatementDetector.detectSqlStatementType("   select c.name from customers c"));
+            sqlStatementDetector.detectStatementType("   select c.name from customers c"));
         
         // Test INSERT detection
         assertEquals(SqlStatementType.INSERT, 
-            sqlStatementDetector.detectSqlStatementType("INSERT INTO products VALUES (?, ?, ?)"));
+            sqlStatementDetector.detectStatementType("INSERT INTO products VALUES (?, ?, ?)"));
         assertEquals(SqlStatementType.INSERT, 
-            sqlStatementDetector.detectSqlStatementType("   insert into customers (name) values (?)"));
+            sqlStatementDetector.detectStatementType("   insert into customers (name) values (?)"));
         
         // Test UPDATE detection
         assertEquals(SqlStatementType.UPDATE, 
-            sqlStatementDetector.detectSqlStatementType("UPDATE customers SET name = ? WHERE id = ?"));
+            sqlStatementDetector.detectStatementType("UPDATE customers SET name = ? WHERE id = ?"));
         assertEquals(SqlStatementType.UPDATE, 
-            sqlStatementDetector.detectSqlStatementType("   update products set price = ?"));
+            sqlStatementDetector.detectStatementType("   update products set price = ?"));
         
         // Test DELETE detection
         assertEquals(SqlStatementType.DELETE, 
-            sqlStatementDetector.detectSqlStatementType("DELETE FROM customers WHERE id = ?"));
+            sqlStatementDetector.detectStatementType("DELETE FROM customers WHERE id = ?"));
         assertEquals(SqlStatementType.DELETE, 
-            sqlStatementDetector.detectSqlStatementType("   delete from orders where status = 'CANCELLED'"));
+            sqlStatementDetector.detectStatementType("   delete from orders where status = 'CANCELLED'"));
     }
     
     /**

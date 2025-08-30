@@ -66,7 +66,7 @@ class UpdateMetadataExtractorTest {
         // Then
         assertNotNull(result);
         assertEquals("customers", result.tableName());
-        assertEquals(sql, result.sql());
+        assertEquals(sql, result.originalSql());
         
         assertNotNull(result.setColumns());
         assertEquals(2, result.setColumns().size());

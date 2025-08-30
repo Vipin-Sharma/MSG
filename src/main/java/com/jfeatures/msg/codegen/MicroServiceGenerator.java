@@ -90,5 +90,33 @@ public class MicroServiceGenerator implements Callable<Integer> {
     public static String getSql(String fileName) throws URISyntaxException {
         return ReadFileFromResources.readFileFromResources(fileName);
     }
+    
+    /**
+     * Generate microservice from SQL for testing purposes.
+     * 
+     * @param sql The SQL statement
+     * @param businessPurposeName The business purpose name
+     * @param databaseConnection The database connection
+     * @return Generated microservice
+     * @throws Exception if generation fails
+     */
+    public GeneratedMicroservice generateMicroserviceFromSql(String sql, String businessPurposeName, DatabaseConnection databaseConnection) throws Exception {
+        // Detect SQL statement type
+        SqlStatementType statementType = SqlStatementDetector.detectStatementType(sql);
+        
+        // Generate microservice based on SQL type
+        return switch (statementType) {
+            case SELECT -> new SelectMicroserviceGenerator()
+                .generateSelectMicroservice(sql, businessPurposeName, databaseConnection);
+            case UPDATE -> new UpdateMicroserviceGenerator()
+                .generateUpdateMicroservice(sql, businessPurposeName, databaseConnection);
+            case INSERT -> new InsertMicroserviceGenerator()
+                .generateInsertMicroservice(sql, businessPurposeName, databaseConnection);
+            case DELETE -> new DeleteMicroserviceGenerator()
+                .generateDeleteMicroservice(sql, businessPurposeName, databaseConnection);
+            default -> throw new IllegalArgumentException(
+                "Unknown or unsupported SQL statement type: '" + statementType + "'. Please provide a valid SELECT, UPDATE, INSERT, or DELETE statement.");
+        };
+    }
 
 }

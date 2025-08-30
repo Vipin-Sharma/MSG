@@ -60,8 +60,8 @@ class DeleteMetadataExtractorTest {
         // Given
         String sql = "DELETE FROM customers WHERE customer_id = ? AND status = ?";
         List<DBColumn> mockParameters = Arrays.asList(
-            new DBColumn("customer_id", "INTEGER", 1),
-            new DBColumn("status", "VARCHAR", 2)
+            new DBColumn("table", "customer_id", "java.lang.String", "INTEGER"),
+            new DBColumn("table", "status", "java.lang.String", "VARCHAR")
         );
         
         try (MockedStatic<ParameterMetadataExtractor> extractorMock = mockStatic(ParameterMetadataExtractor.class)) {
@@ -79,7 +79,7 @@ class DeleteMetadataExtractorTest {
             // Then
             assertNotNull(result);
             assertEquals("customers", result.tableName());
-            assertEquals(sql, result.sql());
+            assertEquals(sql, result.originalSql());
             
             assertNotNull(result.whereColumns());
             assertEquals(2, result.whereColumns().size());
@@ -147,8 +147,8 @@ class DeleteMetadataExtractorTest {
         // Given
         String sql = "DELETE FROM customers WHERE customerId = ? AND customerStatus = ?";
         List<DBColumn> mockParameters = Arrays.asList(
-            new DBColumn("customerId", "INTEGER", 1),
-            new DBColumn("customerStatus", "VARCHAR", 2)
+            new DBColumn("table", "customerId", "java.lang.String", "INTEGER"),
+            new DBColumn("table", "customerStatus", "java.lang.String", "VARCHAR")
         );
         
         try (MockedStatic<ParameterMetadataExtractor> extractorMock = mockStatic(ParameterMetadataExtractor.class)) {
@@ -190,8 +190,8 @@ class DeleteMetadataExtractorTest {
         // Given
         String sql = "DELETE FROM customers WHERE c.customer_id = ? AND c.status = ?";
         List<DBColumn> mockParameters = Arrays.asList(
-            new DBColumn("c.customer_id", "INTEGER", 1),
-            new DBColumn("c.status", "VARCHAR", 2)
+            new DBColumn("table", "c.customer_id", "java.lang.String", "INTEGER"),
+            new DBColumn("table", "c.status", "java.lang.String", "VARCHAR")
         );
         
         try (MockedStatic<ParameterMetadataExtractor> extractorMock = mockStatic(ParameterMetadataExtractor.class)) {
@@ -222,7 +222,7 @@ class DeleteMetadataExtractorTest {
         // Given
         String sql = "DELETE FROM customers WHERE CUSTOMER_ID = ?";
         List<DBColumn> mockParameters = Arrays.asList(
-            new DBColumn("CUSTOMER_ID", "INTEGER", 1)
+            new DBColumn("table", "CUSTOMER_ID", "java.lang.String", "INTEGER")
         );
         
         try (MockedStatic<ParameterMetadataExtractor> extractorMock = mockStatic(ParameterMetadataExtractor.class)) {
@@ -263,7 +263,7 @@ class DeleteMetadataExtractorTest {
         // Given
         String sql = "DELETE FROM customers WHERE nonexistent_column = ?";
         List<DBColumn> mockParameters = Arrays.asList(
-            new DBColumn("nonexistent_column", "VARCHAR", 1)
+            new DBColumn("table", "nonexistent_column", "java.lang.String", "VARCHAR")
         );
         
         try (MockedStatic<ParameterMetadataExtractor> extractorMock = mockStatic(ParameterMetadataExtractor.class)) {
@@ -296,7 +296,7 @@ class DeleteMetadataExtractorTest {
         // Given
         String sql = "DELETE FROM customers WHERE id = ?";
         List<DBColumn> mockParameters = Arrays.asList(
-            new DBColumn("id", "INTEGER", 1)
+            new DBColumn("table", "id", "java.lang.String", "INTEGER")
         );
         
         try (MockedStatic<ParameterMetadataExtractor> extractorMock = mockStatic(ParameterMetadataExtractor.class)) {
@@ -330,7 +330,7 @@ class DeleteMetadataExtractorTest {
             )
             """;
         List<DBColumn> mockParameters = Arrays.asList(
-            new DBColumn("order_date", "TIMESTAMP", 1)
+            new DBColumn("table", "order_date", "java.lang.String", "TIMESTAMP")
         );
         
         try (MockedStatic<ParameterMetadataExtractor> extractorMock = mockStatic(ParameterMetadataExtractor.class)) {

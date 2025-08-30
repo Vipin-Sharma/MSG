@@ -10,7 +10,7 @@ class DtoFieldNameConverterTest {
     @Test
     void testConvertToJavaCamelCase_TableColumn_WithAlias_ReturnsAlias() {
         // Given
-        TableColumn column = new TableColumn("customer_id", "customerId");
+        TableColumn column = new TableColumn("customer_id", "customerId", "table");
         
         // When
         String result = DtoFieldNameConverter.convertToJavaCamelCase(column);
@@ -22,7 +22,7 @@ class DtoFieldNameConverterTest {
     @Test
     void testConvertToJavaCamelCase_TableColumn_WithoutAlias_ConvertsToCamelCase() {
         // Given
-        TableColumn column = new TableColumn("customer_name", null);
+        TableColumn column = new TableColumn("customer_name", null, "table");
         
         // When
         String result = DtoFieldNameConverter.convertToJavaCamelCase(column);
@@ -34,7 +34,7 @@ class DtoFieldNameConverterTest {
     @Test
     void testConvertToJavaCamelCase_TableColumn_SnakeCaseName_ConvertsToCamelCase() {
         // Given
-        TableColumn column = new TableColumn("first_name_last_name", null);
+        TableColumn column = new TableColumn("first_name_last_name", null, "table");
         
         // When
         String result = DtoFieldNameConverter.convertToJavaCamelCase(column);
@@ -46,7 +46,7 @@ class DtoFieldNameConverterTest {
     @Test
     void testConvertToJavaCamelCase_TableColumn_SingleWord_RemainsLowercase() {
         // Given
-        TableColumn column = new TableColumn("email", null);
+        TableColumn column = new TableColumn("email", null, "table");
         
         // When
         String result = DtoFieldNameConverter.convertToJavaCamelCase(column);
@@ -58,7 +58,7 @@ class DtoFieldNameConverterTest {
     @Test
     void testConvertToJavaCamelCase_TableColumn_AlreadyCamelCase_RemainsUnchanged() {
         // Given
-        TableColumn column = new TableColumn("customerName", null);
+        TableColumn column = new TableColumn("customerName", null, "table");
         
         // When
         String result = DtoFieldNameConverter.convertToJavaCamelCase(column);
@@ -70,7 +70,7 @@ class DtoFieldNameConverterTest {
     @Test
     void testConvertToJavaCamelCase_TableColumn_EmptyAlias_ConvertsToCamelCase() {
         // Given
-        TableColumn column = new TableColumn("customer_id", "");
+        TableColumn column = new TableColumn("customer_id", "", "table");
         
         // When
         String result = DtoFieldNameConverter.convertToJavaCamelCase(column);

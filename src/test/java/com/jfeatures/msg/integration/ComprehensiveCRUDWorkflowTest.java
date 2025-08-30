@@ -53,7 +53,7 @@ class ComprehensiveCRUDWorkflowTest {
         
         // Mock SQL statement detection
         SqlStatementDetector detector = spy(new SqlStatementDetector());
-        when(detector.detectSqlStatementType(selectSql)).thenReturn(SqlStatementType.SELECT);
+        when(detector.detectStatementType(selectSql)).thenReturn(SqlStatementType.SELECT);
         
         // Setup database mocks for SELECT workflow
         TestUtils.setupSelectWorkflowMocks(mockDatabaseConnection, mockJdbcTemplate);
@@ -66,7 +66,7 @@ class ComprehensiveCRUDWorkflowTest {
         // Then
         assertNotNull(result);
         assertEquals(businessDomainName, result.businessDomainName());
-        assertEquals(SqlStatementType.SELECT, result.sqlStatementType());
+        assertEquals(SqlStatementType.SELECT, result.statementType());
         
         // Verify all components are generated
         assertNotNull(result.springBootApplication(), "Spring Boot application should be generated");
@@ -112,7 +112,7 @@ class ComprehensiveCRUDWorkflowTest {
         // Then
         assertNotNull(result);
         assertEquals(businessDomainName, result.businessDomainName());
-        assertEquals(SqlStatementType.INSERT, result.sqlStatementType());
+        assertEquals(SqlStatementType.INSERT, result.statementType());
         
         // Verify all components are generated
         assertNotNull(result.springBootApplication(), "Spring Boot application should be generated");
@@ -159,7 +159,7 @@ class ComprehensiveCRUDWorkflowTest {
         // Then
         assertNotNull(result);
         assertEquals(businessDomainName, result.businessDomainName());
-        assertEquals(SqlStatementType.UPDATE, result.sqlStatementType());
+        assertEquals(SqlStatementType.UPDATE, result.statementType());
         
         // Verify all components are generated
         assertNotNull(result.springBootApplication(), "Spring Boot application should be generated");
@@ -204,7 +204,7 @@ class ComprehensiveCRUDWorkflowTest {
         // Then
         assertNotNull(result);
         assertEquals(businessDomainName, result.businessDomainName());
-        assertEquals(SqlStatementType.DELETE, result.sqlStatementType());
+        assertEquals(SqlStatementType.DELETE, result.statementType());
         
         // Verify all components are generated
         assertNotNull(result.springBootApplication(), "Spring Boot application should be generated");
@@ -257,7 +257,7 @@ class ComprehensiveCRUDWorkflowTest {
         // Then
         assertNotNull(result);
         assertEquals(businessDomainName, result.businessDomainName());
-        assertEquals(SqlStatementType.SELECT, result.sqlStatementType());
+        assertEquals(SqlStatementType.SELECT, result.statementType());
         
         // Verify all components are generated for complex query
         assertNotNull(result.springBootApplication());
@@ -313,7 +313,7 @@ class ComprehensiveCRUDWorkflowTest {
         
         // Then
         assertNotNull(result);
-        assertEquals(SqlStatementType.SELECT, result.sqlStatementType());
+        assertEquals(SqlStatementType.SELECT, result.statementType());
         
         // Verify DTO handles various data types correctly
         String dtoContent = result.dtoFile().toString();
@@ -351,7 +351,7 @@ class ComprehensiveCRUDWorkflowTest {
         assertNotNull(result);
         
         // 1. SQL Statement Detection
-        assertEquals(SqlStatementType.SELECT, result.sqlStatementType());
+        assertEquals(SqlStatementType.SELECT, result.statementType());
         
         // 2. Metadata Extraction
         assertNotNull(result.dtoFile());

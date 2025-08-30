@@ -70,7 +70,7 @@ class InsertMicroserviceGeneratorTest {
             // Then
             assertNotNull(result);
             assertEquals(businessDomainName, result.businessDomainName());
-            assertEquals(SqlStatementType.INSERT, result.sqlStatementType());
+            assertEquals(SqlStatementType.INSERT, result.statementType());
             assertNotNull(result.springBootApplication());
             assertNotNull(result.dtoFile());
             assertNotNull(result.controllerFile());
@@ -206,7 +206,7 @@ class InsertMicroserviceGeneratorTest {
             // Then
             assertNotNull(result);
             assertEquals(businessDomainName, result.businessDomainName());
-            assertEquals(SqlStatementType.INSERT, result.sqlStatementType());
+            assertEquals(SqlStatementType.INSERT, result.statementType());
             
             verify(insertMetadataExtractor).extractInsertMetadata(complexSql);
         }
@@ -234,7 +234,7 @@ class InsertMicroserviceGeneratorTest {
             // Then
             assertNotNull(result);
             assertEquals(businessDomainName, result.businessDomainName());
-            assertEquals(SqlStatementType.INSERT, result.sqlStatementType());
+            assertEquals(SqlStatementType.INSERT, result.statementType());
             
             verify(insertMetadataExtractor).extractInsertMetadata(namedParamSql);
         }
@@ -263,7 +263,7 @@ class InsertMicroserviceGeneratorTest {
             // Then
             assertNotNull(result);
             assertEquals(businessDomainName, result.businessDomainName());
-            assertEquals(SqlStatementType.INSERT, result.sqlStatementType());
+            assertEquals(SqlStatementType.INSERT, result.statementType());
             
             verify(complexInsertMetadata).tableName();
         }
