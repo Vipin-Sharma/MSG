@@ -247,7 +247,6 @@ class SqlFileResolverTest {
             assertEquals(selectSql, result);
             
             // Verify the order of attempts: UPDATE -> INSERT -> DELETE -> SELECT
-            var inOrder = inOrder(mockReadFile.getMockMaker().getHandler());
             mockReadFile.verify(() -> ReadFileFromResources.readFileFromResources(ProjectConstants.DEFAULT_UPDATE_SQL_FILE));
             mockReadFile.verify(() -> ReadFileFromResources.readFileFromResources(ProjectConstants.DEFAULT_INSERT_SQL_FILE));
             mockReadFile.verify(() -> ReadFileFromResources.readFileFromResources(ProjectConstants.DEFAULT_DELETE_SQL_FILE));

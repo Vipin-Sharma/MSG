@@ -82,9 +82,9 @@ public class TestUtils {
         
         // Mock parameters for WHERE clause
         List<DBColumn> whereParameters = Arrays.asList(
-            new DBColumn("customerId", "INTEGER", 1),
-            new DBColumn("status", "VARCHAR", 2),
-            new DBColumn("createdDate", "TIMESTAMP", 3)
+            new DBColumn("table", "customerId", "INTEGER", "VARCHAR"),
+            new DBColumn("table", "status", "VARCHAR", "VARCHAR"),
+            new DBColumn("table", "createdDate", "TIMESTAMP", "VARCHAR")
         );
         
         // Setup mocks
@@ -137,8 +137,8 @@ public class TestUtils {
     public static void setupDeleteWorkflowMocks(DatabaseConnection mockDatabaseConnection, DataSource mockDataSource) throws Exception {
         // Mock delete parameters
         List<DBColumn> deleteParameters = Arrays.asList(
-            new DBColumn("userId", "INTEGER", 1),
-            new DBColumn("lastLogin", "TIMESTAMP", 2)
+            new DBColumn("table", "userId", "INTEGER", "VARCHAR"),
+            new DBColumn("table", "lastLogin", "TIMESTAMP", "VARCHAR")
         );
         
         // Mock extractor would be setup here with static mocking
@@ -165,10 +165,10 @@ public class TestUtils {
         );
         
         List<DBColumn> complexParameters = Arrays.asList(
-            new DBColumn("customerId", "INTEGER", 1),
-            new DBColumn("orderDate", "DATE", 2),
-            new DBColumn("orderStatus", "VARCHAR", 3),
-            new DBColumn("quantity", "INTEGER", 4)
+            new DBColumn("table", "customerId", "INTEGER", "VARCHAR"),
+            new DBColumn("table", "orderDate", "DATE", "VARCHAR"),
+            new DBColumn("table", "orderStatus", "VARCHAR", "VARCHAR"),
+            new DBColumn("table", "quantity", "INTEGER", "VARCHAR")
         );
         
         // Setup complex mocks
@@ -202,10 +202,10 @@ public class TestUtils {
         );
         
         List<DBColumn> dataTypeParameters = Arrays.asList(
-            new DBColumn("minPrice", "DECIMAL", 1),
-            new DBColumn("maxPrice", "DECIMAL", 2),
-            new DBColumn("createdDate", "DATE", 3),
-            new DBColumn("isActive", "BIT", 4)
+            new DBColumn("table", "minPrice", "DECIMAL", "VARCHAR"),
+            new DBColumn("table", "maxPrice", "DECIMAL", "VARCHAR"),
+            new DBColumn("table", "createdDate", "DATE", "VARCHAR"),
+            new DBColumn("table", "isActive", "BIT", "VARCHAR")
         );
         
         // Setup data type mocks
@@ -230,7 +230,7 @@ public class TestUtils {
         );
         
         List<DBColumn> simpleParameters = Arrays.asList(
-            new DBColumn("id", "INTEGER", 1)
+            new DBColumn("table", "id", "INTEGER", "VARCHAR")
         );
         
         // Setup simple workflow mocks

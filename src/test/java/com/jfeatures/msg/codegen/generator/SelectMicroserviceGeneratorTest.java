@@ -57,11 +57,22 @@ class SelectMicroserviceGeneratorTest {
     
     private void setupMockData() {
         // Setup mock column metadata
-        mockColumnMetadata = List.of(
-            new ColumnMetadata("customer_id", "int", 1),
-            new ColumnMetadata("customer_name", "varchar", 2),
-            new ColumnMetadata("email", "varchar", 3)
-        );
+        ColumnMetadata col1 = new ColumnMetadata();
+        col1.setColumnName("customer_id");
+        col1.setColumnTypeName("int");
+        col1.setColumnType(1);
+        
+        ColumnMetadata col2 = new ColumnMetadata();
+        col2.setColumnName("customer_name");
+        col2.setColumnTypeName("varchar");
+        col2.setColumnType(2);
+        
+        ColumnMetadata col3 = new ColumnMetadata();
+        col3.setColumnName("email");
+        col3.setColumnTypeName("varchar");
+        col3.setColumnType(3);
+        
+        mockColumnMetadata = List.of(col1, col2, col3);
         
         // Setup mock parameters
         mockParameters = new ArrayList<>();
@@ -253,13 +264,32 @@ class SelectMicroserviceGeneratorTest {
         String businessDomainName = "CustomerOrder";
         
         // Setup more complex mock data
-        List<ColumnMetadata> complexColumnMetadata = List.of(
-            new ColumnMetadata("customer_id", "int", 1),
-            new ColumnMetadata("customer_name", "varchar", 2),
-            new ColumnMetadata("email", "varchar", 3),
-            new ColumnMetadata("order_date", "datetime", 4),
-            new ColumnMetadata("product_name", "varchar", 5)
-        );
+        ColumnMetadata col1 = new ColumnMetadata();
+        col1.setColumnName("customer_id");
+        col1.setColumnTypeName("int");
+        col1.setColumnType(1);
+        
+        ColumnMetadata col2 = new ColumnMetadata();
+        col2.setColumnName("customer_name");
+        col2.setColumnTypeName("varchar");
+        col2.setColumnType(2);
+        
+        ColumnMetadata col3 = new ColumnMetadata();
+        col3.setColumnName("email");
+        col3.setColumnTypeName("varchar");
+        col3.setColumnType(3);
+        
+        ColumnMetadata col4 = new ColumnMetadata();
+        col4.setColumnName("order_date");
+        col4.setColumnTypeName("datetime");
+        col4.setColumnType(4);
+        
+        ColumnMetadata col5 = new ColumnMetadata();
+        col5.setColumnName("product_name");
+        col5.setColumnTypeName("varchar");
+        col5.setColumnType(5);
+        
+        List<ColumnMetadata> complexColumnMetadata = List.of(col1, col2, col3, col4, col5);
         
         ArrayList<DBColumn> complexParameters = new ArrayList<>();
         complexParameters.add(new DBColumn("table", "customerId", "java.lang.String", "int"));
