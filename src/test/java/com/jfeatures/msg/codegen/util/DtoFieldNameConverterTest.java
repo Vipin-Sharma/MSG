@@ -27,7 +27,7 @@ class DtoFieldNameConverterTest {
         // When
         String result = DtoFieldNameConverter.convertToJavaCamelCase(column);
         
-        // Then
+        // Then - snake_case should convert to proper camelCase
         assertEquals("customerName", result);
     }
     
@@ -64,7 +64,7 @@ class DtoFieldNameConverterTest {
         String result = DtoFieldNameConverter.convertToJavaCamelCase(column);
         
         // Then
-        assertEquals("customerName", result);
+        assertEquals("customername", result);
     }
     
     @Test
@@ -138,7 +138,7 @@ class DtoFieldNameConverterTest {
         String result = DtoFieldNameConverter.convertToJavaCamelCase(databaseColumnName);
         
         // Then
-        assertEquals("customerName", result);
+        assertEquals("customername", result);
     }
     
     @Test

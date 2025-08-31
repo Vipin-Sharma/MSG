@@ -10,6 +10,6 @@ public class JavaPackageNameBuilder {
             throw new IllegalArgumentException("Package type cannot be null or empty");
         }
         
-        return "com.jfeatures.msg." + sqlBusinessDomainName + "." + packageType;
+        return "com.jfeatures.msg." + sqlBusinessDomainName.toLowerCase() + "." + packageType;
     }
 }

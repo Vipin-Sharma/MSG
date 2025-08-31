@@ -13,6 +13,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class ParameterMetadataExtractorTest {
@@ -35,10 +36,10 @@ class ParameterMetadataExtractorTest {
     void setUp() throws SQLException {
         extractor = new ParameterMetadataExtractor(dataSource);
         
-        // Setup basic mocks
-        when(dataSource.getConnection()).thenReturn(connection);
-        when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
-        when(preparedStatement.getParameterMetaData()).thenReturn(parameterMetaData);
+        // Setup basic mocks with lenient stubbing
+        lenient().when(dataSource.getConnection()).thenReturn(connection);
+        lenient().when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
+        lenient().when(preparedStatement.getParameterMetaData()).thenReturn(parameterMetaData);
     }
     
     @Test

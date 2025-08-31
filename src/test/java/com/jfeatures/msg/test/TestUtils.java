@@ -88,18 +88,8 @@ public class TestUtils {
             new DBColumn("table", "createdDate", "TIMESTAMP", "VARCHAR")
         );
         
-        // Setup mocks
-        try (var codeGenMock = mockStatic(CodeGenController.class);
-             var paramExtractorMock = mockStatic(ParameterMetadataExtractor.class)) {
-            
-            CodeGenController mockController = mock(CodeGenController.class);
-            when(mockController.selectColumnMetadata()).thenReturn(selectColumns);
-            codeGenMock.when(() -> new CodeGenController(any())).thenReturn(mockController);
-            
-            ParameterMetadataExtractor mockExtractor = mock(ParameterMetadataExtractor.class);
-            when(mockExtractor.extractParameters(anyString())).thenReturn(whereParameters);
-            paramExtractorMock.when(() -> new ParameterMetadataExtractor(any())).thenReturn(mockExtractor);
-        }
+        // Setup mocks - These should be handled by the calling test methods
+        // Static constructor mocking is complex and should be done in individual tests
     }
     
     public static void setupInsertWorkflowMocks(DatabaseConnection mockDatabaseConnection, DataSource mockDataSource, NamedParameterJdbcTemplate mockNamedParameterJdbcTemplate) throws Exception {
@@ -114,7 +104,7 @@ public class TestUtils {
         
         InsertMetadata mockInsertMetadata = new InsertMetadata("products", insertColumns, "INSERT INTO products...");
         
-        // Mock extractor would be setup here with static mocking
+        // Mock extractor should be setup by calling test method
     }
     
     public static void setupUpdateWorkflowMocks(DatabaseConnection mockDatabaseConnection, DataSource mockDataSource, NamedParameterJdbcTemplate mockNamedParameterJdbcTemplate) throws Exception {
@@ -132,7 +122,7 @@ public class TestUtils {
         
         UpdateMetadata mockUpdateMetadata = new UpdateMetadata("orders", setColumns, whereColumns, "UPDATE orders...");
         
-        // Mock extractor would be setup here with static mocking
+        // Mock extractor should be setup by calling test method
     }
     
     public static void setupDeleteWorkflowMocks(DatabaseConnection mockDatabaseConnection, DataSource mockDataSource) throws Exception {
@@ -142,12 +132,7 @@ public class TestUtils {
             new DBColumn("table", "lastLogin", "TIMESTAMP", "VARCHAR")
         );
         
-        // Mock extractor would be setup here with static mocking
-        try (var paramExtractorMock = mockStatic(ParameterMetadataExtractor.class)) {
-            ParameterMetadataExtractor mockExtractor = mock(ParameterMetadataExtractor.class);
-            when(mockExtractor.extractParameters(anyString())).thenReturn(deleteParameters);
-            paramExtractorMock.when(() -> new ParameterMetadataExtractor(any())).thenReturn(mockExtractor);
-        }
+        // Mock extractor should be setup by calling test method
     }
     
     public static void setupComplexSelectWorkflowMocks(DatabaseConnection mockDatabaseConnection, JdbcTemplate mockJdbcTemplate) throws Exception {
@@ -203,18 +188,7 @@ public class TestUtils {
             new DBColumn("table", "isActive", "BIT", "VARCHAR")
         );
         
-        // Setup data type mocks
-        try (var codeGenMock = mockStatic(CodeGenController.class);
-             var paramExtractorMock = mockStatic(ParameterMetadataExtractor.class)) {
-            
-            CodeGenController mockController = mock(CodeGenController.class);
-            when(mockController.selectColumnMetadata()).thenReturn(dataTypeColumns);
-            codeGenMock.when(() -> new CodeGenController(any())).thenReturn(mockController);
-            
-            ParameterMetadataExtractor mockExtractor = mock(ParameterMetadataExtractor.class);
-            when(mockExtractor.extractParameters(anyString())).thenReturn(dataTypeParameters);
-            paramExtractorMock.when(() -> new ParameterMetadataExtractor(any())).thenReturn(mockExtractor);
-        }
+        // Setup data type mocks should be done by calling test method
     }
     
     public static void setupCompleteWorkflowMocks(DatabaseConnection mockDatabaseConnection, JdbcTemplate mockJdbcTemplate, DataSource mockDataSource) throws Exception {
@@ -228,17 +202,6 @@ public class TestUtils {
             new DBColumn("table", "id", "INTEGER", "VARCHAR")
         );
         
-        // Setup simple workflow mocks
-        try (var codeGenMock = mockStatic(CodeGenController.class);
-             var paramExtractorMock = mockStatic(ParameterMetadataExtractor.class)) {
-            
-            CodeGenController mockController = mock(CodeGenController.class);
-            when(mockController.selectColumnMetadata()).thenReturn(simpleColumns);
-            codeGenMock.when(() -> new CodeGenController(any())).thenReturn(mockController);
-            
-            ParameterMetadataExtractor mockExtractor = mock(ParameterMetadataExtractor.class);
-            when(mockExtractor.extractParameters(anyString())).thenReturn(simpleParameters);
-            paramExtractorMock.when(() -> new ParameterMetadataExtractor(any())).thenReturn(mockExtractor);
-        }
+        // Setup simple workflow mocks should be done by calling test method
     }
 }

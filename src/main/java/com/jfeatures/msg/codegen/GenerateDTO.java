@@ -46,9 +46,10 @@ public class GenerateDTO {
         for (ColumnMetadata columnMetadata : selectColumnMetadata) {
             Class<?> type = getClassFromStringType(columnMetadata.getColumnClassName());
             String rawFieldName = columnMetadata.getColumnAlias() != null ? columnMetadata.getColumnAlias() : columnMetadata.getColumnName();
-            // Convert snake_case to camelCase for proper Java field naming
-            String fieldName = CaseUtils.toCamelCase(rawFieldName, false, '_');
+            // Convert snake_case to camelCase for proper Java field naming, but preserve existing camelCase
+            String fieldName = rawFieldName.contains("_") ? CaseUtils.toCamelCase(rawFieldName, false, '_') : rawFieldName;
             FieldSpec fieldSpec = FieldSpec.builder(type, fieldName)
+                    .addModifiers(Modifier.PUBLIC)
                     .build();
             fieldSpecList.add(fieldSpec);
         }

@@ -18,9 +18,9 @@ public class SqlFileResolver {
      * 
      * @param specifiedSqlFileName the SQL file name specified by user, or null for default behavior
      * @return the SQL content as a string
-     * @throws Exception if no SQL file can be located or read
+     * @throws RuntimeException if no SQL file can be located or read
      */
-    public String locateAndReadSqlFile(String specifiedSqlFileName) throws Exception {
+    public String locateAndReadSqlFile(String specifiedSqlFileName) {
         if (specifiedSqlFileName != null && !specifiedSqlFileName.trim().isEmpty()) {
             log.info("Using specified SQL file: {}", specifiedSqlFileName);
             return readSqlFromResources(specifiedSqlFileName);
@@ -30,13 +30,13 @@ public class SqlFileResolver {
         return tryDefaultSqlFiles();
     }
     
-    private String tryDefaultSqlFiles() throws Exception {
+    private String tryDefaultSqlFiles() {
         // Try UPDATE first (most common)
         try {
             String sql = readSqlFromResources(ProjectConstants.DEFAULT_UPDATE_SQL_FILE);
             log.info("Using UPDATE SQL file: {}", ProjectConstants.DEFAULT_UPDATE_SQL_FILE);
             return sql;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.debug("UPDATE SQL file not found, trying INSERT");
         }
         
@@ -45,7 +45,7 @@ public class SqlFileResolver {
             String sql = readSqlFromResources(ProjectConstants.DEFAULT_INSERT_SQL_FILE);
             log.info("Using INSERT SQL file: {}", ProjectConstants.DEFAULT_INSERT_SQL_FILE);
             return sql;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.debug("INSERT SQL file not found, trying DELETE");
         }
         
@@ -54,7 +54,7 @@ public class SqlFileResolver {
             String sql = readSqlFromResources(ProjectConstants.DEFAULT_DELETE_SQL_FILE);
             log.info("Using DELETE SQL file: {}", ProjectConstants.DEFAULT_DELETE_SQL_FILE);
             return sql;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.debug("DELETE SQL file not found, trying SELECT");
         }
         
@@ -63,8 +63,8 @@ public class SqlFileResolver {
             String sql = readSqlFromResources(ProjectConstants.DEFAULT_SELECT_SQL_FILE);
             log.info("Using SELECT SQL file: {}", ProjectConstants.DEFAULT_SELECT_SQL_FILE);
             return sql;
-        } catch (Exception e) {
-            throw new Exception("No default SQL files found. Please provide a specific SQL file or ensure at least one of the following files exists: " +
+        } catch (RuntimeException e) {
+            throw new RuntimeException("No default SQL files found. Please provide a specific SQL file or ensure at least one of the following files exists: " +
                     ProjectConstants.DEFAULT_UPDATE_SQL_FILE + ", " + 
                     ProjectConstants.DEFAULT_INSERT_SQL_FILE + ", " + 
                     ProjectConstants.DEFAULT_DELETE_SQL_FILE + ", " + 
@@ -72,7 +72,7 @@ public class SqlFileResolver {
         }
     }
     
-    private String readSqlFromResources(String fileName) throws Exception {
+    private String readSqlFromResources(String fileName) {
         if (fileName == null || fileName.trim().isEmpty()) {
             throw new IllegalArgumentException("SQL file name cannot be null or empty");
         }

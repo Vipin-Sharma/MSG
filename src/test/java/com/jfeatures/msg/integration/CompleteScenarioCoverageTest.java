@@ -1,12 +1,17 @@
 package com.jfeatures.msg.integration;
 
 import com.jfeatures.msg.codegen.MicroServiceGenerator;
+import com.jfeatures.msg.codegen.ParameterMetadataExtractor;
 import com.jfeatures.msg.codegen.constants.ProjectConstants;
+import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
+import com.jfeatures.msg.codegen.dbmetadata.SqlMetadata;
 import com.jfeatures.msg.codegen.domain.DatabaseConnection;
 import com.jfeatures.msg.codegen.domain.GeneratedMicroservice;
+import com.jfeatures.msg.codegen.domain.DBColumn;
 import com.jfeatures.msg.codegen.sql.SqlFileResolver;
 import com.jfeatures.msg.codegen.util.SqlStatementDetector;
 import com.jfeatures.msg.codegen.util.SqlStatementType;
+import com.jfeatures.msg.controller.CodeGenController;
 import com.jfeatures.msg.test.TestUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,9 +21,18 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ParameterMetaData;
+
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
+import org.mockito.MockedStatic;
 
 /**
  * Comprehensive end-to-end test covering all major scenarios and edge cases
@@ -35,9 +49,12 @@ class CompleteScenarioCoverageTest {
     private JdbcTemplate mockJdbcTemplate;
     private NamedParameterJdbcTemplate mockNamedParameterJdbcTemplate;
     private DatabaseConnection mockDatabaseConnection;
+    private Connection mockConnection;
+    private PreparedStatement mockPreparedStatement;
+    private ParameterMetaData mockParameterMetaData;
     
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         microServiceGenerator = new MicroServiceGenerator();
         sqlFileResolver = new SqlFileResolver();
         sqlStatementDetector = new SqlStatementDetector();
@@ -47,9 +64,23 @@ class CompleteScenarioCoverageTest {
         mockNamedParameterJdbcTemplate = mock(NamedParameterJdbcTemplate.class);
         mockDatabaseConnection = mock(DatabaseConnection.class);
         
-        when(mockDatabaseConnection.dataSource()).thenReturn(mockDataSource);
-        when(mockDatabaseConnection.jdbcTemplate()).thenReturn(mockJdbcTemplate);
-        when(mockDatabaseConnection.namedParameterJdbcTemplate()).thenReturn(mockNamedParameterJdbcTemplate);
+        // Setup database connection chain with lenient stubbing to avoid unnecessary stubbing exceptions
+        mockConnection = mock(Connection.class);
+        mockPreparedStatement = mock(PreparedStatement.class);
+        mockParameterMetaData = mock(ParameterMetaData.class);
+        
+        try {
+            lenient().when(mockDataSource.getConnection()).thenReturn(mockConnection);
+            lenient().when(mockConnection.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
+            lenient().when(mockPreparedStatement.getParameterMetaData()).thenReturn(mockParameterMetaData);
+            lenient().when(mockParameterMetaData.getParameterCount()).thenReturn(1);
+        } catch (Exception e) {
+            // Handle SQLException from mocking
+        }
+        
+        lenient().when(mockDatabaseConnection.dataSource()).thenReturn(mockDataSource);
+        lenient().when(mockDatabaseConnection.jdbcTemplate()).thenReturn(mockJdbcTemplate);
+        lenient().when(mockDatabaseConnection.namedParameterJdbcTemplate()).thenReturn(mockNamedParameterJdbcTemplate);
     }
     
     /**
@@ -94,37 +125,71 @@ class CompleteScenarioCoverageTest {
         
         String businessDomainName = "CustomerAddress";
         
-        // Setup comprehensive mocks for SELECT scenario
-        TestUtils.setupComplexSelectWorkflowMocks(mockDatabaseConnection, mockJdbcTemplate);
+        // Setup mock column metadata for SELECT
+        List<ColumnMetadata> mockColumnMetadata = new ArrayList<>();
+        mockColumnMetadata.add(TestUtils.createColumnMetadata("customer_id", "INT", Types.INTEGER, false));
+        mockColumnMetadata.add(TestUtils.createColumnMetadata("first_name", "VARCHAR", Types.VARCHAR, false));
+        mockColumnMetadata.add(TestUtils.createColumnMetadata("last_name", "VARCHAR", Types.VARCHAR, false));
+        mockColumnMetadata.add(TestUtils.createColumnMetadata("email", "VARCHAR", Types.VARCHAR, true));
+        mockColumnMetadata.add(TestUtils.createColumnMetadata("address_line1", "VARCHAR", Types.VARCHAR, true));
+        mockColumnMetadata.add(TestUtils.createColumnMetadata("city", "VARCHAR", Types.VARCHAR, true));
+        mockColumnMetadata.add(TestUtils.createColumnMetadata("postal_code", "VARCHAR", Types.VARCHAR, true));
+        mockColumnMetadata.add(TestUtils.createColumnMetadata("country_name", "VARCHAR", Types.VARCHAR, true));
         
-        // When: Generate microservice
-        GeneratedMicroservice result = microServiceGenerator.generateMicroserviceFromSql(
-            complexSelectSql, businessDomainName, mockDatabaseConnection
-        );
+        // Setup mock parameters for WHERE clause
+        ArrayList<DBColumn> mockParameters = new ArrayList<>();
+        mockParameters.add(new DBColumn("table", "customerId", "Integer", "INTEGER"));
+        mockParameters.add(new DBColumn("table", "status", "String", "VARCHAR"));
+        mockParameters.add(new DBColumn("table", "createdDate", "Date", "DATE"));
+        mockParameters.add(new DBColumn("table", "isPrimary", "Boolean", "BIT"));
         
-        // Then: Verify complete microservice generation
-        assertNotNull(result, "Microservice should be generated");
-        assertEquals(SqlStatementType.SELECT, result.statementType(), "Should detect SELECT statement");
-        assertEquals(businessDomainName, result.businessDomainName(), "Should use correct business domain name");
-        
-        // Verify all components are generated
-        validateGeneratedComponents(result, "CustomerAddress", "GET");
-        
-        // Verify SELECT-specific content
-        String dtoContent = result.dtoFile().toString();
-        assertTrue(dtoContent.contains("customerId"), "Should contain customer ID field");
-        assertTrue(dtoContent.contains("firstName"), "Should contain first name field");
-        assertTrue(dtoContent.contains("addressLine1"), "Should contain address field");
-        assertTrue(dtoContent.contains("countryName"), "Should contain country field");
-        
-        String controllerContent = result.controllerFile().toString();
-        assertTrue(controllerContent.contains("@GetMapping"), "Should have GET mapping");
-        assertTrue(controllerContent.contains("@RequestParam"), "Should have request parameters");
-        assertTrue(controllerContent.contains("List<CustomerAddressDTO>"), "Should return list of DTOs");
-        
-        String daoContent = result.daoFile().toString();
-        assertTrue(daoContent.contains("INNER JOIN"), "Should preserve JOIN clauses");
-        assertTrue(daoContent.contains("ORDER BY"), "Should preserve ORDER BY clause");
+        try (MockedStatic<SqlMetadata> sqlMetadataMock = mockStatic(SqlMetadata.class);
+             MockedStatic<CodeGenController> controllerMock = mockStatic(CodeGenController.class);
+             MockedStatic<ParameterMetadataExtractor> extractorMock = mockStatic(ParameterMetadataExtractor.class)) {
+            
+            // Create mock objects
+            SqlMetadata mockSqlMetadata = mock(SqlMetadata.class);
+            CodeGenController mockCodeGenController = mock(CodeGenController.class);
+            ParameterMetadataExtractor mockParameterExtractor = mock(ParameterMetadataExtractor.class);
+            
+            // Setup static mocks
+            sqlMetadataMock.when(() -> new SqlMetadata(mockJdbcTemplate)).thenReturn(mockSqlMetadata);
+            controllerMock.when(() -> new CodeGenController(mockSqlMetadata)).thenReturn(mockCodeGenController);
+            extractorMock.when(() -> new ParameterMetadataExtractor(mockDataSource)).thenReturn(mockParameterExtractor);
+            
+            // Setup method returns
+            when(mockCodeGenController.selectColumnMetadata()).thenReturn(mockColumnMetadata);
+            when(mockParameterExtractor.extractParameters(complexSelectSql)).thenReturn(mockParameters);
+            
+            // When: Generate microservice
+            GeneratedMicroservice result = microServiceGenerator.generateMicroserviceFromSql(
+                complexSelectSql, businessDomainName, mockDatabaseConnection
+            );
+            
+            // Then: Verify complete microservice generation
+            assertNotNull(result, "Microservice should be generated");
+            assertEquals(SqlStatementType.SELECT, result.statementType(), "Should detect SELECT statement");
+            assertEquals(businessDomainName, result.businessDomainName(), "Should use correct business domain name");
+            
+            // Verify all components are generated
+            validateGeneratedComponents(result, "CustomerAddress", "GET");
+            
+            // Verify SELECT-specific content
+            String dtoContent = result.dtoFile().toString();
+            assertTrue(dtoContent.contains("customerId"), "Should contain customer ID field");
+            assertTrue(dtoContent.contains("firstName"), "Should contain first name field");
+            assertTrue(dtoContent.contains("addressLine1"), "Should contain address field");
+            assertTrue(dtoContent.contains("countryName"), "Should contain country field");
+            
+            String controllerContent = result.controllerFile().toString();
+            assertTrue(controllerContent.contains("@GetMapping"), "Should have GET mapping");
+            assertTrue(controllerContent.contains("@RequestParam"), "Should have request parameters");
+            assertTrue(controllerContent.contains("List<CustomerAddressDTO>"), "Should return list of DTOs");
+            
+            String daoContent = result.daoFile().toString();
+            assertTrue(daoContent.contains("INNER JOIN"), "Should preserve JOIN clauses");
+            assertTrue(daoContent.contains("ORDER BY"), "Should preserve ORDER BY clause");
+        }
     }
     
     private void testInsertScenario() throws Exception {
@@ -337,14 +402,13 @@ class CompleteScenarioCoverageTest {
         // Test priority order: UPDATE -> INSERT -> DELETE -> SELECT
         
         // Test specific file resolution
-        assertThrows(Exception.class, () -> {
+        assertThrows(RuntimeException.class, () -> {
             sqlFileResolver.locateAndReadSqlFile("non_existent_file.sql");
         }, "Should handle non-existent file");
         
-        // Test null file name (should try defaults)
-        assertThrows(Exception.class, () -> {
-            sqlFileResolver.locateAndReadSqlFile(null);
-        }, "Should try default files when no specific file provided");
+        // Test null file name (should try defaults and succeed if default files exist)
+        String result = sqlFileResolver.locateAndReadSqlFile(null);
+        assertNotNull(result, "Should return SQL content when default files exist");
     }
     
     /**

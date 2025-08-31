@@ -8,6 +8,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -22,7 +24,7 @@ class SqlFileResolverTest {
     }
     
     @Test
-    void testLocateAndReadSqlFile_SpecifiedFile_ReadsSpecifiedFile() throws Exception {
+    void testLocateAndReadSqlFile_SpecifiedFile_ReadsSpecifiedFile() {
         // Given
         String specifiedFile = "custom_sql.sql";
         String expectedSql = "SELECT * FROM custom_table WHERE id = ?";
@@ -41,7 +43,7 @@ class SqlFileResolverTest {
     }
     
     @Test
-    void testLocateAndReadSqlFile_NullSpecifiedFile_TriesDefaultFiles() throws Exception {
+    void testLocateAndReadSqlFile_NullSpecifiedFile_TriesDefaultFiles() {
         // Given
         String updateSql = "UPDATE customers SET name = ? WHERE id = ?";
         
@@ -59,14 +61,14 @@ class SqlFileResolverTest {
     }
     
     @Test
-    void testLocateAndReadSqlFile_EmptySpecifiedFile_TriesDefaultFiles() throws Exception {
+    void testLocateAndReadSqlFile_EmptySpecifiedFile_TriesDefaultFiles() {
         // Given
         String insertSql = "INSERT INTO customers (name, email) VALUES (?, ?)";
         
         try (MockedStatic<ReadFileFromResources> mockReadFile = mockStatic(ReadFileFromResources.class)) {
             // UPDATE file doesn't exist, but INSERT does
             mockReadFile.when(() -> ReadFileFromResources.readFileFromResources(ProjectConstants.DEFAULT_UPDATE_SQL_FILE))
-                       .thenThrow(new Exception("File not found"));
+                       .thenThrow(new UncheckedIOException("File not found", new IOException()));
             mockReadFile.when(() -> ReadFileFromResources.readFileFromResources(ProjectConstants.DEFAULT_INSERT_SQL_FILE))
                        .thenReturn(insertSql);
             
@@ -81,13 +83,13 @@ class SqlFileResolverTest {
     }
     
     @Test
-    void testLocateAndReadSqlFile_UpdateFileNotFound_TriesInsertFile() throws Exception {
+    void testLocateAndReadSqlFile_UpdateFileNotFound_TriesInsertFile() {
         // Given
         String insertSql = "INSERT INTO customers (name, email) VALUES (?, ?)";
         
         try (MockedStatic<ReadFileFromResources> mockReadFile = mockStatic(ReadFileFromResources.class)) {
             mockReadFile.when(() -> ReadFileFromResources.readFileFromResources(ProjectConstants.DEFAULT_UPDATE_SQL_FILE))
-                       .thenThrow(new Exception("UPDATE file not found"));
+                       .thenThrow(new UncheckedIOException("UPDATE file not found", new IOException()));
             mockReadFile.when(() -> ReadFileFromResources.readFileFromResources(ProjectConstants.DEFAULT_INSERT_SQL_FILE))
                        .thenReturn(insertSql);
             
@@ -102,15 +104,15 @@ class SqlFileResolverTest {
     }
     
     @Test
-    void testLocateAndReadSqlFile_UpdateAndInsertNotFound_TriesDeleteFile() throws Exception {
+    void testLocateAndReadSqlFile_UpdateAndInsertNotFound_TriesDeleteFile() {
         // Given
         String deleteSql = "DELETE FROM customers WHERE id = ?";
         
         try (MockedStatic<ReadFileFromResources> mockReadFile = mockStatic(ReadFileFromResources.class)) {
             mockReadFile.when(() -> ReadFileFromResources.readFileFromResources(ProjectConstants.DEFAULT_UPDATE_SQL_FILE))
-                       .thenThrow(new Exception("UPDATE file not found"));
+                       .thenThrow(new UncheckedIOException("UPDATE file not found", new IOException()));
             mockReadFile.when(() -> ReadFileFromResources.readFileFromResources(ProjectConstants.DEFAULT_INSERT_SQL_FILE))
-                       .thenThrow(new Exception("INSERT file not found"));
+                       .thenThrow(new UncheckedIOException("INSERT file not found", new IOException()));
             mockReadFile.when(() -> ReadFileFromResources.readFileFromResources(ProjectConstants.DEFAULT_DELETE_SQL_FILE))
                        .thenReturn(deleteSql);
             
@@ -126,18 +128,18 @@ class SqlFileResolverTest {
     }
     
     @Test
-    void testLocateAndReadSqlFile_OnlySelectFileExists_ReturnsSelectSql() throws Exception {
+    void testLocateAndReadSqlFile_OnlySelectFileExists_ReturnsSelectSql() {
         // Given
         String selectSql = "SELECT * FROM customers WHERE id = ?";
         
         try (MockedStatic<ReadFileFromResources> mockReadFile = mockStatic(ReadFileFromResources.class)) {
             // All other files not found, only SELECT exists
             mockReadFile.when(() -> ReadFileFromResources.readFileFromResources(ProjectConstants.DEFAULT_UPDATE_SQL_FILE))
-                       .thenThrow(new Exception("UPDATE file not found"));
+                       .thenThrow(new UncheckedIOException("UPDATE file not found", new IOException()));
             mockReadFile.when(() -> ReadFileFromResources.readFileFromResources(ProjectConstants.DEFAULT_INSERT_SQL_FILE))
-                       .thenThrow(new Exception("INSERT file not found"));
+                       .thenThrow(new UncheckedIOException("INSERT file not found", new IOException()));
             mockReadFile.when(() -> ReadFileFromResources.readFileFromResources(ProjectConstants.DEFAULT_DELETE_SQL_FILE))
-                       .thenThrow(new Exception("DELETE file not found"));
+                       .thenThrow(new UncheckedIOException("DELETE file not found", new IOException()));
             mockReadFile.when(() -> ReadFileFromResources.readFileFromResources(ProjectConstants.DEFAULT_SELECT_SQL_FILE))
                        .thenReturn(selectSql);
             
@@ -159,11 +161,11 @@ class SqlFileResolverTest {
         try (MockedStatic<ReadFileFromResources> mockReadFile = mockStatic(ReadFileFromResources.class)) {
             // All files not found
             mockReadFile.when(() -> ReadFileFromResources.readFileFromResources(anyString()))
-                       .thenThrow(new Exception("File not found"));
+                       .thenThrow(new UncheckedIOException("File not found", new IOException()));
             
             // When & Then
-            Exception exception = assertThrows(
-                Exception.class,
+            RuntimeException exception = assertThrows(
+                RuntimeException.class,
                 () -> resolver.locateAndReadSqlFile(null)
             );
             
@@ -182,18 +184,18 @@ class SqlFileResolverTest {
     }
     
     @Test
-    void testLocateAndReadSqlFile_SpecifiedFileThrowsException_PropagatesException() throws Exception {
+    void testLocateAndReadSqlFile_SpecifiedFileThrowsException_PropagatesException() {
         // Given
         String specifiedFile = "nonexistent.sql";
-        Exception fileException = new Exception("Specified file not found");
+        UncheckedIOException fileException = new UncheckedIOException("Specified file not found", new IOException());
         
         try (MockedStatic<ReadFileFromResources> mockReadFile = mockStatic(ReadFileFromResources.class)) {
             mockReadFile.when(() -> ReadFileFromResources.readFileFromResources(specifiedFile))
                        .thenThrow(fileException);
             
             // When & Then
-            Exception exception = assertThrows(
-                Exception.class,
+            UncheckedIOException exception = assertThrows(
+                UncheckedIOException.class,
                 () -> resolver.locateAndReadSqlFile(specifiedFile)
             );
             
@@ -203,16 +205,16 @@ class SqlFileResolverTest {
     }
     
     @Test
-    void testLocateAndReadSqlFile_WhitespaceOnlyFileName_TriesDefaultFiles() throws Exception {
+    void testLocateAndReadSqlFile_WhitespaceOnlyFileName_TriesDefaultFiles() {
         // Given
         String deleteSql = "DELETE FROM customers WHERE id = ?";
         
         try (MockedStatic<ReadFileFromResources> mockReadFile = mockStatic(ReadFileFromResources.class)) {
             // UPDATE and INSERT files don't exist, DELETE does
             mockReadFile.when(() -> ReadFileFromResources.readFileFromResources(ProjectConstants.DEFAULT_UPDATE_SQL_FILE))
-                       .thenThrow(new Exception("UPDATE file not found"));
+                       .thenThrow(new UncheckedIOException("UPDATE file not found", new IOException()));
             mockReadFile.when(() -> ReadFileFromResources.readFileFromResources(ProjectConstants.DEFAULT_INSERT_SQL_FILE))
-                       .thenThrow(new Exception("INSERT file not found"));
+                       .thenThrow(new UncheckedIOException("INSERT file not found", new IOException()));
             mockReadFile.when(() -> ReadFileFromResources.readFileFromResources(ProjectConstants.DEFAULT_DELETE_SQL_FILE))
                        .thenReturn(deleteSql);
             
@@ -225,18 +227,18 @@ class SqlFileResolverTest {
     }
     
     @Test
-    void testLocateAndReadSqlFile_CorrectPriorityOrder_TriesInOrder() throws Exception {
+    void testLocateAndReadSqlFile_CorrectPriorityOrder_TriesInOrder() {
         // Given
         String selectSql = "SELECT * FROM customers";
         
         try (MockedStatic<ReadFileFromResources> mockReadFile = mockStatic(ReadFileFromResources.class)) {
             // Only SELECT file exists (last in priority)
             mockReadFile.when(() -> ReadFileFromResources.readFileFromResources(ProjectConstants.DEFAULT_UPDATE_SQL_FILE))
-                       .thenThrow(new Exception("Not found"));
+                       .thenThrow(new UncheckedIOException("Not found", new IOException()));
             mockReadFile.when(() -> ReadFileFromResources.readFileFromResources(ProjectConstants.DEFAULT_INSERT_SQL_FILE))
-                       .thenThrow(new Exception("Not found"));
+                       .thenThrow(new UncheckedIOException("Not found", new IOException()));
             mockReadFile.when(() -> ReadFileFromResources.readFileFromResources(ProjectConstants.DEFAULT_DELETE_SQL_FILE))
-                       .thenThrow(new Exception("Not found"));
+                       .thenThrow(new UncheckedIOException("Not found", new IOException()));
             mockReadFile.when(() -> ReadFileFromResources.readFileFromResources(ProjectConstants.DEFAULT_SELECT_SQL_FILE))
                        .thenReturn(selectSql);
             
@@ -255,7 +257,7 @@ class SqlFileResolverTest {
     }
     
     @Test
-    void testLocateAndReadSqlFile_FirstFileFound_StopsLooking() throws Exception {
+    void testLocateAndReadSqlFile_FirstFileFound_StopsLooking() {
         // Given
         String updateSql = "UPDATE customers SET name = ? WHERE id = ?";
         

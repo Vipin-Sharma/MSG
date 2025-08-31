@@ -39,8 +39,8 @@ class JavaPackageNameBuilderTest {
             Arguments.of("customer", "controller", "com.jfeatures.msg.customer.controller"),
             Arguments.of("order", "service", "com.jfeatures.msg.order.service"),
             Arguments.of("product", "repository", "com.jfeatures.msg.product.repository"),
-            Arguments.of("UserAccount", "dto", "com.jfeatures.msg.UserAccount.dto"),
-            Arguments.of("ORDER_DETAILS", "dao", "com.jfeatures.msg.ORDER_DETAILS.dao")
+            Arguments.of("UserAccount", "dto", "com.jfeatures.msg.useraccount.dto"),
+            Arguments.of("ORDER_DETAILS", "dao", "com.jfeatures.msg.order_details.dao")
         );
     }
 
@@ -52,7 +52,7 @@ class JavaPackageNameBuilderTest {
 
         // Then
         assertThat(result).startsWith("com.jfeatures.msg.");
-        assertThat(result).contains(domain);
+        assertThat(result).contains(domain.toLowerCase()); // Domain names are converted to lowercase
         assertThat(result).endsWith(".dto");
     }
 

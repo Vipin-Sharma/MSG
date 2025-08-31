@@ -17,6 +17,7 @@ import javax.sql.DataSource;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class InsertMicroserviceGeneratorTest {
@@ -42,12 +43,12 @@ class InsertMicroserviceGeneratorTest {
     void setUp() {
         generator = new InsertMicroserviceGenerator();
         
-        // Setup database connection mocks
-        when(databaseConnection.dataSource()).thenReturn(dataSource);
-        when(databaseConnection.namedParameterJdbcTemplate()).thenReturn(namedParameterJdbcTemplate);
+        // Setup database connection mocks with lenient stubbing
+        lenient().when(databaseConnection.dataSource()).thenReturn(dataSource);
+        lenient().when(databaseConnection.namedParameterJdbcTemplate()).thenReturn(namedParameterJdbcTemplate);
         
-        // Setup insert metadata mock
-        when(insertMetadata.tableName()).thenReturn("customers");
+        // Setup insert metadata mock with lenient stubbing
+        lenient().when(insertMetadata.tableName()).thenReturn("customers");
     }
     
     @Test

@@ -20,6 +20,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class DeleteMicroserviceGeneratorTest {
@@ -40,8 +41,8 @@ class DeleteMicroserviceGeneratorTest {
     void setUp() {
         generator = new DeleteMicroserviceGenerator();
         
-        // Setup database connection mocks
-        when(databaseConnection.dataSource()).thenReturn(dataSource);
+        // Setup database connection mocks with lenient stubbing
+        lenient().when(databaseConnection.dataSource()).thenReturn(dataSource);
         
         // Setup mock parameters
         mockParameters = Arrays.asList(

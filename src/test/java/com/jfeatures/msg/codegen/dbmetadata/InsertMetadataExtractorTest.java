@@ -15,6 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class InsertMetadataExtractorTest {
@@ -39,8 +40,8 @@ class InsertMetadataExtractorTest {
     @BeforeEach
     void setUp() throws SQLException {
         extractor = new InsertMetadataExtractor(dataSource, jdbcTemplate);
-        when(dataSource.getConnection()).thenReturn(connection);
-        when(connection.getMetaData()).thenReturn(databaseMetaData);
+        lenient().when(dataSource.getConnection()).thenReturn(connection);
+        lenient().when(connection.getMetaData()).thenReturn(databaseMetaData);
     }
 
     @Test
