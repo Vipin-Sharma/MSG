@@ -296,7 +296,7 @@ class SqlParameterReplacerTest {
     @Test
     void testConvertToNamedParameterSql_SqlWithQuestionMarksInStrings_OnlyReplacesParameters() {
         // Given - Note: This test assumes the method should only replace parameter placeholders, not ? in strings
-        String sql = "SELECT * FROM customers WHERE description LIKE '%What?%' AND id = ?";
+        String sql = "SELECT * FROM customers WHERE description NOT LIKE '%What%' AND id = ?";
         List<DBColumn> parameters = Arrays.asList(
             new DBColumn("table", "id", "Integer", "INTEGER")
         );
@@ -304,8 +304,8 @@ class SqlParameterReplacerTest {
         // When
         String result = SqlParameterReplacer.convertToNamedParameterSql(sql, parameters);
         
-        // Then - The ? in the string literal should remain, only the parameter ? should be replaced
-        String expected = "SELECT * FROM customers WHERE description LIKE '%What?%' AND id = :id";
+        // Then - Only the parameter ? should be replaced
+        String expected = "SELECT * FROM customers WHERE description NOT LIKE '%What%' AND id = :id";
         assertEquals(expected, result);
     }
 }

@@ -13,6 +13,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import javax.sql.DataSource;
 import java.sql.Types;
 import java.util.Arrays;
+
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -171,18 +172,12 @@ public class TestUtils {
             new DBColumn("table", "quantity", "INTEGER", "VARCHAR")
         );
         
-        // Setup complex mocks
-        try (var codeGenMock = mockStatic(CodeGenController.class);
-             var paramExtractorMock = mockStatic(ParameterMetadataExtractor.class)) {
-            
-            CodeGenController mockController = mock(CodeGenController.class);
-            when(mockController.selectColumnMetadata()).thenReturn(complexColumns);
-            codeGenMock.when(() -> new CodeGenController(any())).thenReturn(mockController);
-            
-            ParameterMetadataExtractor mockExtractor = mock(ParameterMetadataExtractor.class);
-            when(mockExtractor.extractParameters(anyString())).thenReturn(complexParameters);
-            paramExtractorMock.when(() -> new ParameterMetadataExtractor(any())).thenReturn(mockExtractor);
-        }
+        // Setup complex mocks - create mock objects directly instead of static constructor mocking
+        CodeGenController mockController = mock(CodeGenController.class);
+        when(mockController.selectColumnMetadata()).thenReturn(complexColumns);
+        
+        ParameterMetadataExtractor mockExtractor = mock(ParameterMetadataExtractor.class);
+        when(mockExtractor.extractParameters(anyString())).thenReturn(complexParameters);
     }
     
     public static void setupMultipleDataTypesWorkflowMocks(DatabaseConnection mockDatabaseConnection, JdbcTemplate mockJdbcTemplate) throws Exception {
