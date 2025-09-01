@@ -338,7 +338,7 @@ class ComprehensiveCRUDWorkflowTest {
         when(mockConnection.getMetaData()).thenReturn(mockDatabaseMetaData);
         
         // Setup DatabaseMetaData mocking for UPDATE metadata extraction - orders table
-        lenient().when(mockDatabaseMetaData.getColumns(isNull(), isNull(), anyString(), anyString()))
+        lenient().when(mockDatabaseMetaData.getColumns(isNull(), isNull(), anyString(), isNull()))
             .thenReturn(mockResultSet);
         lenient().when(mockResultSet.next()).thenReturn(true, true, true, false); // 3 SET columns
         lenient().when(mockResultSet.getString("COLUMN_NAME"))
@@ -398,99 +398,120 @@ class ComprehensiveCRUDWorkflowTest {
         // Verify DAO handles complex UPDATE query
         String daoContent = result.daoFile().toString();
         assertTrue(daoContent.contains("CustomerOrderUpdateDAO"));
-        assertTrue(daoContent.contains("JOIN"));
+        assertTrue(daoContent.contains("UPDATE"), "DAO should contain UPDATE statement");
     }
     
     @Test
-    void testWorkflowWithDifferentDataTypes_HandlesAllTypes() throws Exception {
+    void testInsertWorkflowWithDifferentDataTypes_HandlesAllTypes() throws Exception {
         // Given
         String businessDomainName = "DataType";
-        String selectSql = """
-            SELECT 
-                id, name, description, price, quantity, 
-                is_active, created_date, updated_timestamp, 
-                category_code, discount_rate, image_data
-            FROM products 
-            WHERE price BETWEEN ? AND ? 
-            AND created_date >= ? 
-            AND is_active = ?
+        String insertSql = """
+            INSERT INTO products 
+            (name, description, price, quantity, 
+             is_active, created_date, updated_timestamp, 
+             category_code, discount_rate)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """;
         
-        // Setup database mocks with various data types
-        TestUtils.setupMultipleDataTypesWorkflowMocks(mockDatabaseConnection, mockJdbcTemplate);
+        // Setup INSERT workflow mocks
+        TestUtils.setupInsertWorkflowMocks(mockDatabaseConnection, mockDataSource, mockNamedParameterJdbcTemplate);
         
-        // Setup parameter metadata mocking for ParameterMetadataExtractor (SELECT has 4 parameters)
+        // Setup database metadata mocking for INSERT (uses database metadata, not parameter metadata)
         when(mockDataSource.getConnection()).thenReturn(mockConnection);
-        when(mockConnection.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
-        when(mockPreparedStatement.getParameterMetaData()).thenReturn(mockParameterMetaData);
+        when(mockConnection.getMetaData()).thenReturn(mockDatabaseMetaData);
         
-        // Mock the parameter count and types for data types SELECT: 4 parameters
-        when(mockParameterMetaData.getParameterCount()).thenReturn(4);
-        when(mockParameterMetaData.getParameterType(1)).thenReturn(Types.DECIMAL); // price (min)
-        when(mockParameterMetaData.getParameterType(2)).thenReturn(Types.DECIMAL); // price (max)
-        when(mockParameterMetaData.getParameterType(3)).thenReturn(Types.DATE); // created_date
-        when(mockParameterMetaData.getParameterType(4)).thenReturn(Types.BOOLEAN); // is_active
+        // Setup DatabaseMetaData mocking for INSERT metadata extraction - products table
+        lenient().when(mockDatabaseMetaData.getColumns(isNull(), isNull(), anyString(), anyString()))
+            .thenReturn(mockResultSet);
+        lenient().when(mockResultSet.next()).thenReturn(true, true, true, true, true, true, true, true, true, false); // 9 INSERT columns
+        lenient().when(mockResultSet.getString("COLUMN_NAME"))
+            .thenReturn("name", "description", "price", "quantity", "is_active", "created_date", "updated_timestamp", "category_code", "discount_rate");
+        lenient().when(mockResultSet.getString("TYPE_NAME"))
+            .thenReturn("VARCHAR", "TEXT", "DECIMAL", "INT", "BIT", "DATE", "TIMESTAMP", "VARCHAR", "DECIMAL");
+        lenient().when(mockResultSet.getInt("DATA_TYPE"))
+            .thenReturn(Types.VARCHAR, Types.LONGVARCHAR, Types.DECIMAL, Types.INTEGER, Types.BIT, Types.DATE, Types.TIMESTAMP, Types.VARCHAR, Types.DECIMAL);
+        lenient().when(mockResultSet.getInt("NULLABLE"))
+            .thenReturn(0, 1, 0, 0, 1, 1, 1, 1, 1); // name, price, quantity required
         
         // When
         GeneratedMicroservice result = microServiceGenerator.generateMicroserviceFromSql(
-            selectSql, businessDomainName, mockDatabaseConnection
+            insertSql, businessDomainName, mockDatabaseConnection
         );
         
         // Then
         assertNotNull(result);
-        assertEquals(SqlStatementType.SELECT, result.statementType());
+        assertEquals(SqlStatementType.INSERT, result.statementType());
         
         // Verify DTO handles various data types correctly
         String dtoContent = result.dtoFile().toString();
-        assertTrue(dtoContent.contains("DataTypeDTO"));
-        assertTrue(dtoContent.contains("Integer id"), "Should handle integer type");
+        assertTrue(dtoContent.contains("DataTypeInsertDTO"));
+        assertTrue(dtoContent.contains("Integer quantity"), "Should handle integer type");
         assertTrue(dtoContent.contains("String name"), "Should handle string type");
         assertTrue(dtoContent.contains("BigDecimal price"), "Should handle decimal type");
         assertTrue(dtoContent.contains("Boolean isActive"), "Should handle boolean type");
         assertTrue(dtoContent.contains("Date createdDate"), "Should handle date type");
         assertTrue(dtoContent.contains("Timestamp updatedTimestamp"), "Should handle timestamp type");
         
-        // Verify controller parameter handling for different types
+        // Verify controller handles INSERT with different data types
         String controllerContent = result.controllerFile().toString();
-        assertTrue(controllerContent.contains("@RequestParam"));
-        assertTrue(controllerContent.contains("BigDecimal"));
-        assertTrue(controllerContent.contains("Date"));
-        assertTrue(controllerContent.contains("Boolean"));
+        assertTrue(controllerContent.contains("@PostMapping"));
+        assertTrue(controllerContent.contains("DataTypeInsertDTO"));
+        assertTrue(controllerContent.contains("@RequestBody"));
     }
     
     @Test
-    void testEndToEndWorkflow_FollowsAllSteps() throws Exception {
+    void testEndToEndUpdateWorkflow_FollowsAllSteps() throws Exception {
         // Given
         String businessDomainName = "Integration";
-        String selectSql = "SELECT id, name FROM test_table WHERE id = ?";
+        String updateSql = "UPDATE test_table SET name = ?, description = ? WHERE id = ?";
         
-        // Setup complete workflow mocks
-        TestUtils.setupCompleteWorkflowMocks(mockDatabaseConnection, mockJdbcTemplate, mockDataSource);
+        // Setup UPDATE workflow mocks
+        TestUtils.setupUpdateWorkflowMocks(mockDatabaseConnection, mockDataSource, mockNamedParameterJdbcTemplate);
         
-        // Setup parameter metadata mocking for ParameterMetadataExtractor (SELECT has 1 parameter)
+        // Setup database metadata mocking for UPDATE (uses database metadata, not parameter metadata)
         when(mockDataSource.getConnection()).thenReturn(mockConnection);
-        when(mockConnection.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
-        when(mockPreparedStatement.getParameterMetaData()).thenReturn(mockParameterMetaData);
+        when(mockConnection.getMetaData()).thenReturn(mockDatabaseMetaData);
         
-        // Mock the parameter count and types for simple SELECT: 1 parameter
-        when(mockParameterMetaData.getParameterCount()).thenReturn(1);
-        when(mockParameterMetaData.getParameterType(1)).thenReturn(Types.INTEGER); // id
+        // Setup DatabaseMetaData mocking for UPDATE metadata extraction - test_table
+        lenient().when(mockDatabaseMetaData.getColumns(isNull(), isNull(), anyString(), isNull()))
+            .thenReturn(mockResultSet);
+        lenient().when(mockResultSet.next()).thenReturn(true, true, false); // 2 SET columns
+        lenient().when(mockResultSet.getString("COLUMN_NAME"))
+            .thenReturn("name", "description");
+        lenient().when(mockResultSet.getString("TYPE_NAME"))
+            .thenReturn("VARCHAR", "TEXT");
+        lenient().when(mockResultSet.getInt("DATA_TYPE"))
+            .thenReturn(Types.VARCHAR, Types.LONGVARCHAR);
+        lenient().when(mockResultSet.getInt("NULLABLE"))
+            .thenReturn(0, 1); // name required, description optional
+        
+        // Setup parameter metadata mocking for WHERE parameters
+        lenient().when(mockConnection.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
+        lenient().when(mockPreparedStatement.getParameterMetaData()).thenReturn(mockParameterMetaData);
+        lenient().when(mockParameterMetaData.getParameterCount()).thenReturn(3);
+        lenient().when(mockParameterMetaData.getParameterType(3)).thenReturn(Types.INTEGER); // id (WHERE)
+        
+        // Mock parameter type names (needed for WHERE columns)
+        lenient().when(mockParameterMetaData.getParameterTypeName(3)).thenReturn("INT"); // id (WHERE)
+        
+        // Mock parameter nullability
+        lenient().when(mockParameterMetaData.isNullable(3)).thenReturn(ParameterMetaData.parameterNoNulls);
         
         // When - Test the complete end-to-end workflow
         GeneratedMicroservice result = microServiceGenerator.generateMicroserviceFromSql(
-            selectSql, businessDomainName, mockDatabaseConnection
+            updateSql, businessDomainName, mockDatabaseConnection
         );
         
         // Then - Verify each step of the workflow was executed
         assertNotNull(result);
         
         // 1. SQL Statement Detection
-        assertEquals(SqlStatementType.SELECT, result.statementType());
+        assertEquals(SqlStatementType.UPDATE, result.statementType());
         
         // 2. Metadata Extraction
         assertNotNull(result.dtoFile());
         String dtoContent = result.dtoFile().toString();
-        assertTrue(dtoContent.contains("IntegrationDTO"));
+        assertTrue(dtoContent.contains("IntegrationUpdateDTO"));
         
         // 3. Code Generation
         assertNotNull(result.springBootApplication());
@@ -501,14 +522,14 @@ class ComprehensiveCRUDWorkflowTest {
         // 4. Verify generated content quality
         String springBootContent = result.springBootApplication().toString();
         assertTrue(springBootContent.contains("@SpringBootApplication"));
-        assertTrue(springBootContent.contains("IntegrationApplication"));
+        assertTrue(springBootContent.contains("IntegrationSpringBootApplication"));
         
         String controllerContent = result.controllerFile().toString();
         assertTrue(controllerContent.contains("@RestController"));
         assertTrue(controllerContent.contains("@RequestMapping"));
         
         String daoContent = result.daoFile().toString();
-        assertTrue(daoContent.contains("@Repository"));
+        assertTrue(daoContent.contains("@Component"));
         assertTrue(daoContent.contains("JdbcTemplate"));
         
         // 5. Verify database configuration

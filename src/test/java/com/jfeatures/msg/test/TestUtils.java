@@ -126,10 +126,11 @@ public class TestUtils {
     }
     
     public static void setupDeleteWorkflowMocks(DatabaseConnection mockDatabaseConnection, DataSource mockDataSource) throws Exception {
-        // Mock delete parameters
+        // Mock delete parameters to match the DELETE SQL with 3 parameters
         List<DBColumn> deleteParameters = Arrays.asList(
-            new DBColumn("table", "userId", "INTEGER", "VARCHAR"),
-            new DBColumn("table", "lastLogin", "TIMESTAMP", "VARCHAR")
+            new DBColumn("table", "orderId", "INTEGER", "VARCHAR"),
+            new DBColumn("table", "productId", "INTEGER", "VARCHAR"),
+            new DBColumn("table", "createdDate", "TIMESTAMP", "VARCHAR")
         );
         
         // Mock extractor should be setup by calling test method

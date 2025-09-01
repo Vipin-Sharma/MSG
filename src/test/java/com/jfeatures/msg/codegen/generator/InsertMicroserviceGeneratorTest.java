@@ -2,6 +2,7 @@ package com.jfeatures.msg.codegen.generator;
 
 import com.jfeatures.msg.codegen.domain.DatabaseConnection;
 import com.jfeatures.msg.codegen.domain.GeneratedMicroservice;
+import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.InsertMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.InsertMetadataExtractor;
 import com.jfeatures.msg.codegen.util.SqlStatementType;
@@ -14,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import javax.sql.DataSource;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -47,8 +49,30 @@ class InsertMicroserviceGeneratorTest {
         lenient().when(databaseConnection.dataSource()).thenReturn(dataSource);
         lenient().when(databaseConnection.namedParameterJdbcTemplate()).thenReturn(namedParameterJdbcTemplate);
         
-        // Setup insert metadata mock with lenient stubbing
+        // Setup insert metadata mock with proper column data
+        ColumnMetadata col1 = new ColumnMetadata();
+        col1.setColumnName("customer_name");
+        col1.setColumnTypeName("varchar");
+        col1.setColumnType(12);
+        col1.setColumnClassName("java.lang.String");
+        
+        ColumnMetadata col2 = new ColumnMetadata();
+        col2.setColumnName("email");
+        col2.setColumnTypeName("varchar");
+        col2.setColumnType(12);
+        col2.setColumnClassName("java.lang.String");
+        
+        ColumnMetadata col3 = new ColumnMetadata();
+        col3.setColumnName("phone");
+        col3.setColumnTypeName("varchar");
+        col3.setColumnType(12);
+        col3.setColumnClassName("java.lang.String");
+        
+        List<ColumnMetadata> insertColumns = List.of(col1, col2, col3);
+        
         lenient().when(insertMetadata.tableName()).thenReturn("customers");
+        lenient().when(insertMetadata.insertColumns()).thenReturn(insertColumns);
+        lenient().when(insertMetadata.originalSql()).thenReturn("INSERT INTO customers (customer_name, email, phone) VALUES (?, ?, ?)");
     }
     
     @Test
@@ -57,13 +81,9 @@ class InsertMicroserviceGeneratorTest {
         String sql = "INSERT INTO customers (customer_name, email, phone) VALUES (?, ?, ?)";
         String businessDomainName = "Customer";
         
-        try (MockedStatic<InsertMetadataExtractor> extractorMock = mockStatic(InsertMetadataExtractor.class)) {
-            
-            // Setup static mock
-            extractorMock.when(() -> new InsertMetadataExtractor(dataSource, namedParameterJdbcTemplate))
-                        .thenReturn(insertMetadataExtractor);
-            
-            when(insertMetadataExtractor.extractInsertMetadata(sql)).thenReturn(insertMetadata);
+        try (var mockedConstruction = mockConstruction(InsertMetadataExtractor.class, (mock, context) -> {
+            when(mock.extractInsertMetadata(sql)).thenReturn(insertMetadata);
+        })) {
             
             // When
             GeneratedMicroservice result = generator.generateInsertMicroservice(sql, businessDomainName, databaseConnection);
@@ -78,9 +98,10 @@ class InsertMicroserviceGeneratorTest {
             assertNotNull(result.daoFile());
             assertNotNull(result.databaseConfigContent());
             
-            // Verify interactions
-            verify(insertMetadataExtractor).extractInsertMetadata(sql);
-            verify(insertMetadata).tableName();
+            // Verify interactions with the constructed mock
+            var constructedMocks = mockedConstruction.constructed();
+            assertEquals(1, constructedMocks.size());
+            verify(constructedMocks.get(0)).extractInsertMetadata(sql);
         }
     }
     
@@ -167,12 +188,9 @@ class InsertMicroserviceGeneratorTest {
         String businessDomainName = "Customer";
         RuntimeException metadataException = new RuntimeException("Failed to extract insert metadata");
         
-        try (MockedStatic<InsertMetadataExtractor> extractorMock = mockStatic(InsertMetadataExtractor.class)) {
-            
-            extractorMock.when(() -> new InsertMetadataExtractor(dataSource, namedParameterJdbcTemplate))
-                        .thenReturn(insertMetadataExtractor);
-            
-            when(insertMetadataExtractor.extractInsertMetadata(sql)).thenThrow(metadataException);
+        try (var mockedConstruction = mockConstruction(InsertMetadataExtractor.class, (mock, context) -> {
+            when(mock.extractInsertMetadata(sql)).thenThrow(metadataException);
+        })) {
             
             // When & Then
             RuntimeException exception = assertThrows(
@@ -181,7 +199,9 @@ class InsertMicroserviceGeneratorTest {
             );
             
             assertEquals("Failed to extract insert metadata", exception.getMessage());
-            verify(insertMetadataExtractor).extractInsertMetadata(sql);
+            var constructedMocks = mockedConstruction.constructed();
+            assertEquals(1, constructedMocks.size());
+            verify(constructedMocks.get(0)).extractInsertMetadata(sql);
         }
     }
     
@@ -194,12 +214,9 @@ class InsertMicroserviceGeneratorTest {
             """;
         String businessDomainName = "Customer";
         
-        try (MockedStatic<InsertMetadataExtractor> extractorMock = mockStatic(InsertMetadataExtractor.class)) {
-            
-            extractorMock.when(() -> new InsertMetadataExtractor(dataSource, namedParameterJdbcTemplate))
-                        .thenReturn(insertMetadataExtractor);
-            
-            when(insertMetadataExtractor.extractInsertMetadata(complexSql)).thenReturn(insertMetadata);
+        try (var mockedConstruction = mockConstruction(InsertMetadataExtractor.class, (mock, context) -> {
+            when(mock.extractInsertMetadata(complexSql)).thenReturn(insertMetadata);
+        })) {
             
             // When
             GeneratedMicroservice result = generator.generateInsertMicroservice(complexSql, businessDomainName, databaseConnection);
@@ -209,7 +226,9 @@ class InsertMicroserviceGeneratorTest {
             assertEquals(businessDomainName, result.businessDomainName());
             assertEquals(SqlStatementType.INSERT, result.statementType());
             
-            verify(insertMetadataExtractor).extractInsertMetadata(complexSql);
+            var constructedMocks = mockedConstruction.constructed();
+            assertEquals(1, constructedMocks.size());
+            verify(constructedMocks.get(0)).extractInsertMetadata(complexSql);
         }
     }
     
@@ -222,12 +241,9 @@ class InsertMicroserviceGeneratorTest {
             """;
         String businessDomainName = "Customer";
         
-        try (MockedStatic<InsertMetadataExtractor> extractorMock = mockStatic(InsertMetadataExtractor.class)) {
-            
-            extractorMock.when(() -> new InsertMetadataExtractor(dataSource, namedParameterJdbcTemplate))
-                        .thenReturn(insertMetadataExtractor);
-            
-            when(insertMetadataExtractor.extractInsertMetadata(namedParamSql)).thenReturn(insertMetadata);
+        try (var mockedConstruction = mockConstruction(InsertMetadataExtractor.class, (mock, context) -> {
+            when(mock.extractInsertMetadata(namedParamSql)).thenReturn(insertMetadata);
+        })) {
             
             // When
             GeneratedMicroservice result = generator.generateInsertMicroservice(namedParamSql, businessDomainName, databaseConnection);
@@ -237,7 +253,9 @@ class InsertMicroserviceGeneratorTest {
             assertEquals(businessDomainName, result.businessDomainName());
             assertEquals(SqlStatementType.INSERT, result.statementType());
             
-            verify(insertMetadataExtractor).extractInsertMetadata(namedParamSql);
+            var constructedMocks = mockedConstruction.constructed();
+            assertEquals(1, constructedMocks.size());
+            verify(constructedMocks.get(0)).extractInsertMetadata(namedParamSql);
         }
     }
     
@@ -248,15 +266,19 @@ class InsertMicroserviceGeneratorTest {
         String sql = "INSERT INTO customers (name, email) VALUES (?, ?)";
         
         // Setup mock to return different table name for verification
+        ColumnMetadata mockColumn = new ColumnMetadata();
+        mockColumn.setColumnName("name");
+        mockColumn.setColumnTypeName("varchar");
+        mockColumn.setColumnType(12);
+        mockColumn.setColumnClassName("java.lang.String");
+        
         InsertMetadata complexInsertMetadata = mock(InsertMetadata.class);
         when(complexInsertMetadata.tableName()).thenReturn("complex_customers");
+        when(complexInsertMetadata.insertColumns()).thenReturn(List.of(mockColumn));
         
-        try (MockedStatic<InsertMetadataExtractor> extractorMock = mockStatic(InsertMetadataExtractor.class)) {
-            
-            extractorMock.when(() -> new InsertMetadataExtractor(dataSource, namedParameterJdbcTemplate))
-                        .thenReturn(insertMetadataExtractor);
-            
-            when(insertMetadataExtractor.extractInsertMetadata(sql)).thenReturn(complexInsertMetadata);
+        try (var mockedConstruction = mockConstruction(InsertMetadataExtractor.class, (mock, context) -> {
+            when(mock.extractInsertMetadata(sql)).thenReturn(complexInsertMetadata);
+        })) {
             
             // When
             GeneratedMicroservice result = generator.generateInsertMicroservice(sql, businessDomainName, databaseConnection);
@@ -266,7 +288,10 @@ class InsertMicroserviceGeneratorTest {
             assertEquals(businessDomainName, result.businessDomainName());
             assertEquals(SqlStatementType.INSERT, result.statementType());
             
-            verify(complexInsertMetadata).tableName();
+            var constructedMocks = mockedConstruction.constructed();
+            assertEquals(1, constructedMocks.size());
+            verify(constructedMocks.get(0)).extractInsertMetadata(sql);
+            verify(complexInsertMetadata, atLeastOnce()).tableName();
         }
     }
     

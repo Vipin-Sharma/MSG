@@ -56,21 +56,24 @@ class SelectMicroserviceGeneratorTest {
     }
     
     private void setupMockData() {
-        // Setup mock column metadata
+        // Setup mock column metadata with complete data
         ColumnMetadata col1 = new ColumnMetadata();
         col1.setColumnName("customer_id");
         col1.setColumnTypeName("int");
         col1.setColumnType(1);
+        col1.setColumnClassName("java.lang.Integer");
         
         ColumnMetadata col2 = new ColumnMetadata();
         col2.setColumnName("customer_name");
         col2.setColumnTypeName("varchar");
         col2.setColumnType(2);
+        col2.setColumnClassName("java.lang.String");
         
         ColumnMetadata col3 = new ColumnMetadata();
         col3.setColumnName("email");
         col3.setColumnTypeName("varchar");
         col3.setColumnType(3);
+        col3.setColumnClassName("java.lang.String");
         
         mockColumnMetadata = List.of(col1, col2, col3);
         
@@ -79,9 +82,9 @@ class SelectMicroserviceGeneratorTest {
         mockParameters.add(new DBColumn("table", "customerId", "java.lang.String", "int"));
         mockParameters.add(new DBColumn("table", "status", "java.lang.String", "varchar"));
         
-        // Setup database connection mocks
-        when(databaseConnection.jdbcTemplate()).thenReturn(jdbcTemplate);
-        when(databaseConnection.dataSource()).thenReturn(dataSource);
+        // Setup database connection mocks with lenient stubbing
+        lenient().when(databaseConnection.jdbcTemplate()).thenReturn(jdbcTemplate);
+        lenient().when(databaseConnection.dataSource()).thenReturn(dataSource);
     }
     
     @Test
@@ -90,18 +93,19 @@ class SelectMicroserviceGeneratorTest {
         String sql = "SELECT customer_id, customer_name, email FROM customers WHERE customer_id = ? AND status = ?";
         String businessDomainName = "Customer";
         
-        try (MockedStatic<SqlMetadata> sqlMetadataMock = mockStatic(SqlMetadata.class);
-             MockedStatic<CodeGenController> controllerMock = mockStatic(CodeGenController.class);
-             MockedStatic<ParameterMetadataExtractor> extractorMock = mockStatic(ParameterMetadataExtractor.class)) {
-            
-            // Setup static mocks
-            sqlMetadataMock.when(() -> new SqlMetadata(jdbcTemplate)).thenReturn(sqlMetadata);
-            controllerMock.when(() -> new CodeGenController(sqlMetadata)).thenReturn(codeGenController);
-            extractorMock.when(() -> new ParameterMetadataExtractor(dataSource)).thenReturn(parameterExtractor);
-            
-            // Setup method returns
-            when(codeGenController.selectColumnMetadata()).thenReturn(mockColumnMetadata);
-            when(parameterExtractor.extractParameters(sql)).thenReturn(mockParameters);
+        try (var sqlMetadataMockedConstruction = mockConstruction(SqlMetadata.class, (mock, context) -> {
+                 try {
+                     when(mock.getColumnMetadata(sql)).thenReturn(mockColumnMetadata);
+                 } catch (Exception e) {
+                     // Handle SQLException from mocking
+                 }
+             });
+             var controllerMockedConstruction = mockConstruction(CodeGenController.class, (mock, context) -> {
+                 when(mock.selectColumnMetadata()).thenReturn(mockColumnMetadata);
+             });
+             var extractorMockedConstruction = mockConstruction(ParameterMetadataExtractor.class, (mock, context) -> {
+                 when(mock.extractParameters(sql)).thenReturn(mockParameters);
+             })) {
             
             // When
             GeneratedMicroservice result = generator.generateSelectMicroservice(sql, businessDomainName, databaseConnection);
@@ -116,9 +120,17 @@ class SelectMicroserviceGeneratorTest {
             assertNotNull(result.daoFile());
             assertNotNull(result.databaseConfigContent());
             
-            // Verify interactions
-            verify(codeGenController).selectColumnMetadata();
-            verify(parameterExtractor).extractParameters(sql);
+            // Verify interactions with constructed mocks
+            var sqlMetadataConstructedMocks = sqlMetadataMockedConstruction.constructed();
+            var controllerConstructedMocks = controllerMockedConstruction.constructed();
+            var extractorConstructedMocks = extractorMockedConstruction.constructed();
+            
+            assertEquals(1, sqlMetadataConstructedMocks.size());
+            assertEquals(1, controllerConstructedMocks.size());
+            assertEquals(1, extractorConstructedMocks.size());
+            
+            verify(controllerConstructedMocks.get(0)).selectColumnMetadata();
+            verify(extractorConstructedMocks.get(0)).extractParameters(sql);
         }
     }
     
@@ -205,16 +217,19 @@ class SelectMicroserviceGeneratorTest {
         String businessDomainName = "Customer";
         SQLException sqlException = new SQLException("Database connection failed");
         
-        try (MockedStatic<SqlMetadata> sqlMetadataMock = mockStatic(SqlMetadata.class);
-             MockedStatic<CodeGenController> controllerMock = mockStatic(CodeGenController.class);
-             MockedStatic<ParameterMetadataExtractor> extractorMock = mockStatic(ParameterMetadataExtractor.class)) {
-            
-            sqlMetadataMock.when(() -> new SqlMetadata(jdbcTemplate)).thenReturn(sqlMetadata);
-            controllerMock.when(() -> new CodeGenController(sqlMetadata)).thenReturn(codeGenController);
-            extractorMock.when(() -> new ParameterMetadataExtractor(dataSource)).thenReturn(parameterExtractor);
-            
-            when(codeGenController.selectColumnMetadata()).thenReturn(mockColumnMetadata);
-            when(parameterExtractor.extractParameters(sql)).thenThrow(sqlException);
+        try (var sqlMetadataMockedConstruction = mockConstruction(SqlMetadata.class, (mock, context) -> {
+                 try {
+                     when(mock.getColumnMetadata(sql)).thenReturn(mockColumnMetadata);
+                 } catch (Exception e) {
+                     // Handle SQLException from mocking
+                 }
+             });
+             var controllerMockedConstruction = mockConstruction(CodeGenController.class, (mock, context) -> {
+                 when(mock.selectColumnMetadata()).thenReturn(mockColumnMetadata);
+             });
+             var extractorMockedConstruction = mockConstruction(ParameterMetadataExtractor.class, (mock, context) -> {
+                 when(mock.extractParameters(sql)).thenThrow(sqlException);
+             })) {
             
             // When & Then
             SQLException exception = assertThrows(
@@ -233,13 +248,16 @@ class SelectMicroserviceGeneratorTest {
         String businessDomainName = "Customer";
         RuntimeException metadataException = new RuntimeException("Metadata extraction failed");
         
-        try (MockedStatic<SqlMetadata> sqlMetadataMock = mockStatic(SqlMetadata.class);
-             MockedStatic<CodeGenController> controllerMock = mockStatic(CodeGenController.class)) {
-            
-            sqlMetadataMock.when(() -> new SqlMetadata(jdbcTemplate)).thenReturn(sqlMetadata);
-            controllerMock.when(() -> new CodeGenController(sqlMetadata)).thenReturn(codeGenController);
-            
-            when(codeGenController.selectColumnMetadata()).thenThrow(metadataException);
+        try (var sqlMetadataMockedConstruction = mockConstruction(SqlMetadata.class, (mock, context) -> {
+                 try {
+                     when(mock.getColumnMetadata(sql)).thenReturn(mockColumnMetadata);
+                 } catch (Exception e) {
+                     // Handle SQLException from mocking
+                 }
+             });
+             var controllerMockedConstruction = mockConstruction(CodeGenController.class, (mock, context) -> {
+                 when(mock.selectColumnMetadata()).thenThrow(metadataException);
+             })) {
             
             // When & Then
             RuntimeException exception = assertThrows(
@@ -263,31 +281,36 @@ class SelectMicroserviceGeneratorTest {
             """;
         String businessDomainName = "CustomerOrder";
         
-        // Setup more complex mock data
+        // Setup more complex mock data with complete ColumnMetadata
         ColumnMetadata col1 = new ColumnMetadata();
         col1.setColumnName("customer_id");
         col1.setColumnTypeName("int");
         col1.setColumnType(1);
+        col1.setColumnClassName("java.lang.Integer");
         
         ColumnMetadata col2 = new ColumnMetadata();
         col2.setColumnName("customer_name");
         col2.setColumnTypeName("varchar");
         col2.setColumnType(2);
+        col2.setColumnClassName("java.lang.String");
         
         ColumnMetadata col3 = new ColumnMetadata();
         col3.setColumnName("email");
         col3.setColumnTypeName("varchar");
         col3.setColumnType(3);
+        col3.setColumnClassName("java.lang.String");
         
         ColumnMetadata col4 = new ColumnMetadata();
         col4.setColumnName("order_date");
         col4.setColumnTypeName("datetime");
         col4.setColumnType(4);
+        col4.setColumnClassName("java.sql.Timestamp");
         
         ColumnMetadata col5 = new ColumnMetadata();
         col5.setColumnName("product_name");
         col5.setColumnTypeName("varchar");
         col5.setColumnType(5);
+        col5.setColumnClassName("java.lang.String");
         
         List<ColumnMetadata> complexColumnMetadata = List.of(col1, col2, col3, col4, col5);
         
@@ -296,16 +319,19 @@ class SelectMicroserviceGeneratorTest {
         complexParameters.add(new DBColumn("table", "orderDate", "java.lang.String", "datetime"));
         complexParameters.add(new DBColumn("table", "category", "java.lang.String", "varchar"));
         
-        try (MockedStatic<SqlMetadata> sqlMetadataMock = mockStatic(SqlMetadata.class);
-             MockedStatic<CodeGenController> controllerMock = mockStatic(CodeGenController.class);
-             MockedStatic<ParameterMetadataExtractor> extractorMock = mockStatic(ParameterMetadataExtractor.class)) {
-            
-            sqlMetadataMock.when(() -> new SqlMetadata(jdbcTemplate)).thenReturn(sqlMetadata);
-            controllerMock.when(() -> new CodeGenController(sqlMetadata)).thenReturn(codeGenController);
-            extractorMock.when(() -> new ParameterMetadataExtractor(dataSource)).thenReturn(parameterExtractor);
-            
-            when(codeGenController.selectColumnMetadata()).thenReturn(complexColumnMetadata);
-            when(parameterExtractor.extractParameters(complexSql)).thenReturn(complexParameters);
+        try (var sqlMetadataMockedConstruction = mockConstruction(SqlMetadata.class, (mock, context) -> {
+                 try {
+                     when(mock.getColumnMetadata(complexSql)).thenReturn(complexColumnMetadata);
+                 } catch (Exception e) {
+                     // Handle SQLException from mocking
+                 }
+             });
+             var controllerMockedConstruction = mockConstruction(CodeGenController.class, (mock, context) -> {
+                 when(mock.selectColumnMetadata()).thenReturn(complexColumnMetadata);
+             });
+             var extractorMockedConstruction = mockConstruction(ParameterMetadataExtractor.class, (mock, context) -> {
+                 when(mock.extractParameters(complexSql)).thenReturn(complexParameters);
+             })) {
             
             // When
             GeneratedMicroservice result = generator.generateSelectMicroservice(complexSql, businessDomainName, databaseConnection);
@@ -315,8 +341,15 @@ class SelectMicroserviceGeneratorTest {
             assertEquals(businessDomainName, result.businessDomainName());
             assertEquals(SqlStatementType.SELECT, result.statementType());
             
-            verify(codeGenController).selectColumnMetadata();
-            verify(parameterExtractor).extractParameters(complexSql);
+            // Verify interactions with constructed mocks
+            var controllerConstructedMocks = controllerMockedConstruction.constructed();
+            var extractorConstructedMocks = extractorMockedConstruction.constructed();
+            
+            assertEquals(1, controllerConstructedMocks.size());
+            assertEquals(1, extractorConstructedMocks.size());
+            
+            verify(controllerConstructedMocks.get(0)).selectColumnMetadata();
+            verify(extractorConstructedMocks.get(0)).extractParameters(complexSql);
         }
     }
     
@@ -327,16 +360,19 @@ class SelectMicroserviceGeneratorTest {
         String businessDomainName = "Customer";
         ArrayList<DBColumn> emptyParameters = new ArrayList<>();
         
-        try (MockedStatic<SqlMetadata> sqlMetadataMock = mockStatic(SqlMetadata.class);
-             MockedStatic<CodeGenController> controllerMock = mockStatic(CodeGenController.class);
-             MockedStatic<ParameterMetadataExtractor> extractorMock = mockStatic(ParameterMetadataExtractor.class)) {
-            
-            sqlMetadataMock.when(() -> new SqlMetadata(jdbcTemplate)).thenReturn(sqlMetadata);
-            controllerMock.when(() -> new CodeGenController(sqlMetadata)).thenReturn(codeGenController);
-            extractorMock.when(() -> new ParameterMetadataExtractor(dataSource)).thenReturn(parameterExtractor);
-            
-            when(codeGenController.selectColumnMetadata()).thenReturn(mockColumnMetadata);
-            when(parameterExtractor.extractParameters(sqlWithoutParams)).thenReturn(emptyParameters);
+        try (var sqlMetadataMockedConstruction = mockConstruction(SqlMetadata.class, (mock, context) -> {
+                 try {
+                     when(mock.getColumnMetadata(sqlWithoutParams)).thenReturn(mockColumnMetadata);
+                 } catch (Exception e) {
+                     // Handle SQLException from mocking
+                 }
+             });
+             var controllerMockedConstruction = mockConstruction(CodeGenController.class, (mock, context) -> {
+                 when(mock.selectColumnMetadata()).thenReturn(mockColumnMetadata);
+             });
+             var extractorMockedConstruction = mockConstruction(ParameterMetadataExtractor.class, (mock, context) -> {
+                 when(mock.extractParameters(sqlWithoutParams)).thenReturn(emptyParameters);
+             })) {
             
             // When
             GeneratedMicroservice result = generator.generateSelectMicroservice(sqlWithoutParams, businessDomainName, databaseConnection);
@@ -346,7 +382,10 @@ class SelectMicroserviceGeneratorTest {
             assertEquals(businessDomainName, result.businessDomainName());
             assertEquals(SqlStatementType.SELECT, result.statementType());
             
-            verify(parameterExtractor).extractParameters(sqlWithoutParams);
+            // Verify interactions with constructed mocks
+            var extractorConstructedMocks = extractorMockedConstruction.constructed();
+            assertEquals(1, extractorConstructedMocks.size());
+            verify(extractorConstructedMocks.get(0)).extractParameters(sqlWithoutParams);
         }
     }
 }

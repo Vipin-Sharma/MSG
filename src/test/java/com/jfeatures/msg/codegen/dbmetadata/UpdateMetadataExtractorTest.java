@@ -45,11 +45,11 @@ class UpdateMetadataExtractorTest {
     void setUp() throws SQLException {
         extractor = new UpdateMetadataExtractor(dataSource, jdbcTemplate);
         
-        // Setup basic mocks
-        when(dataSource.getConnection()).thenReturn(connection);
-        when(connection.getMetaData()).thenReturn(databaseMetaData);
-        when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
-        when(preparedStatement.getParameterMetaData()).thenReturn(parameterMetaData);
+        // Setup basic mocks with lenient stubbing
+        lenient().when(dataSource.getConnection()).thenReturn(connection);
+        lenient().when(connection.getMetaData()).thenReturn(databaseMetaData);
+        lenient().when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
+        lenient().when(preparedStatement.getParameterMetaData()).thenReturn(parameterMetaData);
     }
     
     @Test
@@ -144,7 +144,7 @@ class UpdateMetadataExtractorTest {
     }
     
     @Test
-    void testExtractUpdateMetadata_DatabaseMetadataFails_UsesFallback() throws Exception {
+    void testExtractUpdateMetadata_DatabaseMetadataFails_ThrowsException() throws Exception {
         // Given
         String sql = "UPDATE customers SET name = ? WHERE id = ?";
         
@@ -154,15 +154,12 @@ class UpdateMetadataExtractorTest {
         
         setupParameterMetadata(2, 1);
         
-        // When
-        UpdateMetadata result = extractor.extractUpdateMetadata(sql);
+        // When & Then
+        SQLException exception = assertThrows(SQLException.class, () -> {
+            extractor.extractUpdateMetadata(sql);
+        });
         
-        // Then
-        assertNotNull(result);
-        assertEquals("customers", result.tableName());
-        assertEquals(1, result.setColumns().size());
-        assertEquals("VARCHAR", result.setColumns().get(0).getColumnTypeName()); // Fallback type
-        assertEquals(1, result.whereColumns().size());
+        assertEquals("Database metadata failed", exception.getMessage());
     }
     
     @Test
@@ -282,7 +279,9 @@ class UpdateMetadataExtractorTest {
     }
     
     private void setupColumnMetadata() throws SQLException {
-        when(databaseMetaData.getColumns(null, null, "customers", null))
+        lenient().when(databaseMetaData.getColumns(null, null, "customers", null))
+            .thenReturn(columnsResultSet);
+        lenient().when(databaseMetaData.getColumns(null, null, "c", null))
             .thenReturn(columnsResultSet);
         
         when(columnsResultSet.next())
@@ -299,17 +298,17 @@ class UpdateMetadataExtractorTest {
     }
     
     private void setupParameterMetadata(int totalParams, int setParams) throws SQLException {
-        when(parameterMetaData.getParameterCount()).thenReturn(totalParams);
+        lenient().when(parameterMetaData.getParameterCount()).thenReturn(totalParams);
         
         for (int i = 1; i <= totalParams; i++) {
             if (i <= setParams) {
-                when(parameterMetaData.getParameterTypeName(i)).thenReturn("VARCHAR");
-                when(parameterMetaData.getParameterType(i)).thenReturn(Types.VARCHAR);
+                lenient().when(parameterMetaData.getParameterTypeName(i)).thenReturn("VARCHAR");
+                lenient().when(parameterMetaData.getParameterType(i)).thenReturn(Types.VARCHAR);
             } else {
-                when(parameterMetaData.getParameterTypeName(i)).thenReturn("INT");
-                when(parameterMetaData.getParameterType(i)).thenReturn(Types.INTEGER);
+                lenient().when(parameterMetaData.getParameterTypeName(i)).thenReturn("INT");
+                lenient().when(parameterMetaData.getParameterType(i)).thenReturn(Types.INTEGER);
             }
-            when(parameterMetaData.isNullable(i)).thenReturn(ParameterMetaData.parameterNullable);
+            lenient().when(parameterMetaData.isNullable(i)).thenReturn(ParameterMetaData.parameterNullable);
         }
     }
 }

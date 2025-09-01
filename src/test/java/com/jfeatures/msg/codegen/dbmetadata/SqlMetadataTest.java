@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -216,14 +217,14 @@ class SqlMetadataTest {
     void testGetColumnMetadata_SQLException_PropagatesException() throws SQLException {
         // Given
         String query = "INVALID SQL";
-        SQLException sqlException = new SQLException("Invalid SQL syntax");
+        DataAccessException dataAccessException = new DataAccessException("Invalid SQL syntax") {};
         
         when(jdbcTemplate.query(eq(query), any(RowMapper.class)))
-            .thenThrow(sqlException);
+            .thenThrow(dataAccessException);
         
         // When & Then
-        SQLException exception = assertThrows(
-            SQLException.class,
+        DataAccessException exception = assertThrows(
+            DataAccessException.class,
             () -> sqlMetadata.getColumnMetadata(query)
         );
         
@@ -368,8 +369,9 @@ class SqlMetadataTest {
         when(resultSetMetaData.getColumnTypeName(4)).thenReturn("TIMESTAMP");
         
         // Set up other required metadata for all columns
+        String[] columnNames = {"customer_id", "customer_name", "order_id", "order_date"};
         for (int i = 1; i <= 4; i++) {
-            when(resultSetMetaData.getColumnLabel(i)).thenReturn(resultSetMetaData.getColumnName(i));
+            when(resultSetMetaData.getColumnLabel(i)).thenReturn(columnNames[i - 1]);
             when(resultSetMetaData.getColumnClassName(i)).thenReturn("java.lang.Object");
             when(resultSetMetaData.getColumnDisplaySize(i)).thenReturn(20);
             when(resultSetMetaData.getPrecision(i)).thenReturn(20);

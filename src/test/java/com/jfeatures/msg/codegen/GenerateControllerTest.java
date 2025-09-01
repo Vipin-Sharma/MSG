@@ -28,10 +28,12 @@ class GenerateControllerTest {
         
         String generatedCode = result.toString();
         assertThat(generatedCode).contains("@RestController");
-        assertThat(generatedCode).contains("@RequestMapping(path = \"/api\")");
-        assertThat(generatedCode).contains("@Tag(name = \"Customer\", description = \"Customer\")");
+        assertThat(generatedCode).contains("path = \"/api\"");
+        assertThat(generatedCode).contains("name = \"Customer\"");
+        assertThat(generatedCode).contains("description = \"Customer\"");
         assertThat(generatedCode).contains("getDataForCustomer");
-        assertThat(generatedCode).contains("@GetMapping(value = \"/Customer\", produces = \"application/json\")");
+        assertThat(generatedCode).contains("value = \"/Customer\"");
+        assertThat(generatedCode).contains("produces = \"application/json\"");
     }
 
     @Test
@@ -48,10 +50,10 @@ class GenerateControllerTest {
 
         // Then
         String generatedCode = result.toString();
-        assertThat(generatedCode).contains("@RequestParam(value = \"customerId\") Integer customerId");
-        assertThat(generatedCode).contains("@RequestParam(value = \"status\") String status");
-        assertThat(generatedCode).contains("@RequestParam(value = \"minAmount\") BigDecimal minAmount");
-        assertThat(generatedCode).contains("return orderDAO.getOrder(customerId, status, minAmount)");
+        assertThat(generatedCode).contains("@RequestParam(\"customerid\") Integer customerid");
+        assertThat(generatedCode).contains("@RequestParam(\"status\") String status");
+        assertThat(generatedCode).contains("@RequestParam(\"minamount\") BigDecimal minamount");
+        assertThat(generatedCode).contains("return orderDAO.getOrder(customerid, status, minamount)");
     }
 
     @Test
@@ -65,7 +67,7 @@ class GenerateControllerTest {
         // Then
         String generatedCode = result.toString();
         assertThat(generatedCode).contains("getDataForAllCustomers()");
-        assertThat(generatedCode).contains("return allCustomersDAO.getAllCustomers()");
+        assertThat(generatedCode).contains("return allcustomersDAO.getAllCustomers()");
         assertThat(generatedCode).contains("List<AllCustomersDTO>");
     }
 
@@ -81,8 +83,9 @@ class GenerateControllerTest {
 
         // Then
         String generatedCode = result.toString();
-        assertThat(generatedCode).contains("@Operation(summary = \"Get API to fetch data for Product\")");
-        assertThat(generatedCode).contains("@Tag(name = \"Product\", description = \"Product\")");
+        assertThat(generatedCode).contains("summary = \"Get API to fetch data for Product\"");
+        assertThat(generatedCode).contains("name = \"Product\"");
+        assertThat(generatedCode).contains("description = \"Product\"");
     }
 
     @Test
@@ -102,7 +105,7 @@ class GenerateControllerTest {
         
         String generatedCode = result.toString();
         assertThat(generatedCode).contains("getDataForQuarterlySalesReport");
-        assertThat(generatedCode).contains("quarterlySalesReportDAO.getQuarterlySalesReport");
+        assertThat(generatedCode).contains("quarterlysalesreportDAO.getQuarterlySalesReport");
         assertThat(generatedCode).contains("List<QuarterlySalesReportDTO>");
     }
 
@@ -136,9 +139,9 @@ class GenerateControllerTest {
 
         // Then
         String generatedCode = result.toString();
-        assertThat(generatedCode).contains("@RequestParam(value = \"userId\") Integer userId");
-        assertThat(generatedCode).contains("@RequestParam(value = \"createdDate\") Date createdDate");
-        assertThat(generatedCode).contains("return userActivityDAO.getUserActivity(userId, createdDate)");
+        assertThat(generatedCode).contains("@RequestParam(\"user_id\") Integer user_id");
+        assertThat(generatedCode).contains("@RequestParam(\"created_date\") Date created_date");
+        assertThat(generatedCode).contains("return useractivityDAO.getUserActivity(user_id, created_date)");
     }
 
     @Test

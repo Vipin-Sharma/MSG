@@ -57,13 +57,9 @@ class UpdateMicroserviceGeneratorTest {
         String sql = "UPDATE customers SET customer_name = ?, email = ? WHERE customer_id = ?";
         String businessDomainName = "Customer";
         
-        try (MockedStatic<UpdateMetadataExtractor> extractorMock = mockStatic(UpdateMetadataExtractor.class)) {
-            
-            // Setup static mock
-            extractorMock.when(() -> new UpdateMetadataExtractor(dataSource, namedParameterJdbcTemplate))
-                        .thenReturn(updateMetadataExtractor);
-            
-            when(updateMetadataExtractor.extractUpdateMetadata(sql)).thenReturn(updateMetadata);
+        try (var mockedConstruction = mockConstruction(UpdateMetadataExtractor.class, (mock, context) -> {
+            when(mock.extractUpdateMetadata(sql)).thenReturn(updateMetadata);
+        })) {
             
             // When
             GeneratedMicroservice result = generator.generateUpdateMicroservice(sql, businessDomainName, databaseConnection);
@@ -78,9 +74,10 @@ class UpdateMicroserviceGeneratorTest {
             assertNotNull(result.daoFile());
             assertNotNull(result.databaseConfigContent());
             
-            // Verify interactions
-            verify(updateMetadataExtractor).extractUpdateMetadata(sql);
-            verify(updateMetadata).tableName();
+            // Verify interactions with the constructed mock
+            var constructedMocks = mockedConstruction.constructed();
+            assertEquals(1, constructedMocks.size());
+            verify(constructedMocks.get(0)).extractUpdateMetadata(sql);
         }
     }
     
@@ -167,12 +164,9 @@ class UpdateMicroserviceGeneratorTest {
         String businessDomainName = "Customer";
         RuntimeException metadataException = new RuntimeException("Failed to extract update metadata");
         
-        try (MockedStatic<UpdateMetadataExtractor> extractorMock = mockStatic(UpdateMetadataExtractor.class)) {
-            
-            extractorMock.when(() -> new UpdateMetadataExtractor(dataSource, namedParameterJdbcTemplate))
-                        .thenReturn(updateMetadataExtractor);
-            
-            when(updateMetadataExtractor.extractUpdateMetadata(sql)).thenThrow(metadataException);
+        try (var mockedConstruction = mockConstruction(UpdateMetadataExtractor.class, (mock, context) -> {
+            when(mock.extractUpdateMetadata(sql)).thenThrow(metadataException);
+        })) {
             
             // When & Then
             RuntimeException exception = assertThrows(
@@ -181,7 +175,9 @@ class UpdateMicroserviceGeneratorTest {
             );
             
             assertEquals("Failed to extract update metadata", exception.getMessage());
-            verify(updateMetadataExtractor).extractUpdateMetadata(sql);
+            var constructedMocks = mockedConstruction.constructed();
+            assertEquals(1, constructedMocks.size());
+            verify(constructedMocks.get(0)).extractUpdateMetadata(sql);
         }
     }
     
@@ -195,12 +191,9 @@ class UpdateMicroserviceGeneratorTest {
             """;
         String businessDomainName = "Customer";
         
-        try (MockedStatic<UpdateMetadataExtractor> extractorMock = mockStatic(UpdateMetadataExtractor.class)) {
-            
-            extractorMock.when(() -> new UpdateMetadataExtractor(dataSource, namedParameterJdbcTemplate))
-                        .thenReturn(updateMetadataExtractor);
-            
-            when(updateMetadataExtractor.extractUpdateMetadata(complexSql)).thenReturn(updateMetadata);
+        try (var mockedConstruction = mockConstruction(UpdateMetadataExtractor.class, (mock, context) -> {
+            when(mock.extractUpdateMetadata(complexSql)).thenReturn(updateMetadata);
+        })) {
             
             // When
             GeneratedMicroservice result = generator.generateUpdateMicroservice(complexSql, businessDomainName, databaseConnection);
@@ -210,7 +203,9 @@ class UpdateMicroserviceGeneratorTest {
             assertEquals(businessDomainName, result.businessDomainName());
             assertEquals(SqlStatementType.UPDATE, result.statementType());
             
-            verify(updateMetadataExtractor).extractUpdateMetadata(complexSql);
+            var constructedMocks = mockedConstruction.constructed();
+            assertEquals(1, constructedMocks.size());
+            verify(constructedMocks.get(0)).extractUpdateMetadata(complexSql);
         }
     }
     
@@ -224,12 +219,9 @@ class UpdateMicroserviceGeneratorTest {
             """;
         String businessDomainName = "Customer";
         
-        try (MockedStatic<UpdateMetadataExtractor> extractorMock = mockStatic(UpdateMetadataExtractor.class)) {
-            
-            extractorMock.when(() -> new UpdateMetadataExtractor(dataSource, namedParameterJdbcTemplate))
-                        .thenReturn(updateMetadataExtractor);
-            
-            when(updateMetadataExtractor.extractUpdateMetadata(namedParamSql)).thenReturn(updateMetadata);
+        try (var mockedConstruction = mockConstruction(UpdateMetadataExtractor.class, (mock, context) -> {
+            when(mock.extractUpdateMetadata(namedParamSql)).thenReturn(updateMetadata);
+        })) {
             
             // When
             GeneratedMicroservice result = generator.generateUpdateMicroservice(namedParamSql, businessDomainName, databaseConnection);
@@ -239,7 +231,9 @@ class UpdateMicroserviceGeneratorTest {
             assertEquals(businessDomainName, result.businessDomainName());
             assertEquals(SqlStatementType.UPDATE, result.statementType());
             
-            verify(updateMetadataExtractor).extractUpdateMetadata(namedParamSql);
+            var constructedMocks = mockedConstruction.constructed();
+            assertEquals(1, constructedMocks.size());
+            verify(constructedMocks.get(0)).extractUpdateMetadata(namedParamSql);
         }
     }
     
@@ -255,12 +249,9 @@ class UpdateMicroserviceGeneratorTest {
             """;
         String businessDomainName = "Customer";
         
-        try (MockedStatic<UpdateMetadataExtractor> extractorMock = mockStatic(UpdateMetadataExtractor.class)) {
-            
-            extractorMock.when(() -> new UpdateMetadataExtractor(dataSource, namedParameterJdbcTemplate))
-                        .thenReturn(updateMetadataExtractor);
-            
-            when(updateMetadataExtractor.extractUpdateMetadata(joinUpdateSql)).thenReturn(updateMetadata);
+        try (var mockedConstruction = mockConstruction(UpdateMetadataExtractor.class, (mock, context) -> {
+            when(mock.extractUpdateMetadata(joinUpdateSql)).thenReturn(updateMetadata);
+        })) {
             
             // When
             GeneratedMicroservice result = generator.generateUpdateMicroservice(joinUpdateSql, businessDomainName, databaseConnection);
@@ -270,7 +261,9 @@ class UpdateMicroserviceGeneratorTest {
             assertEquals(businessDomainName, result.businessDomainName());
             assertEquals(SqlStatementType.UPDATE, result.statementType());
             
-            verify(updateMetadataExtractor).extractUpdateMetadata(joinUpdateSql);
+            var constructedMocks = mockedConstruction.constructed();
+            assertEquals(1, constructedMocks.size());
+            verify(constructedMocks.get(0)).extractUpdateMetadata(joinUpdateSql);
         }
     }
     
@@ -286,12 +279,9 @@ class UpdateMicroserviceGeneratorTest {
             """;
         String businessDomainName = "Customer";
         
-        try (MockedStatic<UpdateMetadataExtractor> extractorMock = mockStatic(UpdateMetadataExtractor.class)) {
-            
-            extractorMock.when(() -> new UpdateMetadataExtractor(dataSource, namedParameterJdbcTemplate))
-                        .thenReturn(updateMetadataExtractor);
-            
-            when(updateMetadataExtractor.extractUpdateMetadata(subquerySql)).thenReturn(updateMetadata);
+        try (var mockedConstruction = mockConstruction(UpdateMetadataExtractor.class, (mock, context) -> {
+            when(mock.extractUpdateMetadata(subquerySql)).thenReturn(updateMetadata);
+        })) {
             
             // When
             GeneratedMicroservice result = generator.generateUpdateMicroservice(subquerySql, businessDomainName, databaseConnection);
@@ -301,7 +291,9 @@ class UpdateMicroserviceGeneratorTest {
             assertEquals(businessDomainName, result.businessDomainName());
             assertEquals(SqlStatementType.UPDATE, result.statementType());
             
-            verify(updateMetadataExtractor).extractUpdateMetadata(subquerySql);
+            var constructedMocks = mockedConstruction.constructed();
+            assertEquals(1, constructedMocks.size());
+            verify(constructedMocks.get(0)).extractUpdateMetadata(subquerySql);
         }
     }
     

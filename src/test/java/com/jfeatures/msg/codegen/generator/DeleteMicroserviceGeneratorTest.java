@@ -57,13 +57,9 @@ class DeleteMicroserviceGeneratorTest {
         String sql = "DELETE FROM customers WHERE customer_id = ? AND status = ?";
         String businessDomainName = "Customer";
         
-        try (MockedStatic<ParameterMetadataExtractor> extractorMock = mockStatic(ParameterMetadataExtractor.class)) {
-            
-            // Setup static mock
-            extractorMock.when(() -> new ParameterMetadataExtractor(dataSource))
-                        .thenReturn(parameterExtractor);
-            
-            when(parameterExtractor.extractParameters(sql)).thenReturn(mockParameters);
+        try (var mockedConstruction = mockConstruction(ParameterMetadataExtractor.class, (mock, context) -> {
+            when(mock.extractParameters(sql)).thenReturn(mockParameters);
+        })) {
             
             // When
             GeneratedMicroservice result = generator.generateDeleteMicroservice(sql, businessDomainName, databaseConnection);
@@ -78,8 +74,10 @@ class DeleteMicroserviceGeneratorTest {
             assertNotNull(result.daoFile());
             assertNotNull(result.databaseConfigContent());
             
-            // Verify interactions
-            verify(parameterExtractor).extractParameters(sql);
+            // Verify interactions with constructed mock
+            var constructedMocks = mockedConstruction.constructed();
+            assertEquals(1, constructedMocks.size());
+            verify(constructedMocks.get(0)).extractParameters(sql);
         }
     }
     
@@ -181,22 +179,20 @@ class DeleteMicroserviceGeneratorTest {
         String businessDomainName = "Customer";
         List<DBColumn> emptyParameters = Collections.emptyList();
         
-        try (MockedStatic<ParameterMetadataExtractor> extractorMock = mockStatic(ParameterMetadataExtractor.class)) {
+        try (var mockedConstruction = mockConstruction(ParameterMetadataExtractor.class, (mock, context) -> {
+            when(mock.extractParameters(sql)).thenReturn(emptyParameters);
+        })) {
             
-            extractorMock.when(() -> new ParameterMetadataExtractor(dataSource))
-                        .thenReturn(parameterExtractor);
+            // When & Then
+            IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> generator.generateDeleteMicroservice(sql, businessDomainName, databaseConnection)
+            );
             
-            when(parameterExtractor.extractParameters(sql)).thenReturn(emptyParameters);
-            
-            // When
-            GeneratedMicroservice result = generator.generateDeleteMicroservice(sql, businessDomainName, databaseConnection);
-            
-            // Then
-            assertNotNull(result);
-            assertEquals(businessDomainName, result.businessDomainName());
-            assertEquals(SqlStatementType.DELETE, result.statementType());
-            
-            verify(parameterExtractor).extractParameters(sql);
+            assertEquals("Delete metadata must have at least one WHERE column", exception.getMessage());
+            var constructedMocks = mockedConstruction.constructed();
+            assertEquals(1, constructedMocks.size());
+            verify(constructedMocks.get(0)).extractParameters(sql);
         }
     }
     
@@ -219,12 +215,10 @@ class DeleteMicroserviceGeneratorTest {
             new DBColumn("table", "region", "java.lang.String", "VARCHAR")
         );
         
-        try (MockedStatic<ParameterMetadataExtractor> extractorMock = mockStatic(ParameterMetadataExtractor.class)) {
+        try (var mockedConstruction = mockConstruction(ParameterMetadataExtractor.class, (mock, context) -> {
             
-            extractorMock.when(() -> new ParameterMetadataExtractor(dataSource))
-                        .thenReturn(parameterExtractor);
-            
-            when(parameterExtractor.extractParameters(complexSql)).thenReturn(complexParameters);
+            when(mock.extractParameters(complexSql)).thenReturn(complexParameters);
+        })) {
             
             // When
             GeneratedMicroservice result = generator.generateDeleteMicroservice(complexSql, businessDomainName, databaseConnection);
@@ -234,7 +228,9 @@ class DeleteMicroserviceGeneratorTest {
             assertEquals(businessDomainName, result.businessDomainName());
             assertEquals(SqlStatementType.DELETE, result.statementType());
             
-            verify(parameterExtractor).extractParameters(complexSql);
+            var constructedMocks = mockedConstruction.constructed();
+            assertEquals(1, constructedMocks.size());
+            verify(constructedMocks.get(0)).extractParameters(complexSql);
         }
     }
     
@@ -253,12 +249,10 @@ class DeleteMicroserviceGeneratorTest {
             new DBColumn("table", "orderDate", "java.lang.String", "TIMESTAMP")
         );
         
-        try (MockedStatic<ParameterMetadataExtractor> extractorMock = mockStatic(ParameterMetadataExtractor.class)) {
+        try (var mockedConstruction = mockConstruction(ParameterMetadataExtractor.class, (mock, context) -> {
             
-            extractorMock.when(() -> new ParameterMetadataExtractor(dataSource))
-                        .thenReturn(parameterExtractor);
-            
-            when(parameterExtractor.extractParameters(subquerySql)).thenReturn(subqueryParameters);
+            when(mock.extractParameters(subquerySql)).thenReturn(subqueryParameters);
+        })) {
             
             // When
             GeneratedMicroservice result = generator.generateDeleteMicroservice(subquerySql, businessDomainName, databaseConnection);
@@ -268,7 +262,9 @@ class DeleteMicroserviceGeneratorTest {
             assertEquals(businessDomainName, result.businessDomainName());
             assertEquals(SqlStatementType.DELETE, result.statementType());
             
-            verify(parameterExtractor).extractParameters(subquerySql);
+            var constructedMocks = mockedConstruction.constructed();
+            assertEquals(1, constructedMocks.size());
+            verify(constructedMocks.get(0)).extractParameters(subquerySql);
         }
     }
     
@@ -279,12 +275,10 @@ class DeleteMicroserviceGeneratorTest {
         String businessDomainName = "Customer";
         SQLException sqlException = new SQLException("Failed to extract parameters");
         
-        try (MockedStatic<ParameterMetadataExtractor> extractorMock = mockStatic(ParameterMetadataExtractor.class)) {
+        try (var mockedConstruction = mockConstruction(ParameterMetadataExtractor.class, (mock, context) -> {
             
-            extractorMock.when(() -> new ParameterMetadataExtractor(dataSource))
-                        .thenReturn(parameterExtractor);
-            
-            when(parameterExtractor.extractParameters(sql)).thenThrow(sqlException);
+            when(mock.extractParameters(sql)).thenThrow(sqlException);
+        })) {
             
             // When & Then
             SQLException exception = assertThrows(
@@ -293,7 +287,9 @@ class DeleteMicroserviceGeneratorTest {
             );
             
             assertEquals("Failed to extract parameters", exception.getMessage());
-            verify(parameterExtractor).extractParameters(sql);
+            var constructedMocks = mockedConstruction.constructed();
+            assertEquals(1, constructedMocks.size());
+            verify(constructedMocks.get(0)).extractParameters(sql);
         }
     }
     
@@ -321,20 +317,18 @@ class DeleteMicroserviceGeneratorTest {
         String sql = "DELETE FROM customers; ";
         String businessDomainName = "Customer";
         
-        try (MockedStatic<ParameterMetadataExtractor> extractorMock = mockStatic(ParameterMetadataExtractor.class)) {
+        try (var mockedConstruction = mockConstruction(ParameterMetadataExtractor.class, (mock, context) -> {
             
-            extractorMock.when(() -> new ParameterMetadataExtractor(dataSource))
-                        .thenReturn(parameterExtractor);
+            when(mock.extractParameters(sql)).thenReturn(Collections.emptyList());
+        })) {
             
-            when(parameterExtractor.extractParameters(sql)).thenReturn(Collections.emptyList());
+            // When & Then
+            IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> generator.generateDeleteMicroservice(sql, businessDomainName, databaseConnection)
+            );
             
-            // When
-            GeneratedMicroservice result = generator.generateDeleteMicroservice(sql, businessDomainName, databaseConnection);
-            
-            // Then
-            assertNotNull(result);
-            assertEquals(businessDomainName, result.businessDomainName());
-            assertEquals(SqlStatementType.DELETE, result.statementType());
+            assertEquals("Delete metadata must have at least one WHERE column", exception.getMessage());
         }
     }
     
@@ -344,12 +338,14 @@ class DeleteMicroserviceGeneratorTest {
         String sql = "delete from customers WHERE id = ?";
         String businessDomainName = "Customer";
         
-        try (MockedStatic<ParameterMetadataExtractor> extractorMock = mockStatic(ParameterMetadataExtractor.class)) {
+        List<DBColumn> singleParameter = Arrays.asList(
+            new DBColumn("table", "id", "java.lang.String", "INTEGER")
+        );
+        
+        try (var mockedConstruction = mockConstruction(ParameterMetadataExtractor.class, (mock, context) -> {
             
-            extractorMock.when(() -> new ParameterMetadataExtractor(dataSource))
-                        .thenReturn(parameterExtractor);
-            
-            when(parameterExtractor.extractParameters(sql)).thenReturn(mockParameters);
+            when(mock.extractParameters(sql)).thenReturn(singleParameter);
+        })) {
             
             // When
             GeneratedMicroservice result = generator.generateDeleteMicroservice(sql, businessDomainName, databaseConnection);
@@ -359,7 +355,9 @@ class DeleteMicroserviceGeneratorTest {
             assertEquals(businessDomainName, result.businessDomainName());
             assertEquals(SqlStatementType.DELETE, result.statementType());
             
-            verify(parameterExtractor).extractParameters(sql);
+            var constructedMocks = mockedConstruction.constructed();
+            assertEquals(1, constructedMocks.size());
+            verify(constructedMocks.get(0)).extractParameters(sql);
         }
     }
 }

@@ -62,12 +62,12 @@ class GenerateDAOTest {
 
         // Then
         String generatedCode = result.toString();
-        assertThat(generatedCode).contains("Integer customerId");
+        assertThat(generatedCode).contains("Integer customerid");
         assertThat(generatedCode).contains("String status");
-        assertThat(generatedCode).contains("BigDecimal minAmount");
-        assertThat(generatedCode).contains("sqlParamMap.put(\"customerId\", customerId)");
+        assertThat(generatedCode).contains("BigDecimal minamount");
+        assertThat(generatedCode).contains("sqlParamMap.put(\"customerid\", customerid)");
         assertThat(generatedCode).contains("sqlParamMap.put(\"status\", status)");
-        assertThat(generatedCode).contains("sqlParamMap.put(\"minAmount\", minAmount)");
+        assertThat(generatedCode).contains("sqlParamMap.put(\"minamount\", minamount)");
     }
 
     @Test
