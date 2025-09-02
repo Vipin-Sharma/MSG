@@ -1,2 +1,5 @@
 # Project exclude paths
 /target/
+# Generated test output
+test_output/
+output/

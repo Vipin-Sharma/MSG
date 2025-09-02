@@ -37,52 +37,52 @@ MSG follows a **metadata-driven approach** where a single SQL statement becomes 
 
 ### 🐳 Database Setup with Docker (Recommended)
 
-MSG requires a SQL Server database for metadata extraction. The easiest way to set up SQL Server is using Docker.
+MSG requires a SQL Server database for metadata extraction. We provide a **Docker-first approach** with automatic Sakila database setup.
 
-**📁 Convenience Files Provided:**
-- `setup-database.sh` - Automated setup script
-- `docker-compose.yml` - Docker Compose configuration
+**📁 Cross-Platform Setup Scripts:**
+- `setup-db.sh` - Linux/Mac setup script
+- `setup-db.bat` - Windows setup script
+- `docker-compose.yml` - Docker Compose configuration with custom image
+- `Dockerfile` - Custom SQL Server image with embedded Sakila database
 
-#### Option 1: Quick Setup (SQL Server 2022)
+#### Option 1: One-Click Cross-Platform Setup (Easiest!)
+
+**Linux/Mac:**
 ```bash
-# Pull and run SQL Server 2022 container
-docker run -e "ACCEPT_EULA=Y" \
-           -e "MSSQL_SA_PASSWORD=Password@1" \
-           -p 1433:1433 \
-           -d \
-           --name msgdb \
-           mcr.microsoft.com/mssql/server:2022-latest
-
-# Wait for SQL Server to start (usually takes 30-60 seconds)
-docker logs msgdb
+./setup-db.sh
 ```
 
-#### Option 2: Persistent Data Setup
-```bash
-# Create a volume for persistent data
-docker volume create sqlserver_data
-
-# Run SQL Server with persistent storage
-docker run -e "ACCEPT_EULA=Y" \
-           -e "MSSQL_SA_PASSWORD=Password@1" \
-           -p 1433:1433 \
-           -v sqlserver_data:/var/opt/mssql \
-           -d \
-           --name msgdb \
-           mcr.microsoft.com/mssql/server:2022-latest
+**Windows:**
+```batch
+setup-db.bat
 ```
 
-#### Create Sample Database
+**Manual (any platform):**
 ```bash
-# Connect to SQL Server and create sample database
-docker exec -it msgdb /opt/mssql-tools/bin/sqlcmd \
-   -S localhost -U SA -P 'Password@1' \
-   -Q "CREATE DATABASE sakila;"
+docker-compose up -d --build
+```
 
-# Create sample tables (copy from provided schema files)
-docker exec -it msgdb /opt/mssql-tools/bin/sqlcmd \
-   -S localhost -U SA -P 'Password@1' -d sakila \
-   -i /path/to/your/schema.sql
+This automated setup will:
+- 🚀 Build custom SQL Server image with embedded Sakila files
+- 📥 Download Sakila database files during Docker build (no repo bloat!)
+- 🗄️ Auto-create Sakila database with rich sample data (599 customers, 1000 films, 16k+ rentals)
+- ✅ Skip setup if database already exists (intelligent detection)
+- 🐳 Use Docker volumes for data persistence
+- 📋 Display connection details and ready-to-run commands
+
+#### Option 2: Advanced Configuration
+```bash
+# Use custom port
+SQL_PORT=1434 docker-compose up -d --build
+
+# View setup logs
+docker-compose logs -f sqlserver
+
+# Stop services
+docker-compose down
+
+# Rebuild image (force fresh Sakila download)
+docker-compose up -d --build --no-cache
 ```
 
 #### Docker Management Commands
@@ -208,29 +208,29 @@ mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator"
 
 ### 🚀 Quick Reference - Complete Setup
 
-#### Option 1: Automated Setup (Easiest!)
+#### Option 1: One-Click Docker Setup (Easiest!)
 ```bash
-# Run the automated setup script
-./setup-database.sh
+# Cross-platform database setup (Windows: setup-db.bat | Linux/Mac: ./setup-db.sh)
+./setup-db.sh
 
-# Generate microservices (examples)
-# SELECT API
+# Generate microservices with rich Sakila sample data (599 customers, 1000 films, 16k+ rentals)
+# SELECT API - Get customer data with city/country information
 mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
   -Dexec.args="--name Customer --destination ./output --sql-file sample_parameterized_sql.sql"
 
-# INSERT API  
+# INSERT API - Create new customer records  
 mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
-  -Dexec.args="--name Product --destination ./output --sql-file sample_insert_parameterized.sql"
+  -Dexec.args="--name Customer --destination ./output --sql-file sample_insert_parameterized.sql"
 
-# UPDATE API
+# UPDATE API - Update customer information
 mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
-  -Dexec.args="--name Order --destination ./output --sql-file sample_update_parameterized.sql"
+  -Dexec.args="--name Customer --destination ./output --sql-file sample_update_parameterized.sql"
 
-# DELETE API
+# DELETE API - Remove customer records
 mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
-  -Dexec.args="--name User --destination ./output --sql-file sample_delete_parameterized.sql"
+  -Dexec.args="--name Customer --destination ./output --sql-file sample_delete_parameterized.sql"
 
-# Test generated microservice
+# Test generated microservice with live Sakila data
 cd ./output
 mvn spring-boot:run
 ```
