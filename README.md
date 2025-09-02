@@ -33,6 +33,161 @@ MSG follows a **metadata-driven approach** where a single SQL statement becomes 
 - Java 21 or later
 - Maven 3.8+
 - SQL Server database (for metadata extraction)
+- Docker (recommended for easy database setup)
+
+### 🐳 Database Setup with Docker (Recommended)
+
+MSG requires a SQL Server database for metadata extraction. The easiest way to set up SQL Server is using Docker.
+
+**📁 Convenience Files Provided:**
+- `setup-database.sh` - Automated setup script
+- `docker-compose.yml` - Docker Compose configuration
+
+#### Option 1: Quick Setup (SQL Server 2022)
+```bash
+# Pull and run SQL Server 2022 container
+docker run -e "ACCEPT_EULA=Y" \
+           -e "MSSQL_SA_PASSWORD=Password@1" \
+           -p 1433:1433 \
+           -d \
+           --name msgdb \
+           mcr.microsoft.com/mssql/server:2022-latest
+
+# Wait for SQL Server to start (usually takes 30-60 seconds)
+docker logs msgdb
+```
+
+#### Option 2: Persistent Data Setup
+```bash
+# Create a volume for persistent data
+docker volume create sqlserver_data
+
+# Run SQL Server with persistent storage
+docker run -e "ACCEPT_EULA=Y" \
+           -e "MSSQL_SA_PASSWORD=Password@1" \
+           -p 1433:1433 \
+           -v sqlserver_data:/var/opt/mssql \
+           -d \
+           --name msgdb \
+           mcr.microsoft.com/mssql/server:2022-latest
+```
+
+#### Create Sample Database
+```bash
+# Connect to SQL Server and create sample database
+docker exec -it msgdb /opt/mssql-tools/bin/sqlcmd \
+   -S localhost -U SA -P 'Password@1' \
+   -Q "CREATE DATABASE sakila;"
+
+# Create sample tables (copy from provided schema files)
+docker exec -it msgdb /opt/mssql-tools/bin/sqlcmd \
+   -S localhost -U SA -P 'Password@1' -d sakila \
+   -i /path/to/your/schema.sql
+```
+
+#### Docker Management Commands
+```bash
+# Start existing container
+docker start msgdb
+
+# Stop container
+docker stop msgdb
+
+# Remove container (data will be lost unless using volumes)
+docker rm msgdb
+
+# Check container status
+docker ps -a
+
+# View SQL Server logs
+docker logs msgdb
+
+# Connect to database
+docker exec -it msgdb /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'Password@1'
+```
+
+#### Alternative Database Images
+```bash
+# SQL Server 2019 (smaller image)
+docker run -e "ACCEPT_EULA=Y" \
+           -e "MSSQL_SA_PASSWORD=Password@1" \
+           -p 1433:1433 \
+           -d \
+           --name msgdb \
+           mcr.microsoft.com/mssql/server:2019-latest
+
+# SQL Server 2017 (legacy support)
+docker run -e "ACCEPT_EULA=Y" \
+           -e "MSSQL_SA_PASSWORD=Password@1" \
+           -p 1433:1433 \
+           -d \
+           --name msgdb \
+           mcr.microsoft.com/mssql/server:2017-latest
+```
+
+#### Configuration Notes
+- **Default Connection**: `jdbc:sqlserver://localhost:1433;databaseName=sakila;encrypt=true;trustServerCertificate=true;`
+- **Username**: `sa`
+- **Password**: `Password@1` (matches application.properties)
+- **Database**: `sakila` (or your preferred database name)
+
+#### Troubleshooting
+```bash
+# If port 1433 is already in use
+docker run -p 1434:1433 ... # Use different host port
+
+# Check if container is running
+docker ps
+
+# View detailed container information
+docker inspect msgdb
+
+# Access container shell
+docker exec -it msgdb /bin/bash
+```
+
+### Docker Compose Setup (Even Easier!)
+
+For the simplest setup, create a `docker-compose.yml` file:
+
+```yaml
+version: '3.8'
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: msgdb
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Password@1
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    restart: unless-stopped
+
+volumes:
+  sqlserver_data:
+```
+
+Then run:
+```bash
+# Start SQL Server
+docker-compose up -d
+
+# Create database
+docker exec -it msgdb /opt/mssql-tools/bin/sqlcmd \
+   -S localhost -U SA -P 'Password@1' \
+   -Q "CREATE DATABASE sakila;"
+
+# Stop when done
+docker-compose down
+```
+
+### Manual Installation (Alternative)
+If you prefer not to use Docker, you can install SQL Server directly:
+- **Windows**: Download SQL Server Developer Edition
+- **Linux**: Follow Microsoft's SQL Server on Linux installation guide
+- **macOS**: Use SQL Server in Docker (recommended approach above)
 
 ### Installation
 ```bash
@@ -49,6 +204,62 @@ mvn clean compile
 # Generate a microservice from SQL
 mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
   -Dexec.args="--name Customer --destination ./output --sql-file sample_select.sql"
+```
+
+### 🚀 Quick Reference - Complete Setup
+
+#### Option 1: Automated Setup (Easiest!)
+```bash
+# Run the automated setup script
+./setup-database.sh
+
+# Generate microservices (examples)
+# SELECT API
+mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
+  -Dexec.args="--name Customer --destination ./output --sql-file sample_parameterized_sql.sql"
+
+# INSERT API  
+mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
+  -Dexec.args="--name Product --destination ./output --sql-file sample_insert_parameterized.sql"
+
+# UPDATE API
+mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
+  -Dexec.args="--name Order --destination ./output --sql-file sample_update_parameterized.sql"
+
+# DELETE API
+mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
+  -Dexec.args="--name User --destination ./output --sql-file sample_delete_parameterized.sql"
+
+# Test generated microservice
+cd ./output
+mvn spring-boot:run
+```
+
+#### Option 2: Manual Setup
+```bash
+# 1. Start SQL Server with Docker
+docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=Password@1" \
+           -p 1433:1433 -d --name msgdb \
+           mcr.microsoft.com/mssql/server:2022-latest
+
+# 2. Wait for startup and create database
+sleep 30
+docker exec -it msgdb /opt/mssql-tools/bin/sqlcmd \
+   -S localhost -U SA -P 'Password@1' \
+   -Q "CREATE DATABASE sakila;"
+
+# 3. Generate microservices (same as above)
+```
+
+#### Option 3: Docker Compose
+```bash
+# Start with Docker Compose
+docker-compose up -d
+
+# Create database
+docker exec -it msgdb /opt/mssql-tools/bin/sqlcmd \
+   -S localhost -U SA -P 'Password@1' \
+   -Q "CREATE DATABASE sakila;"
 ```
 
 ---
