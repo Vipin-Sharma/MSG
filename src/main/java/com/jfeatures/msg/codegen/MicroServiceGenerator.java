@@ -44,6 +44,9 @@ public class MicroServiceGenerator implements Callable<Integer> {
 
     @Override
     public Integer call() throws Exception {
+        // Validate input parameters
+        validateInputParameters();
+        
         log.info("Starting microservice generation for business domain: {}", businessPurposeName);
         log.info("Target directory: {}", destinationDirectory);
         
@@ -67,18 +70,7 @@ public class MicroServiceGenerator implements Callable<Integer> {
         log.info("Detected SQL statement type: {}", statementType);
         
         // Generate microservice based on SQL type
-        GeneratedMicroservice microservice = switch (statementType) {
-            case SELECT -> new SelectMicroserviceGenerator()
-                .generateSelectMicroservice(sql, businessPurposeName, databaseConnection);
-            case UPDATE -> new UpdateMicroserviceGenerator()
-                .generateUpdateMicroservice(sql, businessPurposeName, databaseConnection);
-            case INSERT -> new InsertMicroserviceGenerator()
-                .generateInsertMicroservice(sql, businessPurposeName, databaseConnection);
-            case DELETE -> new DeleteMicroserviceGenerator()
-                .generateDeleteMicroservice(sql, businessPurposeName, databaseConnection);
-            default -> throw new IllegalArgumentException(
-                "Unknown or unsupported SQL statement type: '" + statementType + "'. Please provide a valid SELECT, UPDATE, INSERT, or DELETE statement.");
-        };
+        GeneratedMicroservice microservice = generateMicroserviceByType(statementType, sql, businessPurposeName, databaseConnection);
         
         // Write complete microservice to filesystem
         projectWriter.writeMicroserviceProject(microservice, destinationDirectory);
@@ -105,6 +97,22 @@ public class MicroServiceGenerator implements Callable<Integer> {
         SqlStatementType statementType = SqlStatementDetector.detectStatementType(sql);
         
         // Generate microservice based on SQL type
+        return generateMicroserviceByType(statementType, sql, businessPurposeName, databaseConnection);
+    }
+    
+    /**
+     * Generates a microservice based on the SQL statement type.
+     * Centralizes the switch logic to eliminate code duplication.
+     * 
+     * @param statementType The detected SQL statement type
+     * @param sql The SQL statement
+     * @param businessPurposeName The business purpose name
+     * @param databaseConnection The database connection
+     * @return Generated microservice
+     * @throws Exception if generation fails
+     */
+    private GeneratedMicroservice generateMicroserviceByType(SqlStatementType statementType, String sql, 
+                                                            String businessPurposeName, DatabaseConnection databaseConnection) throws Exception {
         return switch (statementType) {
             case SELECT -> new SelectMicroserviceGenerator()
                 .generateSelectMicroservice(sql, businessPurposeName, databaseConnection);
@@ -117,6 +125,28 @@ public class MicroServiceGenerator implements Callable<Integer> {
             default -> throw new IllegalArgumentException(
                 "Unknown or unsupported SQL statement type: '" + statementType + "'. Please provide a valid SELECT, UPDATE, INSERT, or DELETE statement.");
         };
+    }
+    
+    /**
+     * Validates input parameters for the microservice generation process.
+     * 
+     * @throws IllegalArgumentException if any parameter is invalid
+     */
+    private void validateInputParameters() {
+        if (businessPurposeName == null || businessPurposeName.trim().isEmpty()) {
+            throw new IllegalArgumentException(ProjectConstants.ERROR_NULL_BUSINESS_NAME);
+        }
+        
+        if (destinationDirectory == null || destinationDirectory.trim().isEmpty()) {
+            throw new IllegalArgumentException(ProjectConstants.ERROR_NULL_DESTINATION);
+        }
+        
+        // Validate business purpose name doesn't contain invalid characters
+        if (!businessPurposeName.matches(ProjectConstants.VALID_BUSINESS_NAME_PATTERN)) {
+            throw new IllegalArgumentException(ProjectConstants.ERROR_INVALID_BUSINESS_NAME);
+        }
+        
+        log.debug("Input parameters validated successfully");
     }
 
 }

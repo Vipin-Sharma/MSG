@@ -23,9 +23,10 @@ public class ProjectDirectoryBuilder {
      * 
      * @param baseProjectPath the root path where the project should be created
      * @return a ProjectDirectoryStructure containing all created directory paths
-     * @throws Exception if directory creation fails
+     * @throws IOException if directory creation fails
+     * @throws IllegalArgumentException if baseProjectPath is null or empty
      */
-    public ProjectDirectoryStructure buildDirectoryStructure(String baseProjectPath) throws Exception {
+    public ProjectDirectoryStructure buildDirectoryStructure(String baseProjectPath) throws IOException {
         if (baseProjectPath == null || baseProjectPath.trim().isEmpty()) {
             throw new IllegalArgumentException("Base project path cannot be null or empty");
         }
@@ -51,11 +52,11 @@ public class ProjectDirectoryBuilder {
         );
     }
     
-    private void createDirectorySafely(Path directoryPath) throws Exception {
+    private void createDirectorySafely(Path directoryPath) throws IOException {
         try {
             Files.createDirectories(directoryPath);
         } catch (IOException e) {
-            throw new Exception("Failed to create directory: " + directoryPath + " - " + e.getMessage(), e);
+            throw new IOException("Failed to create directory: " + directoryPath + " - " + e.getMessage(), e);
         }
     }
 }

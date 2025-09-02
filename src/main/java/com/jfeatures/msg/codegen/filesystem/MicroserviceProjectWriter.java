@@ -33,29 +33,39 @@ public class MicroserviceProjectWriter {
      * 
      * @param microservice the generated microservice to write
      * @param destinationPath the target directory path
-     * @throws Exception if writing operations fail
+     * @throws IOException if file writing operations fail
+     * @throws IllegalArgumentException if input parameters are invalid
      */
-    public void writeMicroserviceProject(GeneratedMicroservice microservice, String destinationPath) throws Exception {
+    public void writeMicroserviceProject(GeneratedMicroservice microservice, String destinationPath) throws IOException {
         validateInputParameters(microservice, destinationPath);
         
         log.info("Writing {} microservice to: {}", microservice.statementType(), destinationPath);
         
-        // Build project directory structure
-        ProjectDirectoryStructure directories = directoryBuilder.buildDirectoryStructure(destinationPath);
-        
-        // Write all Java source files
-        writeJavaFile(microservice.springBootApplication(), directories.srcMainJava());
-        writeJavaFile(microservice.dtoFile(), directories.srcMainJava());
-        writeJavaFile(microservice.controllerFile(), directories.srcMainJava());
-        writeJavaFile(microservice.daoFile(), directories.srcMainJava());
-        
-        // Write database configuration file
-        writeDatabaseConfigFile(microservice.databaseConfigContent(), 
-                               microservice.businessDomainName(), 
-                               directories.srcMainJava());
-        
-        // Copy template files (pom.xml, application.properties)
-        copyTemplateFiles(directories);
+        try {
+            // Build project directory structure
+            ProjectDirectoryStructure directories = directoryBuilder.buildDirectoryStructure(destinationPath);
+            
+            // Write all Java source files
+            writeJavaFile(microservice.springBootApplication(), directories.srcMainJava());
+            writeJavaFile(microservice.dtoFile(), directories.srcMainJava());
+            writeJavaFile(microservice.controllerFile(), directories.srcMainJava());
+            writeJavaFile(microservice.daoFile(), directories.srcMainJava());
+            
+            // Write database configuration file
+            writeDatabaseConfigFile(microservice.databaseConfigContent(), 
+                                   microservice.businessDomainName(), 
+                                   directories.srcMainJava());
+            
+            // Copy template files (pom.xml, application.properties)
+            copyTemplateFiles(directories);
+            
+        } catch (IOException e) {
+            log.error("I/O error while writing microservice project: {}", e.getMessage(), e);
+            throw e;
+        } catch (RuntimeException e) {
+            log.error("Runtime error while writing microservice project: {}", e.getMessage(), e);
+            throw new IOException("Failed to write microservice project due to runtime error", e);
+        }
         
         log.info("Successfully wrote {} microservice for '{}' to: {}", 
                 microservice.statementType(), 
@@ -72,28 +82,32 @@ public class MicroserviceProjectWriter {
         }
     }
     
-    private void writeJavaFile(JavaFile javaFile, Path sourceDirectory) throws Exception {
+    private void writeJavaFile(JavaFile javaFile, Path sourceDirectory) throws IOException {
         try {
             javaFile.writeTo(sourceDirectory);
+            log.debug("Successfully wrote Java file: {}.{}", javaFile.packageName, javaFile.typeSpec.name);
         } catch (IOException e) {
-            throw new Exception("Failed to write Java file: " + javaFile.packageName + "." + 
+            log.error("Failed to write Java file: {}.{} - {}", javaFile.packageName, javaFile.typeSpec.name, e.getMessage());
+            throw new IOException("Failed to write Java file: " + javaFile.packageName + "." + 
                                javaFile.typeSpec.name + " - " + e.getMessage(), e);
         }
     }
     
-    private void writeDatabaseConfigFile(String content, String businessDomainName, Path sourceDirectory) throws Exception {
+    private void writeDatabaseConfigFile(String content, String businessDomainName, Path sourceDirectory) throws IOException {
         try {
             Path configPackagePath = sourceDirectory.resolve("com/jfeatures/" + 
                                                             businessDomainName.toLowerCase() + "/config");
             Files.createDirectories(configPackagePath);
             Path configFilePath = configPackagePath.resolve(ProjectConstants.DATABASE_CONFIG_FILE_NAME);
             Files.write(configFilePath, content.getBytes(StandardCharsets.UTF_8));
+            log.debug("Successfully wrote database config file: {}", configFilePath);
         } catch (IOException e) {
-            throw new Exception("Failed to write database config file: " + e.getMessage(), e);
+            log.error("Failed to write database config file: {}", e.getMessage());
+            throw new IOException("Failed to write database config file: " + e.getMessage(), e);
         }
     }
     
-    private void copyTemplateFiles(ProjectDirectoryStructure directories) throws Exception {
+    private void copyTemplateFiles(ProjectDirectoryStructure directories) throws IOException {
         // Copy pom.xml template
         copyResourceFileToPath(
             ProjectConstants.POM_TEMPLATE_FILE,
@@ -107,15 +121,18 @@ public class MicroserviceProjectWriter {
         );
     }
     
-    private void copyResourceFileToPath(String resourceFileName, Path targetFilePath) throws Exception {
+    private void copyResourceFileToPath(String resourceFileName, Path targetFilePath) throws IOException {
         try (InputStream inputStream = MicroserviceProjectWriter.class.getClassLoader()
                                                                       .getResourceAsStream(resourceFileName)) {
             if (inputStream == null) {
-                throw new Exception("Template resource file not found: " + resourceFileName);
+                log.error("Template resource file not found: {}", resourceFileName);
+                throw new IOException("Template resource file not found: " + resourceFileName);
             }
             Files.write(targetFilePath, inputStream.readAllBytes());
+            log.debug("Successfully copied resource file {} to {}", resourceFileName, targetFilePath);
         } catch (IOException e) {
-            throw new Exception("Failed to copy resource file " + resourceFileName + 
+            log.error("Failed to copy resource file {} to {}: {}", resourceFileName, targetFilePath, e.getMessage());
+            throw new IOException("Failed to copy resource file " + resourceFileName + 
                                " to " + targetFilePath + ": " + e.getMessage(), e);
         }
     }

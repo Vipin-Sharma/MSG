@@ -1,5 +1,6 @@
 package com.jfeatures.msg.codegen;
 
+import com.jfeatures.msg.codegen.constants.ProjectConstants;
 import com.jfeatures.msg.codegen.domain.DBColumn;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -21,10 +22,17 @@ public class ParameterMetadataExtractor {
     private final DataSource dataSource;
     
     public ParameterMetadataExtractor(DataSource dataSource) {
+        if (dataSource == null) {
+            throw new IllegalArgumentException(ProjectConstants.ERROR_NULL_DATASOURCE);
+        }
         this.dataSource = dataSource;
     }
     
     public List<DBColumn> extractParameters(String sql) throws SQLException {
+        if (sql == null || sql.trim().isEmpty()) {
+            throw new IllegalArgumentException(ProjectConstants.ERROR_NULL_SQL);
+        }
+        
         List<DBColumn> parameters = new ArrayList<>();
         
         try (Connection connection = dataSource.getConnection();

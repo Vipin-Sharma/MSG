@@ -1,5 +1,7 @@
 # MSG - Microservice Generator
 
+[![SonarQube Cloud](https://sonarcloud.io/images/project_badges/sonarcloud-light.svg)](https://sonarcloud.io/summary/new_code?id=Vipin-Sharma_MSG)
+
 **From SQL to Service - Eliminating microservices boilerplate, one API at a time** 🚀
 
 MSG transforms a single SQL statement into a complete, production-ready Spring Boot microservice with REST APIs, DTOs, DAOs, and configuration in seconds.
@@ -31,6 +33,161 @@ MSG follows a **metadata-driven approach** where a single SQL statement becomes 
 - Java 21 or later
 - Maven 3.8+
 - SQL Server database (for metadata extraction)
+- Docker (recommended for easy database setup)
+
+### 🐳 Database Setup with Docker (Recommended)
+
+MSG requires a SQL Server database for metadata extraction. We provide a **Docker-first approach** with automatic Sakila database setup.
+
+**📁 Cross-Platform Setup Scripts:**
+- `setup-db.sh` - Linux/Mac setup script
+- `setup-db.bat` - Windows setup script
+- `docker-compose.yml` - Docker Compose configuration with custom image
+- `Dockerfile` - Custom SQL Server image with embedded Sakila database
+
+#### Option 1: One-Click Cross-Platform Setup (Easiest!)
+
+**Linux/Mac:**
+```bash
+./setup-db.sh
+```
+
+**Windows:**
+```batch
+setup-db.bat
+```
+
+**Manual (any platform):**
+```bash
+docker-compose up -d --build
+```
+
+This automated setup will:
+- 🚀 Build custom SQL Server image with embedded Sakila files
+- 📥 Download Sakila database files during Docker build (no repo bloat!)
+- 🗄️ Auto-create Sakila database with rich sample data (599 customers, 1000 films, 16k+ rentals)
+- ✅ Skip setup if database already exists (intelligent detection)
+- 🐳 Use Docker volumes for data persistence
+- 📋 Display connection details and ready-to-run commands
+
+#### Option 2: Advanced Configuration
+```bash
+# Use custom port
+SQL_PORT=1434 docker-compose up -d --build
+
+# View setup logs
+docker-compose logs -f sqlserver
+
+# Stop services
+docker-compose down
+
+# Rebuild image (force fresh Sakila download)
+docker-compose up -d --build --no-cache
+```
+
+#### Docker Management Commands
+```bash
+# Start existing container
+docker start msgdb
+
+# Stop container
+docker stop msgdb
+
+# Remove container (data will be lost unless using volumes)
+docker rm msgdb
+
+# Check container status
+docker ps -a
+
+# View SQL Server logs
+docker logs msgdb
+
+# Connect to database
+docker exec -it msgdb /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'Password@1'
+```
+
+#### Alternative Database Images
+```bash
+# SQL Server 2019 (smaller image)
+docker run -e "ACCEPT_EULA=Y" \
+           -e "MSSQL_SA_PASSWORD=Password@1" \
+           -p 1433:1433 \
+           -d \
+           --name msgdb \
+           mcr.microsoft.com/mssql/server:2019-latest
+
+# SQL Server 2017 (legacy support)
+docker run -e "ACCEPT_EULA=Y" \
+           -e "MSSQL_SA_PASSWORD=Password@1" \
+           -p 1433:1433 \
+           -d \
+           --name msgdb \
+           mcr.microsoft.com/mssql/server:2017-latest
+```
+
+#### Configuration Notes
+- **Default Connection**: `jdbc:sqlserver://localhost:1433;databaseName=sakila;encrypt=true;trustServerCertificate=true;`
+- **Username**: `sa`
+- **Password**: `Password@1` (matches application.properties)
+- **Database**: `sakila` (or your preferred database name)
+
+#### Troubleshooting
+```bash
+# If port 1433 is already in use
+docker run -p 1434:1433 ... # Use different host port
+
+# Check if container is running
+docker ps
+
+# View detailed container information
+docker inspect msgdb
+
+# Access container shell
+docker exec -it msgdb /bin/bash
+```
+
+### Docker Compose Setup (Even Easier!)
+
+For the simplest setup, create a `docker-compose.yml` file:
+
+```yaml
+version: '3.8'
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: msgdb
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Password@1
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    restart: unless-stopped
+
+volumes:
+  sqlserver_data:
+```
+
+Then run:
+```bash
+# Start SQL Server
+docker-compose up -d
+
+# Create database
+docker exec -it msgdb /opt/mssql-tools/bin/sqlcmd \
+   -S localhost -U SA -P 'Password@1' \
+   -Q "CREATE DATABASE sakila;"
+
+# Stop when done
+docker-compose down
+```
+
+### Manual Installation (Alternative)
+If you prefer not to use Docker, you can install SQL Server directly:
+- **Windows**: Download SQL Server Developer Edition
+- **Linux**: Follow Microsoft's SQL Server on Linux installation guide
+- **macOS**: Use SQL Server in Docker (recommended approach above)
 
 ### Installation
 ```bash
@@ -47,6 +204,62 @@ mvn clean compile
 # Generate a microservice from SQL
 mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
   -Dexec.args="--name Customer --destination ./output --sql-file sample_select.sql"
+```
+
+### 🚀 Quick Reference - Complete Setup
+
+#### Option 1: One-Click Docker Setup (Easiest!)
+```bash
+# Cross-platform database setup (Windows: setup-db.bat | Linux/Mac: ./setup-db.sh)
+./setup-db.sh
+
+# Generate microservices with rich Sakila sample data (599 customers, 1000 films, 16k+ rentals)
+# SELECT API - Get customer data with city/country information
+mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
+  -Dexec.args="--name Customer --destination ./output --sql-file sample_parameterized_sql.sql"
+
+# INSERT API - Create new customer records  
+mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
+  -Dexec.args="--name Customer --destination ./output --sql-file sample_insert_parameterized.sql"
+
+# UPDATE API - Update customer information
+mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
+  -Dexec.args="--name Customer --destination ./output --sql-file sample_update_parameterized.sql"
+
+# DELETE API - Remove customer records
+mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
+  -Dexec.args="--name Customer --destination ./output --sql-file sample_delete_parameterized.sql"
+
+# Test generated microservice with live Sakila data
+cd ./output
+mvn spring-boot:run
+```
+
+#### Option 2: Manual Setup
+```bash
+# 1. Start SQL Server with Docker
+docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=Password@1" \
+           -p 1433:1433 -d --name msgdb \
+           mcr.microsoft.com/mssql/server:2022-latest
+
+# 2. Wait for startup and create database
+sleep 30
+docker exec -it msgdb /opt/mssql-tools/bin/sqlcmd \
+   -S localhost -U SA -P 'Password@1' \
+   -Q "CREATE DATABASE sakila;"
+
+# 3. Generate microservices (same as above)
+```
+
+#### Option 3: Docker Compose
+```bash
+# Start with Docker Compose
+docker-compose up -d
+
+# Create database
+docker exec -it msgdb /opt/mssql-tools/bin/sqlcmd \
+   -S localhost -U SA -P 'Password@1' \
+   -Q "CREATE DATABASE sakila;"
 ```
 
 ---

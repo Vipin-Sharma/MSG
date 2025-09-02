@@ -48,4 +48,14 @@ public final class ProjectConstants {
     
     // Package path components
     public static final String JFEATURES_PACKAGE_PATH = COM + File.separator + JFEATURES;
+    
+    // Validation patterns
+    public static final String VALID_BUSINESS_NAME_PATTERN = "^[a-zA-Z][a-zA-Z0-9_]*$";
+    
+    // Error messages
+    public static final String ERROR_NULL_BUSINESS_NAME = "Business purpose name cannot be null or empty";
+    public static final String ERROR_NULL_DESTINATION = "Destination directory cannot be null or empty";
+    public static final String ERROR_INVALID_BUSINESS_NAME = "Business purpose name must start with a letter and contain only letters, numbers, and underscores";
+    public static final String ERROR_NULL_SQL = "SQL cannot be null or empty";
+    public static final String ERROR_NULL_DATASOURCE = "DataSource cannot be null";
 }

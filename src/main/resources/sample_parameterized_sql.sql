@@ -1,11 +1,15 @@
-select cus.first_name, cus.last_name, cus.email, cit.city as mycity
-from customer cus
-join address adr
-on cus.address_id = adr.address_id
-join city cit
-on adr.city_id = cit.city_id
-join country cou
-on cit.country_id = cou.country_id
-where cou.country = ?
-and cus.customer_id = ?
-and cus.first_name = ?
+SELECT 
+        cus.first_name,
+        cus.last_name,
+        cus.email,
+        cit.city AS mycity,
+        cus.create_date,
+        cit.country_id
+      FROM
+        customer cus
+        JOIN address adr ON cus.address_id = adr.address_id
+        JOIN city cit ON adr.city_id = cit.city_id
+        JOIN country cou ON cit.country_id = cou.country_id
+      WHERE
+        cou.country = ?
+        AND cus.active = ?
