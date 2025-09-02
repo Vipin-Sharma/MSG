@@ -1,5 +1,7 @@
 # MSG - Microservice Generator
 
+[![SonarQube Cloud](https://sonarcloud.io/images/project_badges/sonarcloud-light.svg)](https://sonarcloud.io/summary/new_code?id=Vipin-Sharma_MSG)
+
 **From SQL to Service - Eliminating microservices boilerplate, one API at a time** 🚀
 
 MSG transforms a single SQL statement into a complete, production-ready Spring Boot microservice with REST APIs, DTOs, DAOs, and configuration in seconds.
