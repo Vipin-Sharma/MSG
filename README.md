@@ -1,6 +1,15 @@
 # MSG - Microservice Generator
 
-[![SonarQube Cloud](https://sonarcloud.io/images/project_badges/sonarcloud-light.svg)](https://sonarcloud.io/summary/new_code?id=Vipin-Sharma_MSG)
+## Code Quality & Metrics
+
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Vipin-Sharma_MSG&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Vipin-Sharma_MSG)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=Vipin-Sharma_MSG&metric=coverage)](https://sonarcloud.io/component_measures/metric/coverage/list?id=Vipin-Sharma_MSG)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=Vipin-Sharma_MSG&metric=sqale_rating)](https://sonarcloud.io/component_measures/metric/sqale_rating/list?id=Vipin-Sharma_MSG)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=Vipin-Sharma_MSG&metric=reliability_rating)](https://sonarcloud.io/component_measures/metric/reliability_rating/list?id=Vipin-Sharma_MSG)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=Vipin-Sharma_MSG&metric=security_rating)](https://sonarcloud.io/component_measures/metric/security_rating/list?id=Vipin-Sharma_MSG)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=Vipin-Sharma_MSG&metric=duplicated_lines_density)](https://sonarcloud.io/component_measures/metric/duplicated_lines_density/list?id=Vipin-Sharma_MSG)
+
+*Click badges for detailed analysis and metrics on [SonarCloud](https://sonarcloud.io/project/overview?id=Vipin-Sharma_MSG)*
 
 **From SQL to Service - Eliminating microservices boilerplate, one API at a time** 🚀
 
