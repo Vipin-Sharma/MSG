@@ -111,7 +111,7 @@ public class GenerateInsertDAO {
         // Named parameters
         List<String> parameterNames = new ArrayList<>();
         for (ColumnMetadata column : insertMetadata.insertColumns()) {
-            String paramName = CaseUtils.toCamelCase(column.getColumnName(), false);
+            String paramName = CaseUtils.toCamelCase(column.getColumnName(), false, '_');
             parameterNames.add(":" + paramName);
         }
         sqlBuilder.append(String.join(", ", parameterNames));
@@ -132,8 +132,8 @@ public class GenerateInsertDAO {
                 .addStatement("$T<$T, $T> sqlParamMap = new $T()", Map.class, String.class, Object.class, HashMap.class);
         
         for (ColumnMetadata column : insertMetadata.insertColumns()) {
-            String fieldName = CaseUtils.toCamelCase(column.getColumnName(), false);
-            String getterMethod = "get" + CaseUtils.toCamelCase(fieldName, true);
+            String fieldName = CaseUtils.toCamelCase(column.getColumnName(), false, '_');
+            String getterMethod = "get" + CaseUtils.toCamelCase(column.getColumnName(), true, '_');
             
             paramMappingBuilder.addStatement("sqlParamMap.put($S, insertRequest.$L())", 
                     fieldName, getterMethod);
