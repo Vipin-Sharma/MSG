@@ -1,88 +1,136 @@
 package com.jfeatures.msg.codegen;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
+import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
+import com.jfeatures.msg.test.TestUtils;
 import com.squareup.javapoet.JavaFile;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import net.sf.jsqlparser.JSQLParserException;
-import net.sf.jsqlparser.parser.CCJSqlParserUtil;
-import net.sf.jsqlparser.statement.select.Select;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class GenerateDTOTest {
 
     @Test
-    public void testGenerateDTOForMultipleTables() throws Exception {
-        String sql = "Select tableC.a, tableC.b, tableD.c, tableD.d, e from tableC as tableC, tableD as tableD, tableE";
-        Map<String, String> ddlPerTableName = new HashMap<>();
-        ddlPerTableName.put("tableC", "CREATE TABLE tableC (a INT, b NVARCHAR(50))");
-        ddlPerTableName.put("tableD", "CREATE TABLE tableD (c INT, d NVARCHAR(50))");
-        ddlPerTableName.put("tableE", "CREATE TABLE tableD (e INT)");
+    void shouldGenerateBasicDTO() throws Exception {
+        // Given
+        List<ColumnMetadata> columnMetadata = Arrays.asList(
+            TestUtils.createColumnMetadata("id", "INT", java.sql.Types.INTEGER, false),
+            TestUtils.createColumnMetadata("name", "VARCHAR", java.sql.Types.VARCHAR, true)
+        );
 
-        String businessPurposeOfSQL = "BusinessData";
+        // When
+        JavaFile result = GenerateDTO.dtoFromColumnMetadata(columnMetadata, "Customer");
 
-        JavaFile dtoForMultiTableSQL = GenerateDTO.dtoFromSqlAndDdl(sql, ddlPerTableName, businessPurposeOfSQL);
-
-        assertEquals(businessPurposeOfSQL+"DTO", dtoForMultiTableSQL.typeSpec.name);
-
-    }
-
-
-    @Test
-    public void testGenerateDTOForMultipleTablesComplexSQL1() throws Exception {
-        String sql = "Select tableC.a, tableC.b, tableD.c, tableD.d, e from tableC as tableC, tableD as tableD, tableE";
-        Map<String, String> ddlPerTableName = new HashMap<>();
-        ddlPerTableName.put("tableC", "CREATE TABLE tableC (a INT, b NVARCHAR(50))");
-        ddlPerTableName.put("tableD", "CREATE TABLE tableD (c INT, d NVARCHAR(50))");
-        ddlPerTableName.put("tableE", "CREATE TABLE tableD (e INT)");
-
-        String businessPurposeOfSQL = "BusinessData";
-
-        JavaFile dtoForMultiTableSQL = GenerateDTO.dtoFromSqlAndDdl(sql, ddlPerTableName, businessPurposeOfSQL);
-
-        assertEquals(businessPurposeOfSQL+"DTO", dtoForMultiTableSQL.typeSpec.name);
-
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.packageName).isEqualTo("com.jfeatures.msg.customer.dto");
+        assertThat(result.typeSpec.name).isEqualTo("CustomerDTO");
+        
+        String generatedCode = result.toString();
+        assertThat(generatedCode).contains("@Builder");
+        assertThat(generatedCode).contains("@Value");
+        assertThat(generatedCode).contains("@Jacksonized");
+        assertThat(generatedCode).contains("public Integer id;");
+        assertThat(generatedCode).contains("public String name;");
     }
 
     @Test
-    public void testGenerateDTOWithJoin() throws JSQLParserException, IOException {
-        String sql = "Select name, brand as companyName from emp e inner join company c on e.company_id = c.id";
-        Map<String, String> ddlPerTableName = new HashMap<>();
-        ddlPerTableName.put("emp", "CREATE TABLE emp (id INT, name NVARCHAR(50), company_id INT)");
-        ddlPerTableName.put("company", "CREATE TABLE company (id INT, brand NVARCHAR(50))");
+    void shouldHandleSnakeCaseFieldNames() throws Exception {
+        // Given
+        List<ColumnMetadata> columnMetadata = Arrays.asList(
+            TestUtils.createColumnMetadata("user_id", "INT", java.sql.Types.INTEGER, false),
+            TestUtils.createColumnMetadata("created_at", "TIMESTAMP", java.sql.Types.TIMESTAMP, true)
+        );
 
-        String businessPurposeOfSQL = "BusinessData";
+        // When
+        JavaFile result = GenerateDTO.dtoFromColumnMetadata(columnMetadata, "UserInfo");
 
-        JavaFile dtoForMultiTableSQL = GenerateDTO.dtoFromSqlAndDdl(sql, ddlPerTableName, businessPurposeOfSQL);
-
-        assertEquals(businessPurposeOfSQL+"DTO", dtoForMultiTableSQL.typeSpec.name);
-
+        // Then
+        String generatedCode = result.toString();
+        assertThat(generatedCode).contains("public Integer userId;");
+        assertThat(generatedCode).contains("public Timestamp createdAt;");
     }
 
     @Test
-    public void testGenerateDTOWith300fields() throws JSQLParserException, IOException {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Select name ");
-        for(int i = 0; i < 300; i++){
-            sb.append(", name").append(" AS name").append(i).append(" ");
-        }
-//        String sql = "Select name, brand as companyName from emp e inner join company c on e.company_id = c.id";
-        sb.append("from emp");
+    void shouldHandleColumnAlias() throws Exception {
+        // Given
+        ColumnMetadata columnWithAlias = TestUtils.createColumnMetadata("id", "INT", java.sql.Types.INTEGER, false);
+        columnWithAlias.setColumnAlias("customerId");
+        
+        List<ColumnMetadata> columnMetadata = Arrays.asList(columnWithAlias);
 
-        Map<String, String> ddlPerTableName = new HashMap<>();
-        ddlPerTableName.put("emp", "CREATE TABLE emp (id INT, name NVARCHAR(50), company_id INT)");
-        ddlPerTableName.put("company", "CREATE TABLE company (id INT, brand NVARCHAR(50))");
+        // When
+        JavaFile result = GenerateDTO.dtoFromColumnMetadata(columnMetadata, "Order");
 
-        String businessPurposeOfSQL = "BusinessData";
-
-        JavaFile dtoForMultiTableSQL = GenerateDTO.dtoFromSqlAndDdl(sb.toString(), ddlPerTableName, businessPurposeOfSQL);
-
-        assertEquals(businessPurposeOfSQL+"DTO", dtoForMultiTableSQL.typeSpec.name);
-        assertEquals(301, dtoForMultiTableSQL.typeSpec.fieldSpecs.size());
-
+        // Then
+        String generatedCode = result.toString();
+        assertThat(generatedCode).contains("public Integer customerId;");
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"Product", "OrderDetails", "CustomerInfo"})
+    void shouldGenerateDTOForDifferentBusinessPurposes(String businessPurpose) throws Exception {
+        // Given
+        List<ColumnMetadata> columnMetadata = Arrays.asList(
+            TestUtils.createColumnMetadata("id", "INT", java.sql.Types.INTEGER, false)
+        );
 
+        // When
+        JavaFile result = GenerateDTO.dtoFromColumnMetadata(columnMetadata, businessPurpose);
+
+        // Then
+        assertThat(result.typeSpec.name).isEqualTo(businessPurpose + "DTO");
+        assertThat(result.packageName).isEqualTo("com.jfeatures.msg." + businessPurpose.toLowerCase() + ".dto");
+    }
+
+    @Test
+    void shouldHandleEmptyColumnList() throws Exception {
+        // Given
+        List<ColumnMetadata> emptyColumnMetadata = Arrays.asList();
+
+        // When
+        JavaFile result = GenerateDTO.dtoFromColumnMetadata(emptyColumnMetadata, "Empty");
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.typeSpec.fieldSpecs).isEmpty();
+    }
+
+    @Test
+    void shouldHandleMultipleDataTypes() throws Exception {
+        // Given
+        List<ColumnMetadata> columnMetadata = Arrays.asList(
+            TestUtils.createColumnMetadata("id", "BIGINT", java.sql.Types.BIGINT, false),
+            TestUtils.createColumnMetadata("price", "DECIMAL", java.sql.Types.DECIMAL, false),
+            TestUtils.createColumnMetadata("active", "BIT", java.sql.Types.BIT, false),
+            TestUtils.createColumnMetadata("created_date", "DATE", java.sql.Types.DATE, true)
+        );
+
+        // When
+        JavaFile result = GenerateDTO.dtoFromColumnMetadata(columnMetadata, "Product");
+
+        // Then
+        String generatedCode = result.toString();
+        assertThat(generatedCode).contains("public Long id;");
+        assertThat(generatedCode).contains("public BigDecimal price;");
+        assertThat(generatedCode).contains("public Boolean active;");
+        assertThat(generatedCode).contains("public Date createdDate;");
+    }
+
+    @Test
+    void shouldThrowExceptionForInvalidClassName() {
+        // Given
+        ColumnMetadata invalidColumn = TestUtils.createColumnMetadata("id", "INT", java.sql.Types.INTEGER, false);
+        invalidColumn.setColumnClassName("InvalidClassName");
+        List<ColumnMetadata> columnMetadata = Arrays.asList(invalidColumn);
+
+        // When & Then
+        assertThatThrownBy(() -> GenerateDTO.dtoFromColumnMetadata(columnMetadata, "Test"))
+            .isInstanceOf(ClassNotFoundException.class);
+    }
 }

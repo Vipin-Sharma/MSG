@@ -1,12 +1,13 @@
 package com.jfeatures.msg.codegen;
 
 import com.github.vertical_blank.sqlformatter.SqlFormatter;
+import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.domain.DBColumn;
-import com.jfeatures.msg.codegen.domain.TableColumn;
-import com.jfeatures.msg.codegen.util.NameUtil;
-import com.jfeatures.msg.codegen.util.TypeUtil;
-import com.jfeatures.msg.sql.ModifySQL;
-import com.jfeatures.msg.sql.MsgSqlParser;
+import com.jfeatures.msg.codegen.util.JavaPackageNameBuilder;
+import com.jfeatures.msg.codegen.util.JavaPoetTypeNameBuilder;
+import com.jfeatures.msg.codegen.sql.SqlParameterReplacer;
+import com.jfeatures.msg.codegen.mapping.ResultSetMappingGenerator;
+import com.jfeatures.msg.codegen.constants.CodeGenerationConstants;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
@@ -32,86 +33,86 @@ import java.util.Map;
 
 @Slf4j
 public class GenerateDAO {
-    public static JavaFile createDao(String businessPurposeOfSQL, List<DBColumn> predicateHavingLiterals, String sql, Map<String, String> ddlPerTableName) throws Exception {
-
-        String jdbcTemplateInstanceFieldName = "namedParameterJdbcTemplate";
-
-
-        CodeBlock codeblock = CodeBlock.builder()
-                .addStatement("this.$N = $N", jdbcTemplateInstanceFieldName, jdbcTemplateInstanceFieldName) //not working correctly
+    
+    /**
+     * Creates DAO using database metadata instead of complex SQL parsing.
+     * Much simpler, more reliable, and easier to maintain.
+     */
+    public static JavaFile createDaoFromMetadata(String businessPurposeOfSQL, 
+                                                List<ColumnMetadata> selectColumnMetadata, 
+                                                List<DBColumn> predicateHavingLiterals, 
+                                                String sql) {
+        
+        if (businessPurposeOfSQL == null || businessPurposeOfSQL.trim().isEmpty()) {
+            throw new IllegalArgumentException("Business purpose of SQL cannot be null or empty");
+        }
+        if (selectColumnMetadata == null) {
+            throw new IllegalArgumentException("Select column metadata cannot be null");
+        }
+        if (selectColumnMetadata.isEmpty()) {
+            throw new IllegalArgumentException("Select column metadata cannot be empty");
+        }
+        if (predicateHavingLiterals == null) {
+            throw new IllegalArgumentException("Predicate having literals cannot be null");
+        }
+        if (sql == null || sql.trim().isEmpty()) {
+            throw new IllegalArgumentException("SQL cannot be null or empty");
+        }
+        
+        String jdbcTemplateInstanceFieldName = CodeGenerationConstants.JDBC_TEMPLATE_FIELD_NAME;
+        
+        // Constructor
+        CodeBlock constructorCodeBlock = CodeBlock.builder()
+                .addStatement("this.$N = $N", jdbcTemplateInstanceFieldName, jdbcTemplateInstanceFieldName)
                 .build();
+                
         MethodSpec constructorSpec = MethodSpec.constructorBuilder()
                 .addParameter(NamedParameterJdbcTemplate.class, jdbcTemplateInstanceFieldName)
-                .addCode(codeblock)
+                .addCode(constructorCodeBlock)
                 .build();
-
-
-        FieldSpec jdbcTemplateFieldSpec = FieldSpec.builder(NamedParameterJdbcTemplate.class, jdbcTemplateInstanceFieldName, Modifier.PRIVATE, Modifier.FINAL).build();
-
-        String modifiedSQL = ModifySQL.modifySQLToUseNamedParameter(sql);
+        
+        // JDBC template field
+        FieldSpec jdbcTemplateFieldSpec = FieldSpec.builder(NamedParameterJdbcTemplate.class, jdbcTemplateInstanceFieldName, 
+                Modifier.PRIVATE, Modifier.FINAL).build();
+        
+        // SQL field with named parameters - simple replacement approach
+        String modifiedSQL = SqlParameterReplacer.convertToNamedParameterSql(sql, predicateHavingLiterals);
         String formattedSQL = SqlFormatter.format(modifiedSQL);
         formattedSQL = formattedSQL.replace(": ", ":");
-        log.info(formattedSQL);
-        FieldSpec sqlFieldSpec = FieldSpec.builder(String.class, "SQL", Modifier.PRIVATE, Modifier.FINAL, Modifier.STATIC)
-                .initializer("$S", formattedSQL)
+        log.info("Generated SQL for DAO: {}", formattedSQL);
+        
+        // Use text block for SQL formatting
+        FieldSpec sqlFieldSpec = FieldSpec.builder(String.class, CodeGenerationConstants.SQL_FIELD_NAME, 
+                Modifier.PRIVATE, Modifier.FINAL, Modifier.STATIC)
+                .initializer("\"\"\"\n$L\"\"\"", formattedSQL)
                 .build();
-
-        TypeName dtoTypeName = TypeUtil.getJavaClassTypeName(businessPurposeOfSQL, "dto", "DTO");
-
+        
+        // DTO type
+        TypeName dtoTypeName = JavaPoetTypeNameBuilder.buildJavaPoetTypeNameForClass(businessPurposeOfSQL, "dto", "DTO");
+        
+        // Method parameters from predicateHavingLiterals
         ArrayList<ParameterSpec> parameters = new ArrayList<>();
-
         predicateHavingLiterals.forEach(literal ->
                 parameters.add(ParameterSpec.builder(ClassName.bestGuess(literal.javaType()).box(),
-                        CaseUtils.toCamelCase(literal.columnName(), false)
-                ).build()));
-
-        CodeBlock codeBlockForSqlParamsMap = CodeBlock.builder()
+                        CaseUtils.toCamelCase(literal.columnName(), false)).build()));
+        
+        // SQL parameters map setup
+        CodeBlock sqlParamsMapCodeBlock = CodeBlock.builder()
                 .addStatement("$T<String, Object> sqlParamMap = new $T()", Map.class, HashMap.class)
                 .build();
-
-        Map<TableColumn, DBColumn> selectColumnDetailsToGetDataFromResultSet = MsgSqlParser.getDetailsOfColumnsUsedInSelect(sql, ddlPerTableName);
-        String codeToSetColumnValuesFromResultSet = "";
-
-        if (selectColumnDetailsToGetDataFromResultSet.size() <= 255) {
-            TypeName builderTypeForDto = getBuilderType(dtoTypeName);
-            codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet + ((ClassName) builderTypeForDto).canonicalName() + " "
-                    + ((ClassName) builderTypeForDto).simpleName() + " = " + ((ClassName) dtoTypeName).canonicalName() + ".builder();\n";
-            codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet + ((ClassName) dtoTypeName).simpleName() + " dto = Builder.";
-            for (Map.Entry<TableColumn, DBColumn> entry : selectColumnDetailsToGetDataFromResultSet.entrySet()) {
-                TableColumn tableColumn = entry.getKey();
-                DBColumn dbColumn = entry.getValue();
-                String fieldName = NameUtil.getFieldNameForDTO(tableColumn);
-                codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet + fieldName
-                        + "(rs.get" +
-                        dbColumn.jdbcType()
-                        + "(\""
-                        + (tableColumn.columnAliasIfAvailable() != null ? tableColumn.columnAliasIfAvailable() : tableColumn.columnName())
-                        + "\"))."
-                        + "\n";
-            }
-
-            codeToSetColumnValuesFromResultSet += "build();\n";
-        }
-        else {
-            codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet + ((ClassName) dtoTypeName).canonicalName() + " dto = new " + ((ClassName) dtoTypeName).canonicalName() + "();\n";
-
-            for (Map.Entry<TableColumn, DBColumn> entry : selectColumnDetailsToGetDataFromResultSet.entrySet()) {
-                TableColumn tableColumn = entry.getKey();
-                DBColumn dbColumn = entry.getValue();
-                String fieldName = NameUtil.getFieldNameForDTO(tableColumn);
-                codeToSetColumnValuesFromResultSet = codeToSetColumnValuesFromResultSet + "dto.set"
-                        + fieldName
-                        + "(rs.get" +
-                        dbColumn.jdbcType()
-                        + "(\""
-                        + (tableColumn.columnAliasIfAvailable() != null ? tableColumn.columnAliasIfAvailable() : tableColumn.columnName())
-                        + "\"));"
-                        + "\n";
-            }
-
-        }
-        codeToSetColumnValuesFromResultSet += "result.add(dto)";
-
+        
+        // Add parameters to map
+        CodeBlock.Builder sqlParamMapBuilder = CodeBlock.builder();
+        predicateHavingLiterals.forEach(literal -> 
+                sqlParamMapBuilder.addStatement("sqlParamMap.put($S, $L)",
+                        CaseUtils.toCamelCase(literal.columnName(), false),
+                        CaseUtils.toCamelCase(literal.columnName(), false)));
+        CodeBlock sqlParamMappingCodeBlock = sqlParamMapBuilder.build();
+        
+        // Generate ResultSet mapping code using ColumnMetadata
+        String resultSetMappingCode = ResultSetMappingGenerator.buildResultSetToObjectMappingCode(selectColumnMetadata, dtoTypeName);
+        
+        // Row callback handler
         TypeSpec rowCallbackHandler = TypeSpec
                 .anonymousClassBuilder("")
                 .addSuperinterface(RowCallbackHandler.class)
@@ -120,52 +121,50 @@ public class GenerateDAO {
                         .addModifiers(Modifier.PUBLIC)
                         .addParameter(ResultSet.class, "rs")
                         .addException(SQLException.class)
-                        .addStatement(codeToSetColumnValuesFromResultSet)
+                        .addStatement(resultSetMappingCode)
                         .build())
                 .build();
-
-        CodeBlock.Builder codeBlockForJdbcQuery = CodeBlock.builder();
-        codeBlockForJdbcQuery.add(jdbcTemplateInstanceFieldName + ".query(SQL, sqlParamMap, " + rowCallbackHandler + ");\n");
-
+        
+        // JDBC query code block
+        CodeBlock jdbcQueryCodeBlock = CodeBlock.builder()
+                .add("$N.query(" + CodeGenerationConstants.SQL_FIELD_NAME + ", sqlParamMap, $L);\n", jdbcTemplateInstanceFieldName, rowCallbackHandler)
+                .build();
+        
+        // Return type
         ClassName list = ClassName.get("java.util", "List");
-        ParameterizedTypeName parameterizedTypeName = TypeUtil.getParameterizedTypeName(dtoTypeName, list);
-
-        //todo $L can be taken from parameter list, but current code works for a poc
-        CodeBlock.Builder codeBlockHavingPredicatesMapBuilder = CodeBlock.builder();
-        predicateHavingLiterals.forEach(literal -> codeBlockHavingPredicatesMapBuilder.addStatement("sqlParamMap.put($S, $L)",
-                CaseUtils.toCamelCase(literal.columnName(), false),
-                CaseUtils.toCamelCase(literal.columnName(), false)));
-        CodeBlock codeBlockHavingPredicatesMap = codeBlockHavingPredicatesMapBuilder.build();
-
-        MethodSpec methodSpec = MethodSpec.methodBuilder("get" + businessPurposeOfSQL)
-                .addStatement("$T result = new $T()", parameterizedTypeName, ArrayList.class)
+        ParameterizedTypeName returnTypeName = JavaPoetTypeNameBuilder.buildParameterizedTypeName(dtoTypeName, list);
+        
+        // Main DAO method
+        MethodSpec daoMethodSpec = MethodSpec.methodBuilder(CodeGenerationConstants.DAO_METHOD_PREFIX + businessPurposeOfSQL)
+                .addStatement("$T " + CodeGenerationConstants.RESULT_LIST_NAME + " = new $T()", returnTypeName, ArrayList.class)
                 .addModifiers(Modifier.PUBLIC)
                 .addParameters(parameters)
-                .returns(parameterizedTypeName)
-                .addCode(codeBlockForSqlParamsMap)
-                .addCode(codeBlockHavingPredicatesMap)
-                .addCode(codeBlockForJdbcQuery.build())
-                .addStatement("return result")
+                .returns(returnTypeName)
+                .addCode(sqlParamsMapCodeBlock)
+                .addCode(sqlParamMappingCodeBlock)
+                .addCode(jdbcQueryCodeBlock)
+                .addStatement("return " + CodeGenerationConstants.RESULT_LIST_NAME)
                 .build();
-
+        
+        // DAO class
         TypeSpec dao = TypeSpec.classBuilder(businessPurposeOfSQL + "DAO")
                 .addModifiers(Modifier.PUBLIC)
                 .addField(jdbcTemplateFieldSpec)
                 .addField(sqlFieldSpec)
                 .addAnnotation(Component.class)
-                .addMethod(methodSpec)
+                .addMethod(daoMethodSpec)
                 .addMethod(constructorSpec)
                 .build();
-
-        JavaFile javaFile = JavaFile.builder(NameUtil.getPackageName(businessPurposeOfSQL, "dao"), dao)
+        
+        JavaFile javaFile = JavaFile.builder(JavaPackageNameBuilder.buildJavaPackageName(businessPurposeOfSQL, "dao"), dao)
                 .build();
-
-        javaFile.writeTo(System.out);
-
+        
+        try {
+            javaFile.writeTo(System.out);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to write generated DAO to output: " + e.getMessage(), e);
+        }
+        
         return javaFile;
-    }
-
-    private static TypeName getBuilderType(TypeName typeName) {
-        return ClassName.get(((ClassName) typeName).packageName(), ((ClassName) typeName).simpleName(), "Builder");
     }
 }
