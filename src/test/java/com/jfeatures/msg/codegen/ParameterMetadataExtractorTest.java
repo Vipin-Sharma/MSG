@@ -335,4 +335,277 @@ class ParameterMetadataExtractorTest {
             when(parameterMetaData.getParameterType(i + 1)).thenReturn(sqlTypes[i]);
         }
     }
+    
+    // ========== ERROR HANDLING TESTS ==========
+    
+    @Test
+    void testConstructor_NullDataSource_ThrowsIllegalArgumentException() {
+        // When & Then
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> new ParameterMetadataExtractor(null)
+        );
+        
+        assertEquals("DataSource cannot be null", exception.getMessage());
+    }
+    
+    @Test
+    void testExtractParameters_NullSQL_ThrowsIllegalArgumentException() {
+        // When & Then
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> extractor.extractParameters(null)
+        );
+        
+        assertEquals("SQL cannot be null or empty", exception.getMessage());
+    }
+    
+    @Test
+    void testExtractParameters_EmptySQL_ThrowsIllegalArgumentException() {
+        // When & Then
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> extractor.extractParameters("")
+        );
+        
+        assertEquals("SQL cannot be null or empty", exception.getMessage());
+    }
+    
+    @Test
+    void testExtractParameters_WhitespaceOnlySQL_ThrowsIllegalArgumentException() {
+        // When & Then
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> extractor.extractParameters("   \t\n  ")
+        );
+        
+        assertEquals("SQL cannot be null or empty", exception.getMessage());
+    }
+    
+    @Test
+    void testExtractParameters_PreparedStatementCreationFails_ThrowsSQLException() throws SQLException {
+        // Given
+        String sql = "SELECT * FROM customers WHERE id = ?";
+        SQLException psException = new SQLException("Failed to create prepared statement");
+        
+        when(connection.prepareStatement(sql)).thenThrow(psException);
+        
+        // When & Then
+        SQLException exception = assertThrows(
+            SQLException.class,
+            () -> extractor.extractParameters(sql)
+        );
+        
+        assertEquals("Failed to create prepared statement", exception.getMessage());
+    }
+    
+    @Test
+    void testExtractParameters_ParameterMetaDataRetrievalFails_ThrowsSQLException() throws SQLException {
+        // Given
+        String sql = "SELECT * FROM customers WHERE id = ?";
+        SQLException pmdException = new SQLException("Parameter metadata not available");
+        
+        when(preparedStatement.getParameterMetaData()).thenThrow(pmdException);
+        
+        // When & Then
+        SQLException exception = assertThrows(
+            SQLException.class,
+            () -> extractor.extractParameters(sql)
+        );
+        
+        assertEquals("Parameter metadata not available", exception.getMessage());
+    }
+    
+    @Test
+    void testExtractParameters_ParameterCountRetrievalFails_ThrowsSQLException() throws SQLException {
+        // Given
+        String sql = "SELECT * FROM customers WHERE id = ?";
+        SQLException countException = new SQLException("Could not get parameter count");
+        
+        when(parameterMetaData.getParameterCount()).thenThrow(countException);
+        
+        // When & Then
+        SQLException exception = assertThrows(
+            SQLException.class,
+            () -> extractor.extractParameters(sql)
+        );
+        
+        assertEquals("Could not get parameter count", exception.getMessage());
+    }
+    
+    @Test
+    void testExtractParameters_AllParameterTypesFail_UsesFallbackValues() throws SQLException {
+        // Given
+        String sql = "SELECT * FROM customers WHERE customer_id = ? AND status = ? AND email = ?";
+        
+        when(parameterMetaData.getParameterCount()).thenReturn(3);
+        when(parameterMetaData.getParameterType(anyInt())).thenThrow(new SQLException("Type metadata unavailable"));
+        
+        // When
+        List<DBColumn> result = extractor.extractParameters(sql);
+        
+        // Then
+        assertNotNull(result);
+        assertEquals(3, result.size());
+        
+        // All parameters should use fallback values
+        result.forEach(param -> {
+            assertEquals("String", param.javaType());
+            assertEquals("VARCHAR", param.jdbcType());
+        });
+        
+        // Parameter names should be extracted from SQL
+        assertEquals("customerId", result.get(0).columnName());
+        assertEquals("status", result.get(1).columnName());
+        assertEquals("email", result.get(2).columnName());
+    }
+    
+    @Test
+    void testExtractParameters_MalformedSQL_HandlesGracefully() throws SQLException {
+        // Given
+        String malformedSql = "SELECT * FROM WHERE = ? AND ?? INVALID SQL";
+        
+        setupParameterMetaData(2, 
+            new int[]{Types.VARCHAR, Types.VARCHAR}, 
+            new String[]{"param1", "param2"});
+        
+        // When
+        List<DBColumn> result = extractor.extractParameters(malformedSql);
+        
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        // Should fall back to default parameter names for malformed SQL
+        assertEquals("param1", result.get(0).columnName());
+        assertEquals("param2", result.get(1).columnName());
+    }
+    
+    @Test
+    void testExtractParameters_SqlWithSpecialCharactersInColumnNames_HandlesCorrectly() throws SQLException {
+        // Given
+        String sql = "SELECT * FROM customers WHERE `customer-id` = ? AND `first name` = ?";
+        
+        setupParameterMetaData(2, 
+            new int[]{Types.INTEGER, Types.VARCHAR}, 
+            new String[]{"customer-id", "first name"});
+        
+        // When
+        List<DBColumn> result = extractor.extractParameters(sql);
+        
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        // Should fall back to default names for columns with special chars
+        assertEquals("param1", result.get(0).columnName());
+        assertEquals("param2", result.get(1).columnName());
+    }
+    
+    @Test
+    void testExtractParameters_VeryLongSQL_HandlesEfficiently() throws SQLException {
+        // Given
+        StringBuilder longSql = new StringBuilder("SELECT * FROM customers WHERE ");
+        for (int i = 0; i < 100; i++) {
+            if (i > 0) longSql.append(" AND ");
+            longSql.append("column_").append(i).append(" = ?");
+        }
+        
+        int[] sqlTypes = new int[100];
+        String[] columnNames = new String[100];
+        for (int i = 0; i < 100; i++) {
+            sqlTypes[i] = Types.VARCHAR;
+            columnNames[i] = "column_" + i;
+        }
+        
+        setupParameterMetaData(100, sqlTypes, columnNames);
+        
+        // When
+        List<DBColumn> result = extractor.extractParameters(longSql.toString());
+        
+        // Then
+        assertNotNull(result);
+        assertEquals(100, result.size());
+        // Verify some converted names
+        assertEquals("column0", result.get(0).columnName());
+        assertEquals("column50", result.get(50).columnName());
+        assertEquals("column99", result.get(99).columnName());
+    }
+    
+    @Test
+    void testExtractParameters_EmptyWhereClause_UsesDefaultNames() throws SQLException {
+        // Given
+        String sql = "SELECT * FROM customers WHERE ? = ?";
+        
+        setupParameterMetaData(2, 
+            new int[]{Types.VARCHAR, Types.VARCHAR}, 
+            new String[]{"param1", "param2"});
+        
+        // When
+        List<DBColumn> result = extractor.extractParameters(sql);
+        
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals("param1", result.get(0).columnName());
+        assertEquals("param2", result.get(1).columnName());
+    }
+    
+    @Test 
+    void testExtractParameters_CamelCaseEdgeCases_HandlesCorrectly() throws SQLException {
+        // Given - test various edge cases for camelCase conversion
+        String sql = "SELECT * FROM test WHERE a = ? AND A_ = ? AND _b = ? AND __c__ = ? AND d_e_f_g = ?";
+        
+        setupParameterMetaData(5, 
+            new int[]{Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR}, 
+            new String[]{"a", "A_", "_b", "__c__", "d_e_f_g"});
+        
+        // When
+        List<DBColumn> result = extractor.extractParameters(sql);
+        
+        // Then
+        assertNotNull(result);
+        assertEquals(5, result.size());
+        assertEquals("a", result.get(0).columnName());
+        assertEquals("a", result.get(1).columnName()); // A_ -> a
+        assertEquals("B", result.get(2).columnName()); // _b -> B
+        assertEquals("C", result.get(3).columnName()); // __c__ -> C
+        assertEquals("dEFG", result.get(4).columnName()); // d_e_f_g -> dEFG
+    }
+    
+    @Test
+    void testExtractParameters_MultipleWhereClausesInSubqueries_ExtractsOuterWhereOnly() throws SQLException {
+        // Given
+        String sql = """
+            SELECT * FROM customers c 
+            WHERE c.customer_id = ? 
+            AND c.total_orders > (SELECT COUNT(*) FROM orders o WHERE o.customer_id = c.customer_id AND o.status = ?)
+            """;
+        
+        setupParameterMetaData(2, 
+            new int[]{Types.INTEGER, Types.VARCHAR}, 
+            new String[]{"customer_id", "status"});
+        
+        // When
+        List<DBColumn> result = extractor.extractParameters(sql);
+        
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals("customerId", result.get(0).columnName());
+        // The second parameter is in the subquery, so we might get default name
+        assertTrue(result.get(1).columnName().equals("param2") || result.get(1).columnName().equals("status"));
+    }
+    
+    @Test
+    void testExtractParameters_NegativeParameterCount_ReturnsEmptyList() throws SQLException {
+        // Given
+        String sql = "SELECT * FROM customers";
+        when(parameterMetaData.getParameterCount()).thenReturn(-1); // Unusual case
+        
+        // When
+        List<DBColumn> result = extractor.extractParameters(sql);
+        
+        // Then
+        assertNotNull(result);
+        assertEquals(0, result.size());
+    }
 }
