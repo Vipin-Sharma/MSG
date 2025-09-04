@@ -24,24 +24,29 @@ class ReadFileFromResourcesTest {
 
     @Test
     void testReadFileFromResourcesNonExistentFile() {
-        NullPointerException exception = assertThrows(NullPointerException.class, () -> 
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> 
             ReadFileFromResources.readFileFromResources("non_existent_file.txt"));
         
         assertNotNull(exception);
+        assertTrue(exception.getMessage().contains("Resource file not found"));
     }
 
     @Test
     void testReadFileFromResourcesNullFileName() {
-        NullPointerException exception = assertThrows(NullPointerException.class, () -> 
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> 
             ReadFileFromResources.readFileFromResources(null));
         
         assertNotNull(exception);
+        assertTrue(exception.getMessage().contains("File name cannot be null or empty"));
     }
 
     @Test
     void testReadFileFromResourcesEmptyFileName() {
-        // Empty string may actually work if there's a resource at root
-        assertDoesNotThrow(() -> ReadFileFromResources.readFileFromResources(""));
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> 
+            ReadFileFromResources.readFileFromResources(""));
+        
+        assertNotNull(exception);
+        assertTrue(exception.getMessage().contains("File name cannot be null or empty"));
     }
 
     @Test
@@ -68,10 +73,11 @@ class ReadFileFromResourcesTest {
     @Test
     void testReadFileFromResourcesWithLeadingSlash() {
         // Test with leading slash (different behavior in class loader)
-        NullPointerException exception = assertThrows(NullPointerException.class, () -> 
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> 
             ReadFileFromResources.readFileFromResources("/sample_parameterized_sql.sql"));
         
         assertNotNull(exception);
+        assertTrue(exception.getMessage().contains("Resource file not found"));
     }
 
     @Test
@@ -85,10 +91,11 @@ class ReadFileFromResourcesTest {
         };
         
         for (String fileName : specialFileNames) {
-            NullPointerException exception = assertThrows(NullPointerException.class, () -> 
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> 
                 ReadFileFromResources.readFileFromResources(fileName));
             
             assertNotNull(exception);
+            assertTrue(exception.getMessage().contains("Resource file not found"));
         }
     }
 
@@ -97,10 +104,11 @@ class ReadFileFromResourcesTest {
         String[] whitespaceFileNames = {"   ", "\t", "\n", "\r\n", " \t \n "};
         
         for (String fileName : whitespaceFileNames) {
-            NullPointerException exception = assertThrows(NullPointerException.class, () -> 
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> 
                 ReadFileFromResources.readFileFromResources(fileName));
             
             assertNotNull(exception);
+            assertTrue(exception.getMessage().contains("File name cannot be null or empty"));
         }
     }
 
@@ -113,10 +121,11 @@ class ReadFileFromResourcesTest {
         }
         longName.append(".txt");
         
-        NullPointerException exception = assertThrows(NullPointerException.class, () -> 
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> 
             ReadFileFromResources.readFileFromResources(longName.toString()));
         
         assertNotNull(exception);
+        assertTrue(exception.getMessage().contains("Resource file not found"));
     }
 
     @Test
@@ -124,7 +133,7 @@ class ReadFileFromResourcesTest {
         try {
             String content = ReadFileFromResources.readFileFromResources("sample_parameterized_sql.sql");
             assertNotNull(content, "Content should never be null for existing files");
-        } catch (NullPointerException e) {
+        } catch (IllegalArgumentException e) {
             // If file doesn't exist, that's also a valid test case
             assertNotNull(e);
         }
@@ -138,9 +147,9 @@ class ReadFileFromResourcesTest {
             String content2 = ReadFileFromResources.readFileFromResources("sample_parameterized_sql.sql");
             
             assertEquals(content1, content2, "Multiple reads should return identical content");
-        } catch (UncheckedIOException e) {
+        } catch (IllegalArgumentException e) {
             // If file doesn't exist, both calls should throw the same exception
-            NullPointerException exception2 = assertThrows(NullPointerException.class, () -> 
+            IllegalArgumentException exception2 = assertThrows(IllegalArgumentException.class, () -> 
                 ReadFileFromResources.readFileFromResources("sample_parameterized_sql.sql"));
             
             assertEquals(e.getClass(), exception2.getClass());
@@ -166,7 +175,7 @@ class ReadFileFromResourcesTest {
                 String content = ReadFileFromResources.readFileFromResources("sample_parameterized_sql.sql");
                 // If successful, content should be valid
                 assertNotNull(content);
-            } catch (NullPointerException e) {
+            } catch (IllegalArgumentException e) {
                 // If file doesn't exist, exception is expected
                 assertNotNull(e);
             }
@@ -177,10 +186,11 @@ class ReadFileFromResourcesTest {
 
     @Test
     void testReadFileFromResourcesExceptionChaining() {
-        NullPointerException exception = assertThrows(NullPointerException.class, () -> 
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> 
             ReadFileFromResources.readFileFromResources("definitely_non_existent_file.txt"));
         
         assertNotNull(exception);
+        assertTrue(exception.getMessage().contains("Resource file not found"));
     }
 
     @Test
@@ -189,10 +199,11 @@ class ReadFileFromResourcesTest {
         
         for (String extension : extensions) {
             String fileName = "test" + extension;
-            NullPointerException exception = assertThrows(NullPointerException.class, () -> 
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> 
                 ReadFileFromResources.readFileFromResources(fileName));
             
             assertNotNull(exception);
+            assertTrue(exception.getMessage().contains("Resource file not found"));
         }
     }
 
@@ -207,10 +218,11 @@ class ReadFileFromResourcesTest {
         };
         
         for (String path : pathTraversalAttempts) {
-            NullPointerException exception = assertThrows(NullPointerException.class, () -> 
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> 
                 ReadFileFromResources.readFileFromResources(path));
             
             assertNotNull(exception);
+            assertTrue(exception.getMessage().contains("Resource file not found"));
         }
     }
 
@@ -226,10 +238,11 @@ class ReadFileFromResourcesTest {
         };
         
         for (String fileName : unicodeNames) {
-            NullPointerException exception = assertThrows(NullPointerException.class, () -> 
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> 
                 ReadFileFromResources.readFileFromResources(fileName));
             
             assertNotNull(exception);
+            assertTrue(exception.getMessage().contains("Resource file not found"));
         }
     }
 
@@ -237,10 +250,11 @@ class ReadFileFromResourcesTest {
     void testReadFileFromResourcesResourceStreamNull() {
         // This tests the behavior when getResourceAsStream returns null
         // We can't mock the class loader easily, so we test with non-existent file
-        NullPointerException exception = assertThrows(NullPointerException.class, () -> 
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> 
             ReadFileFromResources.readFileFromResources("absolutely_does_not_exist.txt"));
         
         assertNotNull(exception);
+        assertTrue(exception.getMessage().contains("Resource file not found"));
     }
 
     @Test
@@ -250,7 +264,7 @@ class ReadFileFromResourcesTest {
             // Try to read a file that might be empty (common case)
             String content = ReadFileFromResources.readFileFromResources("empty.sql");
             assertEquals("", content, "Empty file should return empty string");
-        } catch (NullPointerException e) {
+        } catch (IllegalArgumentException e) {
             // If file doesn't exist, that's expected
             assertNotNull(e);
         }
