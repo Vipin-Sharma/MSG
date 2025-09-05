@@ -1,0 +1,240 @@
+package com.jfeatures.msg.codegen.util;
+
+import com.squareup.javapoet.*;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.*;
+
+import javax.lang.model.element.Modifier;
+import javax.sql.DataSource;
+import jakarta.validation.Valid;
+import java.util.List;
+
+/**
+ * Common JavaPoet builders to eliminate code duplication across all generators.
+ * Provides standardized field, method, and class builders for consistent code generation.
+ * 
+ * @deprecated This class is being refactored into specialized builders.
+ * Use {@link FieldBuilders}, {@link MethodBuilders}, {@link ClassBuilders} instead.
+ */
+@Deprecated(since = "2.0", forRemoval = true)
+public class CommonJavaPoetBuilders {
+    
+    // =========================== FIELD BUILDERS ===========================
+    
+    /**
+     * Creates a private final NamedParameterJdbcTemplate field.
+     */
+    public static FieldSpec jdbcTemplateField(String fieldName) {
+        return FieldSpec.builder(NamedParameterJdbcTemplate.class, fieldName, 
+                Modifier.PRIVATE, Modifier.FINAL)
+                .build();
+    }
+    
+    /**
+     * Creates a private final SQL string field.
+     */
+    public static FieldSpec sqlField(String sql, String businessName) {
+        String fieldName = businessName.toLowerCase() + "Sql";
+        return FieldSpec.builder(String.class, fieldName, 
+                Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                .initializer("$S", sql)
+                .build();
+    }
+    
+    /**
+     * Creates a private static final SQL field with custom name.
+     */
+    public static FieldSpec sqlFieldWithName(String sql, String fieldName) {
+        return FieldSpec.builder(String.class, fieldName, 
+                Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                .initializer("\"\"\"\n$L\"\"\"", sql)
+                .build();
+    }
+    
+    /**
+     * Creates a private static final SQL field with custom name and JavaDoc.
+     */
+    public static FieldSpec sqlFieldWithNameAndJavaDoc(String sql, String fieldName, String businessName) {
+        return FieldSpec.builder(String.class, fieldName, 
+                Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                .initializer("\"\"\"\n$L\"\"\"", sql)
+                .addJavadoc("SQL statement for $L operations", businessName.toLowerCase())
+                .build();
+    }
+    
+    // =========================== METHOD BUILDERS ===========================
+    
+    /**
+     * Creates a standard constructor that accepts NamedParameterJdbcTemplate.
+     */
+    public static MethodSpec jdbcTemplateConstructor(String fieldName) {
+        return MethodSpec.constructorBuilder()
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(NamedParameterJdbcTemplate.class, fieldName)
+                .addStatement("this.$N = $N", fieldName, fieldName)
+                .build();
+    }
+    
+    /**
+     * Creates a constructor with both DataSource and NamedParameterJdbcTemplate parameters.
+     */
+    public static MethodSpec dualParameterConstructor(String dataSourceField, String jdbcTemplateField) {
+        return MethodSpec.constructorBuilder()
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(DataSource.class, dataSourceField)
+                .addParameter(NamedParameterJdbcTemplate.class, jdbcTemplateField)
+                .addStatement("this.$N = $N", dataSourceField, dataSourceField)
+                .addStatement("this.$N = $N", jdbcTemplateField, jdbcTemplateField)
+                .build();
+    }
+    
+    // =========================== CLASS BUILDERS ===========================
+    
+    /**
+     * Creates a basic @Component annotated DAO class with NamedParameterJdbcTemplate.
+     */
+    public static TypeSpec.Builder basicDAOClass(String businessName, String jdbcTemplateFieldName) {
+        String className = businessName + "DAO";
+        
+        return TypeSpec.classBuilder(className)
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Component.class)
+                .addField(jdbcTemplateField(jdbcTemplateFieldName))
+                .addMethod(jdbcTemplateConstructor(jdbcTemplateFieldName));
+    }
+    
+    /**
+     * Creates a basic REST controller class with standard annotations.
+     */
+    public static TypeSpec.Builder basicControllerClass(String businessName, String basePath) {
+        String className = businessName + "Controller";
+        
+        return TypeSpec.classBuilder(className)
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(RestController.class)
+                .addAnnotation(AnnotationSpec.builder(RequestMapping.class)
+                        .addMember("path", "$S", basePath)
+                        .build());
+    }
+    
+    /**
+     * Creates a basic DTO class (public class with no annotations).
+     */
+    public static TypeSpec.Builder basicDTOClass(String businessName, String suffix) {
+        String className = businessName + suffix;
+        
+        return TypeSpec.classBuilder(className)
+                .addModifiers(Modifier.PUBLIC);
+    }
+    
+    // =========================== COMMON METHOD PATTERNS ===========================
+    
+    /**
+     * Creates a standard GET endpoint method signature.
+     */
+    public static MethodSpec.Builder getEndpointMethod(String methodName, TypeName returnType) {
+        return MethodSpec.methodBuilder(methodName)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(returnType)
+                .addAnnotation(GetMapping.class);
+    }
+    
+    /**
+     * Creates a standard POST endpoint method signature.
+     */
+    public static MethodSpec.Builder postEndpointMethod(String methodName, TypeName returnType, TypeName paramType, String paramName) {
+        return MethodSpec.methodBuilder(methodName)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(returnType)
+                .addAnnotation(PostMapping.class)
+                .addParameter(ParameterSpec.builder(paramType, paramName)
+                        .addAnnotation(Valid.class)
+                        .addAnnotation(RequestBody.class)
+                        .build());
+    }
+    
+    /**
+     * Creates a standard PUT endpoint method signature.
+     */
+    public static MethodSpec.Builder putEndpointMethod(String methodName, TypeName returnType, TypeName paramType, String paramName) {
+        return MethodSpec.methodBuilder(methodName)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(returnType)
+                .addAnnotation(PutMapping.class)
+                .addParameter(ParameterSpec.builder(paramType, paramName)
+                        .addAnnotation(Valid.class)
+                        .addAnnotation(RequestBody.class)
+                        .build());
+    }
+    
+    /**
+     * Creates a standard DELETE endpoint method signature.
+     */
+    public static MethodSpec.Builder deleteEndpointMethod(String methodName, TypeName returnType) {
+        return MethodSpec.methodBuilder(methodName)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(returnType)
+                .addAnnotation(DeleteMapping.class);
+    }
+    
+    // =========================== COMMON PARAMETER PATTERNS ===========================
+    
+    /**
+     * Creates a @RequestParam parameter.
+     */
+    public static ParameterSpec requestParam(TypeName type, String name) {
+        return ParameterSpec.builder(type, name)
+                .addAnnotation(RequestParam.class)
+                .build();
+    }
+    
+    /**
+     * Creates a @RequestParam parameter with custom name.
+     */
+    public static ParameterSpec requestParamWithName(TypeName type, String paramName, String requestParamName) {
+        return ParameterSpec.builder(type, paramName)
+                .addAnnotation(AnnotationSpec.builder(RequestParam.class)
+                        .addMember("value", "$S", requestParamName)
+                        .build())
+                .build();
+    }
+    
+    /**
+     * Creates a @PathVariable parameter.
+     */
+    public static ParameterSpec pathVariable(TypeName type, String name) {
+        return ParameterSpec.builder(type, name)
+                .addAnnotation(PathVariable.class)
+                .build();
+    }
+    
+    // =========================== UTILITY METHODS ===========================
+    
+    /**
+     * Creates a standard package name for generated classes.
+     * @deprecated Use {@link NamingConventions#buildPackageName(String, String)} instead
+     */
+    @Deprecated(since = "2.0", forRemoval = true)
+    public static String buildPackageName(String businessName, String packageSuffix) {
+        return NamingConventions.buildPackageName(businessName, packageSuffix);
+    }
+    
+    /**
+     * Creates a standard class name for generated classes.
+     * @deprecated Use {@link NamingConventions#buildClassName(String, String)} instead
+     */
+    @Deprecated(since = "2.0", forRemoval = true)
+    public static String buildClassName(String businessName, String classSuffix) {
+        return NamingConventions.buildClassName(businessName, classSuffix);
+    }
+    
+    /**
+     * Creates a field name for JDBC template following naming conventions.
+     * @deprecated Use {@link NamingConventions#jdbcTemplateFieldName(String)} instead
+     */
+    @Deprecated(since = "2.0", forRemoval = true)
+    public static String jdbcTemplateFieldName(String businessName) {
+        return NamingConventions.jdbcTemplateFieldName(businessName);
+    }
+}

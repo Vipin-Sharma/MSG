@@ -3,6 +3,7 @@ package com.jfeatures.msg.codegen;
 import com.github.vertical_blank.sqlformatter.SqlFormatter;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.InsertMetadata;
+import com.jfeatures.msg.codegen.util.CommonJavaPoetBuilders;
 import com.jfeatures.msg.codegen.util.JavaPackageNameBuilder;
 import com.jfeatures.msg.codegen.util.JavaPoetTypeNameBuilder;
 import com.jfeatures.msg.codegen.constants.CodeGenerationConstants;
@@ -49,26 +50,16 @@ public class GenerateInsertDAO {
         
         String jdbcTemplateFieldName = CodeGenerationConstants.JDBC_TEMPLATE_FIELD_NAME;
         
-        // Constructor
-        MethodSpec constructorSpec = MethodSpec.constructorBuilder()
-                .addParameter(NamedParameterJdbcTemplate.class, jdbcTemplateFieldName)
-                .addStatement("this.$N = $N", jdbcTemplateFieldName, jdbcTemplateFieldName)
-                .build();
-        
-        // JDBC template field
-        FieldSpec jdbcTemplateFieldSpec = FieldSpec.builder(NamedParameterJdbcTemplate.class, jdbcTemplateFieldName, 
-                Modifier.PRIVATE, Modifier.FINAL).build();
+        // Use CommonJavaPoetBuilders for constructor and field
+        MethodSpec constructorSpec = CommonJavaPoetBuilders.jdbcTemplateConstructor(jdbcTemplateFieldName);
+        FieldSpec jdbcTemplateFieldSpec = CommonJavaPoetBuilders.jdbcTemplateField(jdbcTemplateFieldName);
         
         // Generate INSERT SQL with named parameters
         String insertSql = generateInsertSql(insertMetadata);
         String formattedSql = SqlFormatter.format(insertSql);
         
-        // SQL field with text block
-        FieldSpec sqlFieldSpec = FieldSpec.builder(String.class, CodeGenerationConstants.SQL_FIELD_NAME, 
-                Modifier.PRIVATE, Modifier.FINAL, Modifier.STATIC)
-                .initializer("\"\"\"\n$L\"\"\"", formattedSql)
-                .addJavadoc("SQL statement for inserting $L records", businessPurposeOfSQL.toLowerCase())
-                .build();
+        // Use CommonJavaPoetBuilders for SQL field
+        FieldSpec sqlFieldSpec = CommonJavaPoetBuilders.sqlFieldWithName(formattedSql, CodeGenerationConstants.SQL_FIELD_NAME);
         
         // DTO type
         TypeName insertDtoTypeName = JavaPoetTypeNameBuilder.buildJavaPoetTypeNameForClass(businessPurposeOfSQL, "dto", "InsertDTO");
