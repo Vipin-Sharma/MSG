@@ -3,6 +3,7 @@ package com.jfeatures.msg.codegen;
 import com.jfeatures.msg.codegen.dbmetadata.InsertMetadata;
 import com.jfeatures.msg.codegen.util.JavaPackageNameBuilder;
 import com.jfeatures.msg.codegen.util.JavaPoetTypeNameBuilder;
+import com.jfeatures.msg.codegen.util.CommonJavaPoetBuilders;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -52,18 +53,11 @@ public class GenerateInsertController {
         
         String daoInstanceFieldName = CaseUtils.toCamelCase(businessPurposeOfSQL, false) + "InsertDAO";
         
-        // DAO field injection
-        FieldSpec daoFieldSpec = FieldSpec.builder(insertDaoTypeName, daoInstanceFieldName)
-                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
-                .build();
+        // DAO field injection - kept as-is since it uses a specific type (not common pattern)
         
-        // Constructor for dependency injection
-        MethodSpec constructorSpec = MethodSpec.constructorBuilder()
-                .addParameter(insertDaoTypeName, daoInstanceFieldName)
-                .addStatement("this.$N = $N", daoInstanceFieldName, daoInstanceFieldName)
-                .build();
+        // Constructor for dependency injection - kept as-is since it uses a specific parameter type
         
-        // POST endpoint method
+        // POST endpoint method - keep original complex mapping for now
         MethodSpec insertMethodSpec = MethodSpec.methodBuilder("create" + businessPurposeOfSQL)
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(AnnotationSpec.builder(PostMapping.class)
@@ -92,19 +86,20 @@ public class GenerateInsertController {
                         .build())
                 .build();
         
-        // Controller class
-        TypeSpec controller = TypeSpec.classBuilder(businessPurposeOfSQL + "InsertController")
-                .addModifiers(Modifier.PUBLIC)
-                .addAnnotation(AnnotationSpec.builder(RestController.class).build())
-                .addAnnotation(AnnotationSpec.builder(RequestMapping.class)
-                        .addMember("path", "$S", "/api")
-                        .build())
+        // Controller class using CommonJavaPoetBuilders
+        TypeSpec.Builder controllerBuilder = CommonJavaPoetBuilders.basicControllerClass(businessPurposeOfSQL + "Insert", "/api");
+        TypeSpec controller = controllerBuilder
                 .addAnnotation(AnnotationSpec.builder(Tag.class)
                         .addMember("name", "$S", businessPurposeOfSQL)
                         .addMember("description", "$S", businessPurposeOfSQL + " INSERT operations")
                         .build())
-                .addField(daoFieldSpec)
-                .addMethod(constructorSpec)
+                .addField(FieldSpec.builder(insertDaoTypeName, daoInstanceFieldName)
+                        .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
+                        .build())
+                .addMethod(MethodSpec.constructorBuilder()
+                        .addParameter(insertDaoTypeName, daoInstanceFieldName)
+                        .addStatement("this.$N = $N", daoInstanceFieldName, daoInstanceFieldName)
+                        .build())
                 .addMethod(insertMethodSpec)
                 .build();
         

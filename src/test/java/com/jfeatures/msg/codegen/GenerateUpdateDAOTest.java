@@ -111,14 +111,13 @@ class GenerateUpdateDAOTest {
 
     @Test
     void testCreateUpdateDAO_WithNullBusinessName_ThrowsException() {
-        // Test error conditions based on research observations
-        NullPointerException exception = assertThrows(NullPointerException.class, () ->
+        // Test error conditions - now throws IllegalArgumentException due to validation in JavaPoetTypeNameBuilder
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
                 GenerateUpdateDAO.createUpdateDAO(null, validMetadata)
         );
         
-        // Research showed specific error message
-        assertTrue(exception.getMessage().contains("Cannot invoke \"String.toLowerCase()\"") ||
-                   exception.getMessage().contains("businessPurposeOfSQL"));
+        // Verify proper error message
+        assertTrue(exception.getMessage().contains("SQL business domain name cannot be null or empty"));
     }
 
     @Test
