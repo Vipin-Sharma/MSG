@@ -365,15 +365,13 @@ class ClassBuildersTest {
     // ============================= CONSTRUCTOR TESTS =================================
 
     @Test
-    void shouldNotAllowInstantiation() {
+    void shouldNotAllowInstantiation() throws Exception {
         // Verify utility class cannot be instantiated
-        Exception exception = assertThrows(Exception.class, () -> {
-            // Use reflection to try to create instance
-            java.lang.reflect.Constructor<ClassBuilders> constructor = 
-                ClassBuilders.class.getDeclaredConstructor();
-            constructor.setAccessible(true);
-            constructor.newInstance();
-        });
+        // Use reflection to try to create instance
+        java.lang.reflect.Constructor<ClassBuilders> constructor =
+            ClassBuilders.class.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        Exception exception = assertThrows(Exception.class, constructor::newInstance);
         
         // The actual exception will be InvocationTargetException wrapping UnsupportedOperationException
         assertThat(exception.getCause()).isInstanceOf(UnsupportedOperationException.class);
