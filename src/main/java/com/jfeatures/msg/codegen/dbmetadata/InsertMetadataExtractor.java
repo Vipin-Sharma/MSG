@@ -6,6 +6,7 @@ import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.insert.Insert;
+import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import javax.sql.DataSource;
@@ -36,17 +37,21 @@ public class InsertMetadataExtractor {
      * Single responsibility: Extract INSERT operation metadata.
      */
     public InsertMetadata extractInsertMetadata(String sql) throws JSQLParserException, SQLException {
-        // Parse INSERT statement to get basic structure
+        if (sql == null || sql.isBlank()) {
+            throw new IllegalArgumentException("SQL is not an INSERT statement");
+        }
+        // Parse with JSQLParser (5.x)
         Statement statement = CCJSqlParserUtil.parse(sql);
         if (!(statement instanceof Insert insertStatement)) {
             throw new IllegalArgumentException("SQL is not an INSERT statement");
         }
-        
+
         String tableName = insertStatement.getTable().getName();
         log.info("Extracting INSERT metadata for table: {}", tableName);
         
-        // Get columns specified in INSERT statement
-        List<Column> insertColumns = insertStatement.getColumns();
+        // Columns are now wrapped in ExpressionList<Column> in 5.x
+        ExpressionList<Column> columnExprList = insertStatement.getColumns();
+        List<Column> insertColumns = (columnExprList != null) ? columnExprList.getExpressions() : null;
         if (insertColumns == null || insertColumns.isEmpty()) {
             throw new IllegalArgumentException("INSERT statement must specify column names");
         }
@@ -56,7 +61,7 @@ public class InsertMetadataExtractor {
         
         try (Connection connection = dataSource.getConnection()) {
             DatabaseMetaData dbMetadata = connection.getMetaData();
-            
+
             for (Column column : insertColumns) {
                 String columnName = column.getColumnName();
                 ColumnMetadata columnMetadata = extractColumnMetadata(dbMetadata, tableName, columnName);
@@ -74,6 +79,8 @@ public class InsertMetadataExtractor {
         return new InsertMetadata(tableName, columnMetadataList, sql);
     }
     
+    // JSQLParser 5.x is used; no custom string parsing helpers needed here.
+
     private ColumnMetadata extractColumnMetadata(DatabaseMetaData dbMetadata, String tableName, String columnName) throws SQLException {
         try (ResultSet columns = dbMetadata.getColumns(null, null, tableName, columnName)) {
             if (columns.next()) {

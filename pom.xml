@@ -19,17 +19,17 @@
         <dependency>
             <groupId>info.picocli</groupId>
             <artifactId>picocli</artifactId>
-            <version>4.7.1</version>
+            <version>4.7.7</version>
         </dependency>
         <dependency>
             <groupId>com.github.jsqlparser</groupId>
             <artifactId>jsqlparser</artifactId>
-            <version>4.5</version>
+            <version>5.3</version>
         </dependency>
         <dependency>
             <groupId>com.github.vertical-blank</groupId>
             <artifactId>sql-formatter</artifactId>
-            <version>2.0.3</version>
+            <version>2.0.5</version>
         </dependency>
         <dependency>
             <groupId>com.squareup</groupId>
@@ -39,43 +39,44 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-text</artifactId>
-            <version>1.10.0</version>
+            <version>1.14.0</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.30</version>
+            <version>1.18.40</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>5.9.1</version>
+            <version>5.11.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
-            <version>5.3.29</version>
+            <version>6.1.12</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
-            <version>2.7.14</version>
+            <version>3.3.4</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-            <version>2.7.14</version>
+            <version>3.3.4</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-autoconfigure</artifactId>
-            <version>2.7.14</version>
+            <version>3.3.4</version>
         </dependency>
+        <!-- Springdoc starter for Spring Boot 3.x (Jakarta) -->
         <dependency>
             <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-ui</artifactId>
-            <version>1.7.0</version>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.6.0</version>
         </dependency>
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
@@ -85,24 +86,24 @@
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.23.1</version>
+            <version>3.26.3</version>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-inline</artifactId>
-            <version>4.11.0</version>
+            <version>5.2.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
-            <version>4.11.0</version>
+            <version>5.11.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>jakarta.validation</groupId>
             <artifactId>jakarta.validation-api</artifactId>
-            <version>3.0.2</version>
+            <version>3.1.1</version>
         </dependency>
     </dependencies>
 
@@ -128,16 +129,16 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.11.0</version>
+                    <version>3.13.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.0.0-M9</version>
+                    <version>3.5.1</version>
                     <configuration>
                         <printSummary>true</printSummary>
                         <redirectTestOutputToFile>true</redirectTestOutputToFile>
-                      </configuration>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -145,7 +146,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
+                <version>3.13.0</version>
                 <configuration>
                     <source>21</source>
                     <target>21</target>
@@ -164,7 +165,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>2.7.14</version>
+                <version>3.3.4</version>
                 <executions>
                     <execution>
                         <goals>
@@ -180,7 +181,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.10</version>
+                <version>0.8.12</version>
                 <executions>
                     <execution>
                         <goals>
@@ -199,7 +200,7 @@
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
-                <version>3.11.0.3922</version>
+                <version>3.12.0.6583</version>
             </plugin>
         </plugins>
     </build>

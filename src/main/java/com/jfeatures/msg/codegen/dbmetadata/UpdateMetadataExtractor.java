@@ -12,12 +12,12 @@ import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.update.Update;
 import net.sf.jsqlparser.statement.update.UpdateSet;
+import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,14 +41,17 @@ public class UpdateMetadataExtractor {
      * Extracts metadata from UPDATE statement using database metadata.
      */
     public UpdateMetadata extractUpdateMetadata(String sql) throws JSQLParserException, SQLException {
-        // Parse UPDATE statement to get basic structure
+        if (sql == null || sql.isBlank()) {
+            throw new IllegalArgumentException("SQL is not an UPDATE statement");
+        }
+        // Parse UPDATE with JSQLParser 5.x
         Statement statement = CCJSqlParserUtil.parse(sql);
         if (!(statement instanceof Update updateStatement)) {
             throw new IllegalArgumentException("SQL is not an UPDATE statement");
         }
-        
+
         String tableName = updateStatement.getTable().getName();
-        
+
         // Extract SET columns from parsed statement
         List<ColumnMetadata> setColumns = extractSetColumns(updateStatement);
         
@@ -58,26 +61,21 @@ public class UpdateMetadataExtractor {
         return new UpdateMetadata(tableName, setColumns, whereColumns, sql);
     }
     
-    /**
-     * Extracts SET columns from the parsed UPDATE statement.
-     */
     private List<ColumnMetadata> extractSetColumns(Update updateStatement) throws SQLException {
         List<ColumnMetadata> setColumns = new ArrayList<>();
         String tableName = updateStatement.getTable().getName();
-        
-        // Get table metadata to determine column types
+
+        // Build a map of table column metadata
+        java.util.Map<String, ColumnMetadata> columnTypeMap = new java.util.HashMap<>();
         try (Connection connection = dataSource.getConnection()) {
             var dbMetaData = connection.getMetaData();
             var resultSet = dbMetaData.getColumns(null, null, tableName, null);
-            
-            // Build a map of column names to their metadata
-            var columnTypeMap = new java.util.HashMap<String, ColumnMetadata>();
             while (resultSet.next()) {
                 String columnName = resultSet.getString("COLUMN_NAME");
                 String dataType = resultSet.getString("TYPE_NAME");
                 int sqlType = resultSet.getInt("DATA_TYPE");
                 boolean nullable = resultSet.getInt("NULLABLE") == 1;
-                
+
                 ColumnMetadata metadata = new ColumnMetadata();
                 metadata.setColumnName(columnName);
                 metadata.setColumnTypeName(dataType);
@@ -85,28 +83,28 @@ public class UpdateMetadataExtractor {
                 metadata.setIsNullable(nullable ? 1 : 0);
                 columnTypeMap.put(columnName.toLowerCase(), metadata);
             }
-            
-            // Extract column names from SET expressions
-            for (UpdateSet updateSet : updateStatement.getUpdateSets()) {
-                for (Column column : updateSet.getColumns()) {
-                    String columnName = column.getColumnName();
-                    ColumnMetadata metadata = columnTypeMap.get(columnName.toLowerCase());
-                    if (metadata != null) {
-                        setColumns.add(metadata);
-                    } else {
-                        // Fallback: create basic metadata
-                        ColumnMetadata fallback = new ColumnMetadata();
-                        fallback.setColumnName(columnName);
-                        fallback.setColumnTypeName("VARCHAR");
-                        fallback.setColumnType(java.sql.Types.VARCHAR);
-                        fallback.setIsNullable(1);
-                        setColumns.add(fallback);
-                        log.warn("Could not find metadata for SET column: {}", columnName);
-                    }
+        }
+
+        for (UpdateSet updateSet : updateStatement.getUpdateSets()) {
+            ExpressionList<Column> cols = updateSet.getColumns();
+            if (cols == null) continue;
+            for (Column column : cols.getExpressions()) {
+                String columnName = column.getColumnName();
+                ColumnMetadata metadata = columnTypeMap.get(columnName.toLowerCase());
+                if (metadata != null) {
+                    setColumns.add(metadata);
+                } else {
+                    ColumnMetadata fallback = new ColumnMetadata();
+                    fallback.setColumnName(columnName);
+                    fallback.setColumnTypeName("VARCHAR");
+                    fallback.setColumnType(java.sql.Types.VARCHAR);
+                    fallback.setIsNullable(1);
+                    setColumns.add(fallback);
+                    log.warn("Could not find metadata for SET column: {}", columnName);
                 }
             }
         }
-        
+
         return setColumns;
     }
     
@@ -159,22 +157,21 @@ public class UpdateMetadataExtractor {
             if (statement instanceof Update updateStatement) {
                 int count = 0;
                 for (UpdateSet updateSet : updateStatement.getUpdateSets()) {
-                    for (Expression expression : updateSet.getExpressions()) {
-                        if (expression instanceof JdbcParameter) {
-                            count++;
+                    var values = updateSet.getValues();
+                    if (values != null) {
+                        for (var expr : values.getExpressions()) {
+                            if (expr instanceof JdbcParameter) {
+                                count++;
+                            }
                         }
                     }
                 }
                 return count;
             }
         } catch (JSQLParserException e) {
-            log.warn("Could not parse UPDATE statement to count SET parameters: {}", e.getMessage());
+            log.warn("Could not parse UPDATE to count SET params: {}", e.getMessage());
         }
-        
-        // Fallback: count '?' in SET clause
-        String setClause = sql.substring(sql.toUpperCase().indexOf("SET"), 
-                                       sql.toUpperCase().indexOf("WHERE"));
-        return (int) setClause.chars().filter(ch -> ch == '?').count();
+        return 0;
     }
     
     /**
@@ -182,16 +179,14 @@ public class UpdateMetadataExtractor {
      */
     private List<ColumnMetadata> extractWhereColumnsByParsing(String sql) {
         List<ColumnMetadata> whereColumns = new ArrayList<>();
-        
         try {
             Statement statement = CCJSqlParserUtil.parse(sql);
             if (statement instanceof Update updateStatement && updateStatement.getWhere() != null) {
-                updateStatement.getWhere().accept(new ExpressionVisitorAdapter() {
+                updateStatement.getWhere().accept(new ExpressionVisitorAdapter<Void>() {
                     @Override
-                    protected void visitBinaryExpression(BinaryExpression expr) {
+                    protected <S> Void visitBinaryExpression(BinaryExpression expr, S context) {
                         if (expr instanceof ComparisonOperator) {
                             if (expr.getLeftExpression() instanceof Column column) {
-                                // Create basic metadata for WHERE column
                                 ColumnMetadata columnMetadata = new ColumnMetadata();
                                 columnMetadata.setColumnName(column.getColumnName());
                                 columnMetadata.setColumnTypeName("VARCHAR");
@@ -200,14 +195,15 @@ public class UpdateMetadataExtractor {
                                 whereColumns.add(columnMetadata);
                             }
                         }
-                        super.visitBinaryExpression(expr);
+                        return super.visitBinaryExpression(expr, context);
                     }
-                });
+                }, null);
             }
         } catch (JSQLParserException e) {
             log.warn("Could not parse WHERE clause: {}", e.getMessage());
         }
-        
         return whereColumns;
     }
+
+    // No manual string parsing required; JSQLParser 5.x is used.
 }

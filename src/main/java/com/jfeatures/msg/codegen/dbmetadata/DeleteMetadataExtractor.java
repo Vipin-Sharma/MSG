@@ -37,12 +37,14 @@ public class DeleteMetadataExtractor {
      * Single responsibility: Extract DELETE operation metadata.
      */
     public DeleteMetadata extractDeleteMetadata(String sql) throws JSQLParserException, SQLException {
-        // Parse DELETE statement to get basic structure
+        if (sql == null || sql.isBlank()) {
+            throw new IllegalArgumentException("SQL is not a DELETE statement");
+        }
+        // Parse with JSQLParser 5.x
         Statement statement = CCJSqlParserUtil.parse(sql);
         if (!(statement instanceof Delete deleteStatement)) {
             throw new IllegalArgumentException("SQL is not a DELETE statement");
         }
-        
         String tableName = deleteStatement.getTable().getName();
         log.info("Extracting DELETE metadata for table: {}", tableName);
         
@@ -111,6 +113,8 @@ public class DeleteMetadataExtractor {
         
         return null;
     }
+    
+    // JSQLParser 5.x is used; no manual identifier parsing required.
     
     private ColumnMetadata createColumnMetadataFromResultSet(ResultSet columns) throws SQLException {
         ColumnMetadata columnMetadata = new ColumnMetadata();
