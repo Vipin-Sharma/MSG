@@ -1,5 +1,6 @@
 package com.jfeatures.msg.codegen.util;
 
+import com.jfeatures.msg.codegen.constants.ProjectConstants;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.TypeSpec;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,7 +29,7 @@ public final class ClassBuilders {
      * Creates a basic DAO class with @Component annotation and logging.
      */
     public static TypeSpec.Builder basicDAOClass(String businessName) {
-        validateNotEmpty(businessName, "businessName");
+        validateNotEmpty(businessName, ProjectConstants.BUSINESS_NAME_PARAM);
         
         String className = NamingConventions.daoClassName(businessName);
         
@@ -43,8 +44,8 @@ public final class ClassBuilders {
      * Creates a specialized DAO class for specific operations (Insert, Update, Delete).
      */
     public static TypeSpec.Builder operationDAOClass(String businessName, String operation) {
-        validateNotEmpty(businessName, "businessName");
-        validateNotEmpty(operation, "operation");
+        validateNotEmpty(businessName, ProjectConstants.BUSINESS_NAME_PARAM);
+        validateNotEmpty(operation, ProjectConstants.OPERATION_PARAM);
         
         String className = NamingConventions.buildClassName(businessName, operation + "DAO");
         
@@ -62,7 +63,7 @@ public final class ClassBuilders {
      * Creates a basic REST controller class with standard annotations.
      */
     public static TypeSpec.Builder basicControllerClass(String businessName, String basePath) {
-        validateNotEmpty(businessName, "businessName");
+        validateNotEmpty(businessName, ProjectConstants.BUSINESS_NAME_PARAM);
         
         String className = NamingConventions.controllerClassName(businessName);
         String apiPath = basePath != null ? basePath : "/api";
@@ -84,8 +85,8 @@ public final class ClassBuilders {
      * Creates a specialized controller for specific operations.
      */
     public static TypeSpec.Builder operationControllerClass(String businessName, String operation, String basePath) {
-        validateNotEmpty(businessName, "businessName");
-        validateNotEmpty(operation, "operation");
+        validateNotEmpty(businessName, ProjectConstants.BUSINESS_NAME_PARAM);
+        validateNotEmpty(operation, ProjectConstants.OPERATION_PARAM);
         
         String className = NamingConventions.buildClassName(businessName, operation + "Controller");
         String apiPath = basePath != null ? basePath : "/api";
@@ -110,7 +111,7 @@ public final class ClassBuilders {
      * Creates a basic DTO class with Lombok annotations.
      */
     public static TypeSpec.Builder basicDTOClass(String businessName) {
-        validateNotEmpty(businessName, "businessName");
+        validateNotEmpty(businessName, ProjectConstants.BUSINESS_NAME_PARAM);
         
         String className = NamingConventions.dtoClassName(businessName);
         
@@ -128,8 +129,8 @@ public final class ClassBuilders {
      * Creates a specialized DTO for specific operations (Insert, Update, etc.).
      */
     public static TypeSpec.Builder operationDTOClass(String businessName, String operation) {
-        validateNotEmpty(businessName, "businessName");
-        validateNotEmpty(operation, "operation");
+        validateNotEmpty(businessName, ProjectConstants.BUSINESS_NAME_PARAM);
+        validateNotEmpty(operation, ProjectConstants.OPERATION_PARAM);
         
         String className = NamingConventions.buildClassName(businessName, operation + "DTO");
         
@@ -148,7 +149,7 @@ public final class ClassBuilders {
      * Creates a simple POJO DTO class (for cases where Lombok builder hits field limits).
      */
     public static TypeSpec.Builder pojoDTOClass(String businessName) {
-        validateNotEmpty(businessName, "businessName");
+        validateNotEmpty(businessName, ProjectConstants.BUSINESS_NAME_PARAM);
         
         String className = NamingConventions.dtoClassName(businessName);
         

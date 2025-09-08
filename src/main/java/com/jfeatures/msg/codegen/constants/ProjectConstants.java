@@ -58,4 +58,9 @@ public final class ProjectConstants {
     public static final String ERROR_INVALID_BUSINESS_NAME = "Business purpose name must start with a letter and contain only letters, numbers, and underscores";
     public static final String ERROR_NULL_SQL = "SQL cannot be null or empty";
     public static final String ERROR_NULL_DATASOURCE = "DataSource cannot be null";
+    
+    // Repeated string literals - for SonarCloud issues
+    public static final String BUSINESS_NAME_PARAM = "businessName";
+    public static final String OPERATION_PARAM = "operation";
+    public static final String APPLICATION_JSON = "application/json";
 }

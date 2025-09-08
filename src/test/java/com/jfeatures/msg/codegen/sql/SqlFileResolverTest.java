@@ -164,8 +164,8 @@ class SqlFileResolverTest {
                        .thenThrow(new UncheckedIOException("File not found", new IOException()));
             
             // When & Then
-            RuntimeException exception = assertThrows(
-                RuntimeException.class,
+            IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
                 () -> resolver.locateAndReadSqlFile(null)
             );
             

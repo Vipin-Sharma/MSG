@@ -16,7 +16,7 @@ public class GenerateDatabaseConfig {
     public static String createDatabaseConfig(String businessPurposeOfSQL) {
         try (InputStream inputStream = GenerateDatabaseConfig.class.getResourceAsStream(TEMPLATE_PATH)) {
             if (inputStream == null) {
-                throw new RuntimeException("Template file not found: " + TEMPLATE_PATH);
+                throw new IllegalStateException("Template file not found: " + TEMPLATE_PATH);
             }
             
             String template = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
@@ -27,7 +27,7 @@ public class GenerateDatabaseConfig {
                     .replace("${businessPurpose}", businessPurposeOfSQL);
                     
         } catch (IOException e) {
-            throw new RuntimeException("Failed to read template file: " + TEMPLATE_PATH, e);
+            throw new IllegalStateException("Failed to read template file: " + TEMPLATE_PATH, e);
         }
     }
 }
