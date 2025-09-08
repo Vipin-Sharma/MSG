@@ -1,18 +1,15 @@
 package com.jfeatures.msg.codegen.util;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.squareup.javapoet.CodeBlock;
-import org.junit.jupiter.api.Test;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
-
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 class SqlBuildersTest {
 

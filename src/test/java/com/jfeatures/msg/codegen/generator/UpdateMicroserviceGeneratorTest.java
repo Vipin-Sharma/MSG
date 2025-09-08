@@ -1,23 +1,21 @@
 package com.jfeatures.msg.codegen.generator;
 
-import com.jfeatures.msg.codegen.domain.DatabaseConnection;
-import com.jfeatures.msg.codegen.domain.GeneratedMicroservice;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
+
 import com.jfeatures.msg.codegen.dbmetadata.UpdateMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.UpdateMetadataExtractor;
+import com.jfeatures.msg.codegen.domain.DatabaseConnection;
+import com.jfeatures.msg.codegen.domain.GeneratedMicroservice;
 import com.jfeatures.msg.codegen.util.SqlStatementType;
+import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-
-import javax.sql.DataSource;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class UpdateMicroserviceGeneratorTest {

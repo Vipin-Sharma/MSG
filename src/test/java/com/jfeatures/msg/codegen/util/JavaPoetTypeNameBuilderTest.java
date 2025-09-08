@@ -1,14 +1,13 @@
 package com.jfeatures.msg.codegen.util;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
-import org.junit.jupiter.api.Test;
-
 import java.util.List;
 import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 class JavaPoetTypeNameBuilderTest {
 

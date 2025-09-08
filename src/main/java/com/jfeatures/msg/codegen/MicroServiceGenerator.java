@@ -1,27 +1,26 @@
 package com.jfeatures.msg.codegen;
 
+import static picocli.CommandLine.Command;
+
 import com.jfeatures.msg.codegen.constants.ProjectConstants;
 import com.jfeatures.msg.codegen.database.DatabaseConnectionFactory;
 import com.jfeatures.msg.codegen.domain.DatabaseConnection;
 import com.jfeatures.msg.codegen.domain.GeneratedMicroservice;
 import com.jfeatures.msg.codegen.filesystem.MicroserviceDirectoryCleaner;
 import com.jfeatures.msg.codegen.filesystem.MicroserviceProjectWriter;
+import com.jfeatures.msg.codegen.generator.DeleteMicroserviceGenerator;
+import com.jfeatures.msg.codegen.generator.InsertMicroserviceGenerator;
 import com.jfeatures.msg.codegen.generator.SelectMicroserviceGenerator;
 import com.jfeatures.msg.codegen.generator.UpdateMicroserviceGenerator;
-import com.jfeatures.msg.codegen.generator.InsertMicroserviceGenerator;
-import com.jfeatures.msg.codegen.generator.DeleteMicroserviceGenerator;
 import com.jfeatures.msg.codegen.sql.SqlFileResolver;
 import com.jfeatures.msg.codegen.util.SqlStatementDetector;
 import com.jfeatures.msg.codegen.util.SqlStatementType;
 import com.jfeatures.msg.sql.ReadFileFromResources;
+import java.net.URISyntaxException;
+import java.util.concurrent.Callable;
 import lombok.extern.slf4j.Slf4j;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
-
-import java.net.URISyntaxException;
-import java.util.concurrent.Callable;
-
-import static picocli.CommandLine.Command;
 
 @Slf4j
 @Command(name = "MSG", mixinStandardHelpOptions = true, version = "MSG 1.0",

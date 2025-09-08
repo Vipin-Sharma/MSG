@@ -1,6 +1,12 @@
 package com.jfeatures.msg.codegen.util;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.squareup.javapoet.*;
+import java.util.stream.Stream;
+import javax.lang.model.element.Modifier;
+import javax.sql.DataSource;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -8,13 +14,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
-
-import javax.lang.model.element.Modifier;
-import javax.sql.DataSource;
-import java.util.stream.Stream;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests for CommonJavaPoetBuilders to ensure code generation consolidation works correctly.

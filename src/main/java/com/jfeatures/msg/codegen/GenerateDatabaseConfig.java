@@ -1,7 +1,6 @@
 package com.jfeatures.msg.codegen;
 
 import com.jfeatures.msg.codegen.util.JavaPackageNameBuilder;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;

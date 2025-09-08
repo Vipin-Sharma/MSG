@@ -1,18 +1,18 @@
 package com.jfeatures.msg.codegen.generator;
 
-import com.jfeatures.msg.codegen.domain.DatabaseConnection;
-import com.jfeatures.msg.codegen.domain.GeneratedMicroservice;
-import com.jfeatures.msg.codegen.dbmetadata.DeleteMetadata;
-import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
-import com.jfeatures.msg.codegen.util.SqlStatementType;
-import com.jfeatures.msg.codegen.GenerateSpringBootApp;
 import com.jfeatures.msg.codegen.GenerateDatabaseConfig;
 import com.jfeatures.msg.codegen.GenerateDeleteController;
 import com.jfeatures.msg.codegen.GenerateDeleteDAO;
 import com.jfeatures.msg.codegen.GenerateDeleteDTO;
+import com.jfeatures.msg.codegen.GenerateSpringBootApp;
+import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
+import com.jfeatures.msg.codegen.dbmetadata.DeleteMetadata;
+import com.jfeatures.msg.codegen.domain.DatabaseConnection;
+import com.jfeatures.msg.codegen.domain.GeneratedMicroservice;
+import com.jfeatures.msg.codegen.util.SqlStatementType;
 import com.squareup.javapoet.JavaFile;
-import lombok.extern.slf4j.Slf4j;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Generates complete microservices for DELETE SQL statements.

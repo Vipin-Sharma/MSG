@@ -1,26 +1,24 @@
 package com.jfeatures.msg.codegen.generator;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
+
+import com.jfeatures.msg.codegen.ParameterMetadataExtractor;
+import com.jfeatures.msg.codegen.domain.DBColumn;
 import com.jfeatures.msg.codegen.domain.DatabaseConnection;
 import com.jfeatures.msg.codegen.domain.GeneratedMicroservice;
-import com.jfeatures.msg.codegen.domain.DBColumn;
-import com.jfeatures.msg.codegen.ParameterMetadataExtractor;
 import com.jfeatures.msg.codegen.util.SqlStatementType;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.lenient;
+import javax.sql.DataSource;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class DeleteMicroserviceGeneratorTest {

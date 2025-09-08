@@ -1,19 +1,18 @@
 package com.jfeatures.msg.codegen.mapping;
 
-import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.jfeatures.msg.codegen.constants.CodeGenerationConstants;
+import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class ResultSetMappingGeneratorTest {
 

@@ -1,9 +1,8 @@
 package com.jfeatures.msg.codegen.domain;
 
+import javax.sql.DataSource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-
-import javax.sql.DataSource;
 
 /**
  * Represents all database connection components needed for microservice generation.

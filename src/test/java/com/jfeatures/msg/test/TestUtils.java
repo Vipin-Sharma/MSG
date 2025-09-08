@@ -1,23 +1,21 @@
 package com.jfeatures.msg.test;
 
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
 import com.jfeatures.msg.codegen.ParameterMetadataExtractor;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.InsertMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.UpdateMetadata;
-import com.jfeatures.msg.codegen.domain.DatabaseConnection;
 import com.jfeatures.msg.codegen.domain.DBColumn;
+import com.jfeatures.msg.codegen.domain.DatabaseConnection;
 import com.jfeatures.msg.controller.CodeGenController;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-
-import javax.sql.DataSource;
 import java.sql.Types;
 import java.util.Arrays;
-
 import java.util.List;
-
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import javax.sql.DataSource;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 /**
  * Utility class for test data creation and mock setup

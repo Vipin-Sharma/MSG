@@ -1,12 +1,10 @@
 package com.jfeatures.msg.codegen.jdbc;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.sql.Types;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class JdbcMethodSelectorTest {
 

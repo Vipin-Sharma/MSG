@@ -6,16 +6,15 @@ import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeSpec;
-import org.apache.commons.text.CaseUtils;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import javax.lang.model.element.Modifier;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 import lombok.extern.slf4j.Slf4j;
-
-import javax.lang.model.element.Modifier;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import org.apache.commons.text.CaseUtils;
 
 @Slf4j
 public class GenerateDTO {

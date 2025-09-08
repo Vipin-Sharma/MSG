@@ -1,28 +1,26 @@
 package com.jfeatures.msg.codegen.generator;
 
-import com.jfeatures.msg.codegen.domain.DatabaseConnection;
-import com.jfeatures.msg.codegen.domain.GeneratedMicroservice;
-import com.jfeatures.msg.codegen.domain.DBColumn;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import com.jfeatures.msg.codegen.ParameterMetadataExtractor;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.SqlMetadata;
+import com.jfeatures.msg.codegen.domain.DBColumn;
+import com.jfeatures.msg.codegen.domain.DatabaseConnection;
+import com.jfeatures.msg.codegen.domain.GeneratedMicroservice;
 import com.jfeatures.msg.codegen.util.SqlStatementType;
-import com.jfeatures.msg.codegen.ParameterMetadataExtractor;
 import com.jfeatures.msg.controller.CodeGenController;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
-
-import javax.sql.DataSource;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class SelectMicroserviceGeneratorTest {

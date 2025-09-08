@@ -4,12 +4,11 @@ import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import java.io.IOException;
+import javax.lang.model.element.Modifier;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import lombok.extern.slf4j.Slf4j;
-
-import javax.lang.model.element.Modifier;
-import java.io.IOException;
 
 @Slf4j
 public class GenerateSpringBootApp {

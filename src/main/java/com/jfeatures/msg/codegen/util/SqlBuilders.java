@@ -3,12 +3,10 @@ package com.jfeatures.msg.codegen.util;
 import com.github.vertical_blank.sqlformatter.SqlFormatter;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.squareup.javapoet.CodeBlock;
-import org.apache.commons.text.CaseUtils;
-
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Specialized builder for SQL-related code generation patterns.

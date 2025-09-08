@@ -3,9 +3,9 @@ package com.jfeatures.msg.codegen;
 import com.github.vertical_blank.sqlformatter.SqlFormatter;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.UpdateMetadata;
+import com.jfeatures.msg.codegen.util.CommonJavaPoetBuilders;
 import com.jfeatures.msg.codegen.util.JavaPackageNameBuilder;
 import com.jfeatures.msg.codegen.util.JavaPoetTypeNameBuilder;
-import com.jfeatures.msg.codegen.util.CommonJavaPoetBuilders;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
@@ -14,16 +14,13 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.text.CaseUtils;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.stereotype.Component;
-
-import javax.lang.model.element.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.lang.model.element.Modifier;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.text.CaseUtils;
 
 /**
  * Generates DAO classes for UPDATE operations using database metadata.

@@ -1,10 +1,10 @@
 package com.jfeatures.msg.codegen.util;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class JavaPoetClassNameBuilderTest {
 

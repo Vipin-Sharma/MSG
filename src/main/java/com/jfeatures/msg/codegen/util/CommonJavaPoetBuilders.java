@@ -1,14 +1,12 @@
 package com.jfeatures.msg.codegen.util;
 
 import com.squareup.javapoet.*;
+import jakarta.validation.Valid;
+import javax.lang.model.element.Modifier;
+import javax.sql.DataSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
-
-import javax.lang.model.element.Modifier;
-import javax.sql.DataSource;
-import jakarta.validation.Valid;
-import java.util.List;
 
 /**
  * Common JavaPoet builders to eliminate code duplication across all generators.

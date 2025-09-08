@@ -1,18 +1,14 @@
 package com.jfeatures.msg.codegen;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.DeleteMetadata;
 import com.squareup.javapoet.*;
 import jakarta.validation.constraints.NotNull;
+import javax.lang.model.element.Modifier;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 import org.apache.commons.text.CaseUtils;
-
-import javax.lang.model.element.Modifier;
 
 /**
  * Generates DTO classes for DELETE operations with WHERE clause parameters.

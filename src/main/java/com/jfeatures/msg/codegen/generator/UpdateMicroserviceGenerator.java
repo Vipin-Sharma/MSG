@@ -1,15 +1,15 @@
 package com.jfeatures.msg.codegen.generator;
 
-import com.jfeatures.msg.codegen.domain.DatabaseConnection;
-import com.jfeatures.msg.codegen.domain.GeneratedMicroservice;
-import com.jfeatures.msg.codegen.dbmetadata.UpdateMetadata;
-import com.jfeatures.msg.codegen.dbmetadata.UpdateMetadataExtractor;
-import com.jfeatures.msg.codegen.util.SqlStatementType;
-import com.jfeatures.msg.codegen.GenerateSpringBootApp;
 import com.jfeatures.msg.codegen.GenerateDatabaseConfig;
-import com.jfeatures.msg.codegen.GenerateUpdateDTO;
+import com.jfeatures.msg.codegen.GenerateSpringBootApp;
 import com.jfeatures.msg.codegen.GenerateUpdateController;
 import com.jfeatures.msg.codegen.GenerateUpdateDAO;
+import com.jfeatures.msg.codegen.GenerateUpdateDTO;
+import com.jfeatures.msg.codegen.dbmetadata.UpdateMetadata;
+import com.jfeatures.msg.codegen.dbmetadata.UpdateMetadataExtractor;
+import com.jfeatures.msg.codegen.domain.DatabaseConnection;
+import com.jfeatures.msg.codegen.domain.GeneratedMicroservice;
+import com.jfeatures.msg.codegen.util.SqlStatementType;
 import com.squareup.javapoet.JavaFile;
 import lombok.extern.slf4j.Slf4j;
 
