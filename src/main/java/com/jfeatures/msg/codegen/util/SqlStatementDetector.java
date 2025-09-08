@@ -11,7 +11,11 @@ import net.sf.jsqlparser.statement.update.Update;
 /**
  * Utility class to detect the type of SQL statement.
  */
-public class SqlStatementDetector {
+public final class SqlStatementDetector {
+
+    private SqlStatementDetector() {
+        throw new UnsupportedOperationException("Utility class");
+    }
     
     /**
      * Determines the type of SQL statement from the given SQL string.
