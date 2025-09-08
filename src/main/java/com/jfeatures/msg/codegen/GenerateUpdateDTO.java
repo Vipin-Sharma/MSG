@@ -9,6 +9,7 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeSpec;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.lang.model.element.Modifier;
 import jakarta.validation.constraints.NotNull;
@@ -20,6 +21,7 @@ import java.util.List;
  * Generates DTO classes for UPDATE statements.
  * Creates separate DTOs for the request body (SET columns) and path/query parameters (WHERE columns).
  */
+@Slf4j
 public class GenerateUpdateDTO {
     
     /**
@@ -38,7 +40,7 @@ public class GenerateUpdateDTO {
         JavaFile javaFile = JavaFile.builder(JavaPackageNameBuilder.buildJavaPackageName(businessPurposeOfSQL, "dto"), updateDTO)
                 .build();
         
-        javaFile.writeTo(System.out);
+        log.info(javaFile.toString());
         return javaFile;
     }
     
@@ -63,7 +65,7 @@ public class GenerateUpdateDTO {
         JavaFile javaFile = JavaFile.builder(JavaPackageNameBuilder.buildJavaPackageName(businessPurposeOfSQL, "dto"), whereDTO)
                 .build();
         
-        javaFile.writeTo(System.out);
+        log.info(javaFile.toString());
         return javaFile;
     }
     

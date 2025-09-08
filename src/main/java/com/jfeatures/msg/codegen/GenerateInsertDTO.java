@@ -12,6 +12,7 @@ import com.squareup.javapoet.TypeSpec;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
@@ -20,6 +21,7 @@ import java.io.IOException;
  * Generates DTO classes for INSERT operations.
  * Following Vipin's Principle: Single responsibility - INSERT DTO generation only.
  */
+@Slf4j
 public class GenerateInsertDTO {
     
     /**
@@ -74,8 +76,8 @@ public class GenerateInsertDTO {
         JavaFile javaFile = JavaFile.builder(JavaPackageNameBuilder.buildJavaPackageName(businessPurposeOfSQL, "dto"), insertDTO)
                 .build();
         
-        javaFile.writeTo(System.out);
-        
+        log.info(javaFile.toString());
+
         return javaFile;
     }
 }

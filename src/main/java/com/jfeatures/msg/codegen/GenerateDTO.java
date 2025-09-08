@@ -10,12 +10,14 @@ import org.apache.commons.text.CaseUtils;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class GenerateDTO {
 
 
@@ -36,7 +38,7 @@ public class GenerateDTO {
         JavaFile javaFile = JavaFile.builder(JavaPackageNameBuilder.buildJavaPackageName(businessPurposeOfSQL, "dto"), dto)
                 .build();
 
-        javaFile.writeTo(System.out);
+        log.info(javaFile.toString());
 
         return javaFile;
     }

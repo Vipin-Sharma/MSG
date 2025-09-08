@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.lang.model.element.Modifier;
 import jakarta.validation.Valid;
@@ -37,6 +38,7 @@ import java.util.List;
 /**
  * Generates REST Controller with PUT endpoints for UPDATE operations.
  */
+@Slf4j
 public class GenerateUpdateController {
     
     /**
@@ -86,7 +88,7 @@ public class GenerateUpdateController {
         JavaFile javaFile = JavaFile.builder(JavaPackageNameBuilder.buildJavaPackageName(businessPurposeOfSQL, "controller"), controller)
                 .build();
         
-        javaFile.writeTo(System.out);
+        log.info(javaFile.toString());
         return javaFile;
     }
     

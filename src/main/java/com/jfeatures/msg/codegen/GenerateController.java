@@ -21,12 +21,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class GenerateController {
     public static JavaFile createController(String businessPurposeOfSQL, List<DBColumn> predicateHavingLiterals) throws IOException
     {
@@ -100,7 +102,7 @@ public class GenerateController {
         JavaFile javaFile = JavaFile.builder(JavaPackageNameBuilder.buildJavaPackageName(businessPurposeOfSQL, "controller"), controller)
                 .build();
 
-        javaFile.writeTo(System.out);
+        log.info(javaFile.toString());
 
         return javaFile;
     }
