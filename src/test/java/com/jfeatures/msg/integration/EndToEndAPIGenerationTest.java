@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import com.jfeatures.msg.codegen.MicroServiceGenerator;
 import com.jfeatures.msg.codegen.util.SqlStatementDetector;
 import com.jfeatures.msg.codegen.util.SqlStatementType;
+import net.sf.jsqlparser.JSQLParserException;
 import java.nio.file.Path;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -22,7 +23,7 @@ class EndToEndAPIGenerationTest {
     Path tempDir;
 
     @Test
-    void shouldGenerateCompleteSelectAPI() throws Exception {
+    void shouldGenerateCompleteSelectAPI() throws JSQLParserException {
         // Given - SELECT SQL for customer data retrieval
         String selectSQL = "SELECT customer_id, customer_name, email FROM customers WHERE status = ? AND region = ?";
         
@@ -34,12 +35,13 @@ class EndToEndAPIGenerationTest {
         
         // Verify API generation components can handle SELECT statements
         // We expect logging and code generation output for SELECT
-        assertThat(selectSQL).contains("SELECT");
-        assertThat(selectSQL).contains("customers");
+        assertThat(selectSQL)
+                .contains("SELECT")
+                .contains("customers");
     }
 
     @Test
-    void shouldGenerateCompleteInsertAPI() throws Exception {
+    void shouldGenerateCompleteInsertAPI() throws JSQLParserException {
         // Given - INSERT SQL for customer creation
         String insertSQL = "INSERT INTO customers (customer_name, email, status, region) VALUES (?, ?, ?, ?)";
         
@@ -50,13 +52,14 @@ class EndToEndAPIGenerationTest {
         assertThat(detectedType).isEqualTo(SqlStatementType.INSERT);
         
         // Verify API generation components can handle INSERT statements
-        assertThat(insertSQL).contains("INSERT INTO");
-        assertThat(insertSQL).contains("customers");
-        assertThat(insertSQL).contains("VALUES");
+        assertThat(insertSQL)
+                .contains("INSERT INTO")
+                .contains("customers")
+                .contains("VALUES");
     }
 
     @Test
-    void shouldGenerateCompleteUpdateAPI() throws Exception {
+    void shouldGenerateCompleteUpdateAPI() throws JSQLParserException {
         // Given - UPDATE SQL for customer modification
         String updateSQL = "UPDATE customers SET customer_name = ?, email = ? WHERE customer_id = ?";
         
@@ -67,14 +70,15 @@ class EndToEndAPIGenerationTest {
         assertThat(detectedType).isEqualTo(SqlStatementType.UPDATE);
         
         // Verify API generation components can handle UPDATE statements
-        assertThat(updateSQL).contains("UPDATE");
-        assertThat(updateSQL).contains("customers");
-        assertThat(updateSQL).contains("SET");
-        assertThat(updateSQL).contains("WHERE");
+        assertThat(updateSQL)
+                .contains("UPDATE")
+                .contains("customers")
+                .contains("SET")
+                .contains("WHERE");
     }
 
     @Test
-    void shouldGenerateCompleteDeleteAPI() throws Exception {
+    void shouldGenerateCompleteDeleteAPI() throws JSQLParserException {
         // Given - DELETE SQL for customer removal
         String deleteSQL = "DELETE FROM customers WHERE customer_id = ? AND status = 'INACTIVE'";
         
@@ -85,9 +89,10 @@ class EndToEndAPIGenerationTest {
         assertThat(detectedType).isEqualTo(SqlStatementType.DELETE);
         
         // Verify API generation components can handle DELETE statements
-        assertThat(deleteSQL).contains("DELETE FROM");
-        assertThat(deleteSQL).contains("customers");
-        assertThat(deleteSQL).contains("WHERE");
+        assertThat(deleteSQL)
+                .contains("DELETE FROM")
+                .contains("customers")
+                .contains("WHERE");
     }
 
     @Test
@@ -111,7 +116,7 @@ class EndToEndAPIGenerationTest {
     }
 
     @Test
-    void shouldHandleComplexSelectWithJoinsAndAggregates() throws Exception {
+    void shouldHandleComplexSelectWithJoinsAndAggregates() throws JSQLParserException {
         // Given - Complex SELECT with JOIN and aggregation
         String complexSelectSQL = """
             SELECT c.customer_id, c.customer_name, COUNT(o.order_id) as order_count, SUM(o.total_amount) as total_spent
@@ -128,10 +133,11 @@ class EndToEndAPIGenerationTest {
         
         // Then
         assertThat(detectedType).isEqualTo(SqlStatementType.SELECT);
-        assertThat(complexSelectSQL).contains("JOIN");
-        assertThat(complexSelectSQL).contains("GROUP BY");
-        assertThat(complexSelectSQL).contains("HAVING");
-        assertThat(complexSelectSQL).contains("ORDER BY");
+        assertThat(complexSelectSQL)
+                .contains("JOIN")
+                .contains("GROUP BY")
+                .contains("HAVING")
+                .contains("ORDER BY");
     }
 
     @Test

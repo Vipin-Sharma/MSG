@@ -42,7 +42,6 @@ class CompleteScenarioCoverageTest {
 
     private MicroServiceGenerator microServiceGenerator;
     private SqlFileResolver sqlFileResolver;
-    private SqlStatementDetector sqlStatementDetector;
     
     private DataSource mockDataSource;
     private JdbcTemplate mockJdbcTemplate;
@@ -56,7 +55,6 @@ class CompleteScenarioCoverageTest {
     void setUp() throws Exception {
         microServiceGenerator = new MicroServiceGenerator();
         sqlFileResolver = new SqlFileResolver();
-        sqlStatementDetector = new SqlStatementDetector();
         
         mockDataSource = mock(DataSource.class);
         mockJdbcTemplate = mock(JdbcTemplate.class);

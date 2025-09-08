@@ -15,9 +15,10 @@ class GenerateSpringBootAppTest {
         // Then
         assertThat(result).isNotNull();
         String generatedCode = result.toString();
-        assertThat(generatedCode).contains("@SpringBootApplication");
-        assertThat(generatedCode).contains("CustomerSpringBootApplication");
-        assertThat(generatedCode).contains("public static void main(String[] args)");
+        assertThat(generatedCode)
+            .contains("@SpringBootApplication")
+            .contains("CustomerSpringBootApplication")
+            .contains("public static void main(String[] args)");
     }
 
     @Test
