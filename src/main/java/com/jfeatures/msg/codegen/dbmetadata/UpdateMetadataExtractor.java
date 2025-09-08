@@ -171,7 +171,16 @@ public class UpdateMetadataExtractor {
         } catch (JSQLParserException e) {
             log.warn("Could not parse UPDATE to count SET params: {}", e.getMessage());
         }
-        return 0;
+
+        // Fallback: best effort by counting '?' in the SET clause
+        String upperSql = sql.toUpperCase();
+        int setIndex = upperSql.indexOf("SET");
+        if (setIndex == -1) {
+            return 0;
+        }
+        int whereIndex = upperSql.indexOf("WHERE", setIndex);
+        String setClause = whereIndex == -1 ? sql.substring(setIndex) : sql.substring(setIndex, whereIndex);
+        return (int) setClause.chars().filter(ch -> ch == '?').count();
     }
     
     /**
