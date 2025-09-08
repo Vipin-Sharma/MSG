@@ -17,6 +17,7 @@ import com.squareup.javapoet.TypeSpec;
 import org.apache.commons.text.CaseUtils;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
@@ -27,6 +28,7 @@ import java.util.Map;
  * Generates DAO classes for DELETE operations.
  * Following Vipin's Principle: Single responsibility - DELETE DAO generation only.
  */
+@Slf4j
 public class GenerateDeleteDAO {
     
     /**
@@ -81,7 +83,7 @@ public class GenerateDeleteDAO {
         JavaFile javaFile = JavaFile.builder(JavaPackageNameBuilder.buildJavaPackageName(businessPurposeOfSQL, "dao"), dao)
                 .build();
         
-        javaFile.writeTo(System.out);
+        log.info(javaFile.toString());
         
         return javaFile;
     }

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import lombok.extern.slf4j.Slf4j;
 
 import java.net.URISyntaxException;
 import java.sql.SQLException;
@@ -13,6 +14,7 @@ import java.util.List;
 
 import static com.jfeatures.msg.codegen.MicroServiceGenerator.getSql;
 
+@Slf4j
 @RestController
 @RequestMapping(path = "/codegen")
 //@AutoConfiguration
@@ -34,7 +36,7 @@ public class CodeGenController {
         String sql = getSql("sample_plain_sql_without_parameters.sql");
 
         List<ColumnMetadata> sqlColumnTypes = sqlMetadata.getColumnMetadata(sql);
-        sqlColumnTypes.forEach(System.out::println);
+        sqlColumnTypes.forEach(type -> log.info("{}", type));
         return sqlColumnTypes;
     }
 

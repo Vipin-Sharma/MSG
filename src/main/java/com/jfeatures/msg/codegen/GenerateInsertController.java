@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.lang.model.element.Modifier;
 import jakarta.validation.Valid;
@@ -33,6 +34,7 @@ import java.io.IOException;
  * Generates REST Controller with POST endpoints for INSERT operations.
  * Following Vipin's Principle: Single responsibility - INSERT controller generation only.
  */
+@Slf4j
 public class GenerateInsertController {
     
     /**
@@ -106,7 +108,7 @@ public class GenerateInsertController {
         JavaFile javaFile = JavaFile.builder(JavaPackageNameBuilder.buildJavaPackageName(businessPurposeOfSQL, "controller"), controller)
                 .build();
         
-        javaFile.writeTo(System.out);
+        log.info(javaFile.toString());
         
         return javaFile;
     }

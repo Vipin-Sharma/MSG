@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
@@ -35,6 +36,7 @@ import java.util.List;
  * Generates REST Controller with DELETE endpoints for DELETE operations.
  * Following Vipin's Principle: Single responsibility - DELETE controller generation only.
  */
+@Slf4j
 public class GenerateDeleteController {
     
     /**
@@ -143,8 +145,8 @@ public class GenerateDeleteController {
         JavaFile javaFile = JavaFile.builder(JavaPackageNameBuilder.buildJavaPackageName(businessPurposeOfSQL, "controller"), controller)
                 .build();
         
-        javaFile.writeTo(System.out);
-        
+        log.info(javaFile.toString());
+
         return javaFile;
     }
 }

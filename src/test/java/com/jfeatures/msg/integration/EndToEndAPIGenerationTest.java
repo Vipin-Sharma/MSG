@@ -3,14 +3,10 @@ package com.jfeatures.msg.integration;
 import com.jfeatures.msg.codegen.MicroServiceGenerator;
 import com.jfeatures.msg.codegen.util.SqlStatementDetector;
 import com.jfeatures.msg.codegen.util.SqlStatementType;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import lombok.extern.slf4j.Slf4j;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -18,20 +14,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  * End-to-end integration tests that generate complete APIs for all CRUD types
  * This fulfills the user's requirement for comprehensive API generation testing
  */
+@Slf4j
 class EndToEndAPIGenerationTest {
 
     @TempDir
     Path tempDir;
-
-    private ByteArrayOutputStream outputCapture;
-    private PrintStream originalOut;
-
-    @BeforeEach
-    void setUp() {
-        outputCapture = new ByteArrayOutputStream();
-        originalOut = System.out;
-        System.setOut(new PrintStream(outputCapture));
-    }
 
     @Test
     void shouldGenerateCompleteSelectAPI() throws Exception {
@@ -45,7 +32,6 @@ class EndToEndAPIGenerationTest {
         assertThat(detectedType).isEqualTo(SqlStatementType.SELECT);
         
         // Verify API generation components can handle SELECT statements
-        String output = outputCapture.toString();
         // We expect logging and code generation output for SELECT
         assertThat(selectSQL).contains("SELECT");
         assertThat(selectSQL).contains("customers");

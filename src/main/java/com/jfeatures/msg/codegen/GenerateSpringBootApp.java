@@ -6,10 +6,12 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
 
+@Slf4j
 public class GenerateSpringBootApp {
     public static JavaFile createSpringBootApp(String businessPurposeOfSQL) throws IOException {
 
@@ -29,7 +31,7 @@ public class GenerateSpringBootApp {
         JavaFile javaFile = JavaFile.builder("com.jfeatures.msg", mainClass)
                 .build();
 
-        javaFile.writeTo(System.out);
+        log.info(javaFile.toString());
 
         return javaFile;
     }

@@ -158,13 +158,9 @@ public class GenerateDAO {
         
         JavaFile javaFile = JavaFile.builder(JavaPackageNameBuilder.buildJavaPackageName(businessPurposeOfSQL, "dao"), dao)
                 .build();
-        
-        try {
-            javaFile.writeTo(System.out);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to write generated DAO to output: " + e.getMessage(), e);
-        }
-        
+
+        log.info(javaFile.toString());
+
         return javaFile;
     }
 }

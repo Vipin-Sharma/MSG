@@ -60,8 +60,8 @@ public class GenerateUpdateDAO {
         
         JavaFile javaFile = JavaFile.builder(JavaPackageNameBuilder.buildJavaPackageName(businessPurposeOfSQL, "dao"), daoClass)
                 .build();
-        
-        javaFile.writeTo(System.out);
+
+        log.info(javaFile.toString());
         return javaFile;
     }
     
