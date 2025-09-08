@@ -36,10 +36,11 @@ class GenerateDAOTest {
         assertThat(result.typeSpec.name).isEqualTo("CustomerDAO");
         
         String generatedCode = result.toString();
-        assertThat(generatedCode).contains("@Component");
-        assertThat(generatedCode).contains("NamedParameterJdbcTemplate");
-        assertThat(generatedCode).contains("getCustomer");
-        assertThat(generatedCode).contains("List<CustomerDTO>");
+        assertThat(generatedCode)
+            .contains("@Component")
+            .contains("NamedParameterJdbcTemplate")
+            .contains("getCustomer")
+            .contains("List<CustomerDTO>");
     }
 
     @Test
@@ -61,12 +62,13 @@ class GenerateDAOTest {
 
         // Then
         String generatedCode = result.toString();
-        assertThat(generatedCode).contains("Integer customerid");
-        assertThat(generatedCode).contains("String status");
-        assertThat(generatedCode).contains("BigDecimal minamount");
-        assertThat(generatedCode).contains("sqlParamMap.put(\"customerid\", customerid)");
-        assertThat(generatedCode).contains("sqlParamMap.put(\"status\", status)");
-        assertThat(generatedCode).contains("sqlParamMap.put(\"minamount\", minamount)");
+        assertThat(generatedCode)
+            .contains("Integer customerid")
+            .contains("String status")
+            .contains("BigDecimal minamount")
+            .contains("sqlParamMap.put(\"customerid\", customerid)")
+            .contains("sqlParamMap.put(\"status\", status)")
+            .contains("sqlParamMap.put(\"minamount\", minamount)");
     }
 
     @Test
@@ -85,9 +87,10 @@ class GenerateDAOTest {
 
         // Then
         String generatedCode = result.toString();
-        assertThat(generatedCode).contains("OrderSummaryDAO");
-        assertThat(generatedCode).contains("getOrderSummary");
-        assertThat(generatedCode).contains("Integer year");
+        assertThat(generatedCode)
+            .contains("OrderSummaryDAO")
+            .contains("getOrderSummary")
+            .contains("Integer year");
     }
 
     @ParameterizedTest
@@ -104,6 +107,8 @@ class GenerateDAOTest {
         JavaFile result = GenerateDAO.createDaoFromMetadata(businessPurpose, columnMetadata, predicateLiterals, sql);
 
         // Then
+        assertThat(result)
+            .isNotNull();
         assertThat(result.typeSpec.name).isEqualTo(businessPurpose + "DAO");
         assertThat(result.packageName).isEqualTo("com.jfeatures.msg." + businessPurpose.toLowerCase() + ".dao");
     }
@@ -167,8 +172,9 @@ class GenerateDAOTest {
 
         // Then
         String generatedCode = result.toString();
-        assertThat(generatedCode).contains("getCustomerCount()");
-        assertThat(generatedCode).contains("Map<String, Object> sqlParamMap = new HashMap()");
+        assertThat(generatedCode)
+            .contains("getCustomerCount()")
+            .contains("Map<String, Object> sqlParamMap = new HashMap()");
     }
 
     @Test
@@ -185,9 +191,10 @@ class GenerateDAOTest {
 
         // Then
         String generatedCode = result.toString();
-        assertThat(generatedCode).contains("private final NamedParameterJdbcTemplate namedParameterJdbcTemplate");
-        assertThat(generatedCode).contains("private static final String SQL =");
-        assertThat(generatedCode).contains("TestDAO(NamedParameterJdbcTemplate namedParameterJdbcTemplate)");
-        assertThat(generatedCode).contains("this.namedParameterJdbcTemplate = namedParameterJdbcTemplate");
+        assertThat(generatedCode)
+            .contains("private final NamedParameterJdbcTemplate namedParameterJdbcTemplate")
+            .contains("private static final String SQL =")
+            .contains("TestDAO(NamedParameterJdbcTemplate namedParameterJdbcTemplate)")
+            .contains("this.namedParameterJdbcTemplate = namedParameterJdbcTemplate");
     }
 }
