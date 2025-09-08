@@ -211,11 +211,59 @@ class SqlMetadataTest {
         assertEquals("customer_name", secondColumn.getColumnName());
         assertEquals("name", secondColumn.getColumnAlias());
     }
+
+    @Test
+    void testGetColumnMetadata_CteQuery_AcceptsWithClause() throws SQLException {
+        String query = """
+            WITH cte AS (SELECT 1 AS id)
+            SELECT id FROM cte
+            """;
+
+        setupSingleColumnResultSetMetadata();
+
+        when(jdbcTemplate.query(eq(query), any(RowMapper.class))).thenAnswer(invocation -> {
+            RowMapper<ColumnMetadata> rowMapper = invocation.getArgument(1);
+
+            when(resultSet.getMetaData()).thenReturn(resultSetMetaData);
+            rowMapper.mapRow(resultSet, 0);
+
+            return null;
+        });
+
+        List<ColumnMetadata> result = sqlMetadata.getColumnMetadata(query);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void testGetColumnMetadata_QueryWithLeadingComment_Allowed() throws SQLException {
+        String query = """
+            -- fetch customer ids
+            SELECT customer_id FROM customers
+            """;
+
+        setupSingleColumnResultSetMetadata();
+
+        when(jdbcTemplate.query(eq(query), any(RowMapper.class))).thenAnswer(invocation -> {
+            RowMapper<ColumnMetadata> rowMapper = invocation.getArgument(1);
+
+            when(resultSet.getMetaData()).thenReturn(resultSetMetaData);
+            rowMapper.mapRow(resultSet, 0);
+
+            return null;
+        });
+
+        List<ColumnMetadata> result = sqlMetadata.getColumnMetadata(query);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+    }
     
     @Test
     void testGetColumnMetadata_SQLException_PropagatesException() throws SQLException {
-        // Given
-        String query = "INVALID SQL";
+        // Given - use valid SQL structure that will pass validation but fail on execution
+        String query = "SELECT column1 FROM non_existent_table";
         DataAccessException dataAccessException = new DataAccessException("Invalid SQL syntax") {};
         
         when(jdbcTemplate.query(eq(query), any(RowMapper.class)))

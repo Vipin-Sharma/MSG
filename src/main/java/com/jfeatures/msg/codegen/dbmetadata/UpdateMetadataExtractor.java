@@ -148,31 +148,53 @@ public class UpdateMetadataExtractor {
      */
     private int countSetParameters(String sql) {
         try {
-            Statement statement = CCJSqlParserUtil.parse(sql);
-            if (statement instanceof Update updateStatement) {
-                int count = 0;
-                for (UpdateSet updateSet : updateStatement.getUpdateSets()) {
-                    var values = updateSet.getValues();
-                    if (values != null) {
-                        for (var expr : values.getExpressions()) {
-                            if (expr instanceof JdbcParameter) {
-                                count++;
-                            }
-                        }
-                    }
-                }
-                return count;
-            }
+            return countSetParametersByParsing(sql);
         } catch (JSQLParserException e) {
             log.warn("Could not parse UPDATE to count SET params: {}", e.getMessage());
+            return countSetParametersByStringAnalysis(sql);
         }
-
-        // Fallback: best effort by counting '?' in the SET clause
+    }
+    
+    /**
+     * Counts SET parameters using JSQLParser.
+     */
+    private int countSetParametersByParsing(String sql) throws JSQLParserException {
+        Statement statement = CCJSqlParserUtil.parse(sql);
+        if (!(statement instanceof Update updateStatement)) {
+            return 0;
+        }
+        
+        return updateStatement.getUpdateSets()
+                .stream()
+                .mapToInt(this::countParametersInUpdateSet)
+                .sum();
+    }
+    
+    /**
+     * Counts parameters in a single UpdateSet.
+     */
+    private int countParametersInUpdateSet(UpdateSet updateSet) {
+        var values = updateSet.getValues();
+        if (values == null) {
+            return 0;
+        }
+        
+        return (int) values.getExpressions()
+                .stream()
+                .filter(expr -> expr instanceof JdbcParameter)
+                .count();
+    }
+    
+    /**
+     * Fallback method to count SET parameters by string analysis.
+     */
+    private int countSetParametersByStringAnalysis(String sql) {
         String upperSql = sql.toUpperCase();
         int setIndex = upperSql.indexOf("SET");
         if (setIndex == -1) {
             return 0;
         }
+        
         int whereIndex = upperSql.indexOf("WHERE", setIndex);
         String setClause = whereIndex == -1 ? sql.substring(setIndex) : sql.substring(setIndex, whereIndex);
         return (int) setClause.chars().filter(ch -> ch == '?').count();

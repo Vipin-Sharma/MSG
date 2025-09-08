@@ -66,12 +66,12 @@ class ReadFileFromResourcesTest {
 
     @Test
     void testReadFileFromResourcesWithLeadingSlash() {
-        // Test with leading slash (different behavior in class loader)
+        // Test with leading slash (should be blocked for security)
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> 
             ReadFileFromResources.readFileFromResources("/sample_parameterized_sql.sql"));
         
         assertNotNull(exception);
-        assertTrue(exception.getMessage().contains("Resource file not found"));
+        assertTrue(exception.getMessage().contains("directory traversal patterns"));
     }
 
     @Test
@@ -216,7 +216,7 @@ class ReadFileFromResourcesTest {
                 ReadFileFromResources.readFileFromResources(path));
             
             assertNotNull(exception);
-            assertTrue(exception.getMessage().contains("Resource file not found"));
+            assertTrue(exception.getMessage().contains("directory traversal patterns"));
         }
     }
 

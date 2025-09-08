@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -78,6 +79,43 @@ public class MicroserviceProjectWriter {
         }
         if (destinationPath == null || destinationPath.trim().isEmpty()) {
             throw new IllegalArgumentException("Destination path cannot be null or empty");
+        }
+        
+        // Prevent directory traversal attacks
+        validatePathSecurity(destinationPath);
+    }
+    
+    /**
+     * Validates path security to prevent directory traversal attacks.
+     * 
+     * @param path the path to validate
+     * @throws IllegalArgumentException if the path contains directory traversal patterns
+     */
+    private void validatePathSecurity(String path) {
+        if (path == null) {
+            return;
+        }
+        
+        // Normalize the path to resolve any '..' or '.' components
+        Path normalizedPath;
+        try {
+            normalizedPath = Paths.get(path).normalize().toAbsolutePath();
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid path format: " + path);
+        }
+        
+        // Check for directory traversal patterns
+        String normalizedStr = normalizedPath.toString();
+        if (path.contains("../") || path.contains("..\\")) {
+            throw new IllegalArgumentException("Path contains invalid directory traversal patterns: " + path);
+        }
+        
+        // Ensure path doesn't access system directories
+        String[] forbiddenPaths = {"/etc", "/bin", "/usr", "/var", "/sys", "/proc", "C:\\Windows", "C:\\Program Files"};
+        for (String forbidden : forbiddenPaths) {
+            if (normalizedStr.startsWith(forbidden)) {
+                throw new IllegalArgumentException("Access to system directories is not allowed: " + path);
+            }
         }
     }
     

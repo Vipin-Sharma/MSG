@@ -99,8 +99,11 @@ public class ParameterMetadataExtractor {
                 columnNames.add("param" + (columnNames.size() + 1));
             }
             
-        } catch (Exception e) {
-            log.warn("Error extracting column names from WHERE clause: {}", e.getMessage());
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            log.warn("Invalid SQL structure while extracting column names: {}", e.getMessage());
+            return generateDefaultParameterNames(expectedParameterCount);
+        } catch (RuntimeException e) {
+            log.error("Unexpected runtime error extracting column names from WHERE clause: {}", e.getMessage(), e);
             return generateDefaultParameterNames(expectedParameterCount);
         }
         

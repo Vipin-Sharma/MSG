@@ -19,9 +19,26 @@ public class SqlMetadata {
     }
 
     public List<ColumnMetadata> getColumnMetadata(String query) throws SQLException {
+        // Input validation to prevent SQL injection
+        if (query == null || query.trim().isEmpty()) {
+            throw new IllegalArgumentException("SQL query cannot be null or empty");
+        }
+        
+        // Remove SQL comments before validation
+        String sanitizedQuery = query
+            .replaceAll("(?s)/\\*.*?\\*/", " ")
+            .replaceAll("(?m)--.*$", " ");
+
+        // Basic SQL injection prevention - validate query structure
+        String normalizedQuery = sanitizedQuery.trim().replaceAll("\\s+", " ").toUpperCase();
+        if (!isValidQueryStructure(normalizedQuery)) {
+            throw new IllegalArgumentException("Invalid SQL query structure detected");
+        }
 
         List<ColumnMetadata> columnMetadataList = new ArrayList<>();
-        jdbcTemplate.query(query, new RowMapper<ColumnMetadata>() {
+        
+        try {
+            jdbcTemplate.query(query, new RowMapper<ColumnMetadata>() {
             @Override
             public ColumnMetadata mapRow(ResultSet rs, int rowNum) throws SQLException {
                 ResultSetMetaData metadata = rs.getMetaData();
@@ -53,7 +70,39 @@ public class SqlMetadata {
 
                 return null;
             }
-        });
+            });
+        } catch (org.springframework.dao.DataAccessException e) {
+            // Re-throw DataAccessException to maintain test compatibility
+            throw e;
+        }
+        
         return columnMetadataList;
+    }
+    
+    /**
+     * Validates SQL query structure to prevent basic SQL injection attacks.
+     * Ensures the query follows expected patterns for SELECT, INSERT, UPDATE, DELETE operations.
+     * 
+     * @param normalizedQuery the SQL query in uppercase and trimmed
+     * @return true if the query structure is valid, false otherwise
+     */
+    private boolean isValidQueryStructure(String normalizedQuery) {
+        // Allow standard CRUD operations and CTEs
+        if (!normalizedQuery.matches("^(WITH|SELECT|INSERT|UPDATE|DELETE)\\s+.*")) {
+            return false;
+        }
+
+        // Prevent dangerous SQL keywords and patterns (only multiple statements)
+        String[] dangerousPatterns = {
+            ";\\s*(DROP|CREATE|ALTER|EXEC|EXECUTE)\\s+"
+        };
+
+        for (String pattern : dangerousPatterns) {
+            if (normalizedQuery.matches(".*" + pattern + ".*")) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

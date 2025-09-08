@@ -2,6 +2,7 @@ package com.jfeatures.msg.controller;
 
 import static com.jfeatures.msg.codegen.MicroServiceGenerator.getSql;
 
+import com.jfeatures.msg.codegen.constants.ProjectConstants;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.SqlMetadata;
 import java.net.URISyntaxException;
@@ -26,7 +27,7 @@ public class CodeGenController {
 
     @GetMapping(
             value = "/hello",
-            produces = "application/json"
+            produces = ProjectConstants.APPLICATION_JSON
     )
     public List<ColumnMetadata> selectColumnMetadata() throws URISyntaxException, SQLException {
         String sql = getSql("sample_plain_sql_without_parameters.sql");

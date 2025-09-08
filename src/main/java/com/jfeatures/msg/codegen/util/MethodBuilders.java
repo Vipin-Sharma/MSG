@@ -1,5 +1,6 @@
 package com.jfeatures.msg.codegen.util;
 
+import com.jfeatures.msg.codegen.constants.ProjectConstants;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
@@ -86,7 +87,7 @@ public final class MethodBuilders {
                 .returns(returnType)
                 .addAnnotation(AnnotationSpec.builder(GetMapping.class)
                         .addMember("value", "$S", path != null ? path : "")
-                        .addMember("produces", "$S", "application/json")
+                        .addMember("produces", "$S", ProjectConstants.APPLICATION_JSON)
                         .build());
         
         if (summary != null && !summary.trim().isEmpty()) {
@@ -112,8 +113,8 @@ public final class MethodBuilders {
                 .addModifiers(Modifier.PUBLIC)
                 .returns(returnType)
                 .addAnnotation(AnnotationSpec.builder(PostMapping.class)
-                        .addMember("consumes", "$S", "application/json")
-                        .addMember("produces", "$S", "application/json")
+                        .addMember("consumes", "$S", ProjectConstants.APPLICATION_JSON)
+                        .addMember("produces", "$S", ProjectConstants.APPLICATION_JSON)
                         .build())
                 .addParameter(ParameterSpec.builder(requestType, paramName)
                         .addAnnotation(Valid.class)
@@ -143,8 +144,8 @@ public final class MethodBuilders {
                 .addModifiers(Modifier.PUBLIC)
                 .returns(returnType)
                 .addAnnotation(AnnotationSpec.builder(PutMapping.class)
-                        .addMember("consumes", "$S", "application/json")
-                        .addMember("produces", "$S", "application/json")
+                        .addMember("consumes", "$S", ProjectConstants.APPLICATION_JSON)
+                        .addMember("produces", "$S", ProjectConstants.APPLICATION_JSON)
                         .build())
                 .addParameter(ParameterSpec.builder(requestType, paramName)
                         .addAnnotation(Valid.class)
@@ -171,7 +172,7 @@ public final class MethodBuilders {
                 .addModifiers(Modifier.PUBLIC)
                 .returns(returnType)
                 .addAnnotation(AnnotationSpec.builder(DeleteMapping.class)
-                        .addMember("produces", "$S", "application/json")
+                        .addMember("produces", "$S", ProjectConstants.APPLICATION_JSON)
                         .build());
         
         if (summary != null && !summary.trim().isEmpty()) {
