@@ -1,9 +1,9 @@
 package com.jfeatures.msg.codegen;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.squareup.javapoet.JavaFile;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class GenerateSpringBootAppTest {
 

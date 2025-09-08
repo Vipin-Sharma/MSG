@@ -1,17 +1,17 @@
 package com.jfeatures.msg.codegen.sql;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.jfeatures.msg.codegen.constants.ProjectConstants;
 import com.jfeatures.msg.sql.ReadFileFromResources;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class SqlFileResolverTest {

@@ -1,9 +1,8 @@
 package com.jfeatures.msg.codegen.sql;
 
 import com.jfeatures.msg.codegen.domain.DBColumn;
-import org.apache.commons.text.CaseUtils;
-
 import java.util.List;
+import org.apache.commons.text.CaseUtils;
 
 public class SqlParameterReplacer {
     

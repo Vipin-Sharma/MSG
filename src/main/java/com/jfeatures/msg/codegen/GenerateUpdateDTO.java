@@ -2,20 +2,19 @@ package com.jfeatures.msg.codegen;
 
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.UpdateMetadata;
-import com.jfeatures.msg.codegen.util.JavaPackageNameBuilder;
 import com.jfeatures.msg.codegen.util.DtoFieldNameConverter;
+import com.jfeatures.msg.codegen.util.JavaPackageNameBuilder;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeSpec;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-
-import javax.lang.model.element.Modifier;
 import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.lang.model.element.Modifier;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Generates DTO classes for UPDATE statements.

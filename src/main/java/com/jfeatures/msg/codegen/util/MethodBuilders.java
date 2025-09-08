@@ -5,14 +5,13 @@ import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeName;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.web.bind.annotation.*;
-import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
-
+import jakarta.validation.Valid;
+import java.util.List;
 import javax.lang.model.element.Modifier;
 import javax.sql.DataSource;
-import java.util.List;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Specialized builder for JavaPoet method specifications.

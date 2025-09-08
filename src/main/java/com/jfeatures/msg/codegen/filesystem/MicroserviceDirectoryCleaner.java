@@ -1,11 +1,10 @@
 package com.jfeatures.msg.codegen.filesystem;
 
 import com.jfeatures.msg.codegen.constants.ProjectConstants;
-import lombok.extern.slf4j.Slf4j;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Handles cleaning of destination directories before microservice generation.

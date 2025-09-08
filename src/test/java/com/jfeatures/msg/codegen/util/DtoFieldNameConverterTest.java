@@ -1,9 +1,9 @@
 package com.jfeatures.msg.codegen.util;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.jfeatures.msg.codegen.domain.TableColumn;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class DtoFieldNameConverterTest {
 

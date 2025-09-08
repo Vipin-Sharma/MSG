@@ -1,17 +1,16 @@
 package com.jfeatures.msg.config;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.sql.SQLException;
+import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
-
-import javax.sql.DataSource;
-import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.SQLException;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class DataSourceConfigTest {
 

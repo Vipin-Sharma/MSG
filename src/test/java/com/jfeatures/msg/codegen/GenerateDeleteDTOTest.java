@@ -1,18 +1,16 @@
 package com.jfeatures.msg.codegen;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.DeleteMetadata;
 import com.jfeatures.msg.test.TestUtils;
 import com.squareup.javapoet.JavaFile;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Reality-based tests for GenerateDeleteDTO following project patterns.

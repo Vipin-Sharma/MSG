@@ -1,9 +1,9 @@
 package com.jfeatures.msg.integration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.jfeatures.msg.codegen.MicroServiceGenerator;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Basic integration tests that verify the microservice generator can be instantiated

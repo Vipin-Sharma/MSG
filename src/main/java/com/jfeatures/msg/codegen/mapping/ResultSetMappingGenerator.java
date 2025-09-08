@@ -1,13 +1,12 @@
 package com.jfeatures.msg.codegen.mapping;
 
+import com.jfeatures.msg.codegen.constants.CodeGenerationConstants;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.jdbc.JdbcMethodSelector;
-import com.jfeatures.msg.codegen.constants.CodeGenerationConstants;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
-import org.apache.commons.text.CaseUtils;
-
 import java.util.List;
+import org.apache.commons.text.CaseUtils;
 
 public class ResultSetMappingGenerator {
     

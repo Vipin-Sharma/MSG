@@ -1,14 +1,14 @@
 package com.jfeatures.msg.integration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.jfeatures.msg.codegen.MicroServiceGenerator;
 import com.jfeatures.msg.codegen.util.SqlStatementDetector;
 import com.jfeatures.msg.codegen.util.SqlStatementType;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import java.nio.file.Path;
 import lombok.extern.slf4j.Slf4j;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * End-to-end integration tests that generate complete APIs for all CRUD types

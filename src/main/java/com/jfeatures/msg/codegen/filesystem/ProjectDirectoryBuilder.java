@@ -2,8 +2,6 @@ package com.jfeatures.msg.codegen.filesystem;
 
 import com.jfeatures.msg.codegen.constants.ProjectConstants;
 import com.jfeatures.msg.codegen.domain.ProjectDirectoryStructure;
-
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

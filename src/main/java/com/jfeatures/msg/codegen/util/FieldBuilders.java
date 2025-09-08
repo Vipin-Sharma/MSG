@@ -4,10 +4,9 @@ import com.jfeatures.msg.codegen.SQLServerDataTypeEnum;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.TypeName;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-
 import javax.lang.model.element.Modifier;
 import javax.sql.DataSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 /**
  * Specialized builder for JavaPoet field specifications.

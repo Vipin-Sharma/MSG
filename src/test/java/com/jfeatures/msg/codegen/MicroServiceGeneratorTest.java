@@ -1,29 +1,21 @@
 package com.jfeatures.msg.codegen;
 
-import com.jfeatures.msg.codegen.constants.ProjectConstants;
-import com.jfeatures.msg.codegen.domain.GeneratedMicroservice;
-import com.jfeatures.msg.codegen.util.SqlStatementType;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
-import picocli.CommandLine;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.sql.SQLException;
-import java.util.concurrent.Callable;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+
+import com.jfeatures.msg.codegen.constants.ProjectConstants;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.sql.SQLException;
+import java.util.concurrent.Callable;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.mockito.MockedStatic;
+import picocli.CommandLine;
 
 class MicroServiceGeneratorTest {
 

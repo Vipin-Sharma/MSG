@@ -1,13 +1,12 @@
 package com.jfeatures.msg.codegen;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.jfeatures.msg.codegen.domain.DBColumn;
 import com.squareup.javapoet.JavaFile;
-import org.junit.jupiter.api.Test;
-
 import java.util.Arrays;
 import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class GenerateControllerTest {
 

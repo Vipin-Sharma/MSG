@@ -1,11 +1,10 @@
 package com.jfeatures.msg.codegen;
 
-import org.junit.jupiter.api.Test;
-
-import java.math.BigDecimal;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
+
+import java.math.BigDecimal;
+import org.junit.jupiter.api.Test;
 
 class SQLServerDataTypeEnumTest {
 

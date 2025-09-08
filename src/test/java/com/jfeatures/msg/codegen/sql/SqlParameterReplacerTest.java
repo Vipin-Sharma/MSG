@@ -1,13 +1,12 @@
 package com.jfeatures.msg.codegen.sql;
 
-import com.jfeatures.msg.codegen.domain.DBColumn;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
+import com.jfeatures.msg.codegen.domain.DBColumn;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 class SqlParameterReplacerTest {
     

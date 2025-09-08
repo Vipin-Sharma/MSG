@@ -4,13 +4,12 @@ import com.jfeatures.msg.codegen.constants.ProjectConstants;
 import com.jfeatures.msg.codegen.domain.GeneratedMicroservice;
 import com.jfeatures.msg.codegen.domain.ProjectDirectoryStructure;
 import com.squareup.javapoet.JavaFile;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Writes generated microservice files to the filesystem.

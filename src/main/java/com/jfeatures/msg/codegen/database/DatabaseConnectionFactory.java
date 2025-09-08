@@ -4,12 +4,10 @@ import com.jfeatures.msg.codegen.domain.DatabaseConnection;
 import com.jfeatures.msg.config.DataSourceConfig;
 import com.jfeatures.msg.config.JdbcTemplateConfig;
 import com.jfeatures.msg.config.NamedParameterJdbcTemplateConfig;
+import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-
-import javax.sql.DataSource;
-import java.sql.SQLException;
 
 /**
  * Factory for creating database connections needed for microservice generation.

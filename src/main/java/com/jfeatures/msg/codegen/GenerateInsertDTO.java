@@ -2,20 +2,18 @@ package com.jfeatures.msg.codegen;
 
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.InsertMetadata;
-import com.jfeatures.msg.codegen.util.JavaPackageNameBuilder;
 import com.jfeatures.msg.codegen.util.DtoFieldNameConverter;
-import com.jfeatures.msg.codegen.SQLServerDataTypeEnum;
+import com.jfeatures.msg.codegen.util.JavaPackageNameBuilder;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeSpec;
+import java.io.IOException;
+import javax.lang.model.element.Modifier;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 import lombok.extern.slf4j.Slf4j;
-
-import javax.lang.model.element.Modifier;
-import java.io.IOException;
 
 /**
  * Generates DTO classes for INSERT operations.

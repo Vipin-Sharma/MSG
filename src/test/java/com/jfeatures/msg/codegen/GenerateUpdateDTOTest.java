@@ -1,19 +1,17 @@
 package com.jfeatures.msg.codegen;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.UpdateMetadata;
 import com.jfeatures.msg.test.TestUtils;
 import com.squareup.javapoet.JavaFile;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Comprehensive tests for GenerateUpdateDTO to improve coverage from 45% to 90%+.

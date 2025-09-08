@@ -2,10 +2,6 @@ package com.jfeatures.msg.codegen;
 
 import com.jfeatures.msg.codegen.constants.ProjectConstants;
 import com.jfeatures.msg.codegen.domain.DBColumn;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.jdbc.core.JdbcTemplate;
-
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
@@ -15,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.sql.DataSource;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ParameterMetadataExtractor {
