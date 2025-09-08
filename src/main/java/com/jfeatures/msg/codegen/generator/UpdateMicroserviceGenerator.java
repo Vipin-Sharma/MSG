@@ -42,8 +42,7 @@ public class UpdateMicroserviceGenerator {
         
         // Extract UPDATE metadata from SQL statement
         UpdateMetadataExtractor updateExtractor = new UpdateMetadataExtractor(
-            databaseConnection.dataSource(), 
-            databaseConnection.namedParameterJdbcTemplate()
+            databaseConnection.dataSource()
         );
         UpdateMetadata updateMetadata = updateExtractor.extractUpdateMetadata(sql);
         log.info("Extracted UPDATE metadata for table: {}", updateMetadata.tableName());

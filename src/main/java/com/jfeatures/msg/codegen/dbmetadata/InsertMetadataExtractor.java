@@ -14,7 +14,6 @@ import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.insert.Insert;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 /**
  * Extracts metadata from INSERT statements using database metadata approach.
@@ -24,11 +23,9 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 public class InsertMetadataExtractor {
     
     private final DataSource dataSource;
-    private final NamedParameterJdbcTemplate jdbcTemplate;
-    
-    public InsertMetadataExtractor(DataSource dataSource, NamedParameterJdbcTemplate jdbcTemplate) {
+
+    public InsertMetadataExtractor(DataSource dataSource) {
         this.dataSource = dataSource;
-        this.jdbcTemplate = jdbcTemplate;
     }
     
     /**

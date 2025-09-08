@@ -15,16 +15,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 @ExtendWith(MockitoExtension.class)
 class DeleteMetadataExtractorTest {
 
     @Mock
     private DataSource dataSource;
-    
-    @Mock
-    private NamedParameterJdbcTemplate jdbcTemplate;
     
     @Mock
     private Connection connection;
@@ -38,14 +34,11 @@ class DeleteMetadataExtractorTest {
     @Mock
     private ResultSet allColumnsResultSet;
     
-    @Mock
-    private ParameterMetadataExtractor parameterExtractor;
-    
     private DeleteMetadataExtractor extractor;
     
     @BeforeEach
     void setUp() throws SQLException {
-        extractor = new DeleteMetadataExtractor(dataSource, jdbcTemplate);
+        extractor = new DeleteMetadataExtractor(dataSource);
         
         // Setup basic mocks with lenient stubbing
         lenient().when(dataSource.getConnection()).thenReturn(connection);

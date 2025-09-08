@@ -29,7 +29,7 @@ class DataSourceConfigTest {
     }
 
     @Test
-    void testDataSourceMethodHasBeanAnnotation() throws Exception {
+    void testDataSourceMethodHasBeanAnnotation() throws NoSuchMethodException {
         // Verify that the dataSource method has @Bean annotation
         Method dataSourceMethod = DataSourceConfig.class.getMethod("dataSource");
         assertTrue(dataSourceMethod.isAnnotationPresent(Bean.class),
@@ -37,7 +37,7 @@ class DataSourceConfigTest {
     }
 
     @Test
-    void testDataSourceMethodReturnsDataSource() throws Exception {
+    void testDataSourceMethodReturnsDataSource() throws NoSuchMethodException {
         // Verify method signature
         Method dataSourceMethod = DataSourceConfig.class.getMethod("dataSource");
         assertEquals(DataSource.class, dataSourceMethod.getReturnType(),
@@ -170,7 +170,7 @@ class DataSourceConfigTest {
     }
 
     @Test
-    void testDataSourceMethodIsPublic() throws Exception {
+    void testDataSourceMethodIsPublic() throws NoSuchMethodException {
         Method dataSourceMethod = DataSourceConfig.class.getMethod("dataSource");
         assertTrue(java.lang.reflect.Modifier.isPublic(dataSourceMethod.getModifiers()),
                   "dataSource method should be public");

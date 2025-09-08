@@ -34,8 +34,7 @@ public class InsertMicroserviceGenerator {
         
         // Extract INSERT metadata from SQL statement
         InsertMetadataExtractor insertExtractor = new InsertMetadataExtractor(
-            databaseConnection.dataSource(), 
-            databaseConnection.namedParameterJdbcTemplate()
+            databaseConnection.dataSource()
         );
         InsertMetadata insertMetadata = insertExtractor.extractInsertMetadata(sql);
         log.info("Extracted INSERT metadata for table: {}", insertMetadata.tableName());

@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RestController
 @RequestMapping(path = "/codegen")
-//@AutoConfiguration
 public class CodeGenController {
 
 
@@ -30,7 +29,6 @@ public class CodeGenController {
             produces = "application/json"
     )
     public List<ColumnMetadata> selectColumnMetadata() throws URISyntaxException, SQLException {
-        //String sql = getSql("sample_parameterized_sql.sql");
         String sql = getSql("sample_plain_sql_without_parameters.sql");
 
         List<ColumnMetadata> sqlColumnTypes = sqlMetadata.getColumnMetadata(sql);

@@ -18,7 +18,6 @@ import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.update.Update;
 import net.sf.jsqlparser.statement.update.UpdateSet;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 /**
  * Extracts metadata from UPDATE statements using database metadata approach.
@@ -28,11 +27,9 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 public class UpdateMetadataExtractor {
     
     private final DataSource dataSource;
-    private final NamedParameterJdbcTemplate jdbcTemplate;
-    
-    public UpdateMetadataExtractor(DataSource dataSource, NamedParameterJdbcTemplate jdbcTemplate) {
+
+    public UpdateMetadataExtractor(DataSource dataSource) {
         this.dataSource = dataSource;
-        this.jdbcTemplate = jdbcTemplate;
     }
     
     /**
