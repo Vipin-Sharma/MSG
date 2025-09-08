@@ -24,7 +24,6 @@ public enum SQLServerDataTypeEnum {
     DATE("DATE", java.sql.Date.class, "Date"),
     DATETIME("DATETIME", java.sql.Timestamp.class, "Timestamp" ),
     DATETIME2("DATETIME2", java.sql.Timestamp.class, "Timestamp" ),
-    //DATETIMEOFFSET("DATETIMEOFFSET", microsoft.sql.DateTimeOffset.class, "microsoft.sql.Types.DATETIMEOFFSET" ),
     DECIMAL("DECIMAL", java.math.BigDecimal.class, "BigDecimal" ),
     INT("INT", Integer.class, "Int" ),
     FLOAT("FLOAT", Double.class, "Double" ),
@@ -34,7 +33,6 @@ public enum SQLServerDataTypeEnum {
     NTEXT("NTEXT", String.class, "String" ),
     NUMERIC("NUMERIC", java.math.BigDecimal.class, "BigDecimal" ),
     NVARCHAR("NVARCHAR", String.class, "String"),
-    /*(nvarchar(max)   String );*/
     REAL("REAL", Float.class, "Float" ),
     SMALLDATETIME("SMALLDATETIME", java.sql.Timestamp.class, "Timestamp" ),
     SMALLINT("SMALLINT", Integer.class, "Int" ),
@@ -43,10 +41,6 @@ public enum SQLServerDataTypeEnum {
     TIME("TIME", java.sql.Time.class, "Time" ),
     TIMESTAMP("TIMESTAMP", java.sql.Timestamp.class, "Timestamp" ),
     TINYINT("TINYINT", Integer.class, "Int" ),
-    /*(udt, byte[] ),
-    (uniqueidentifier, String );
-    (varbinary, byte[] );
-    (varbinar(max)   byte[] );*/
     VARCHAR("VARCHAR", String.class, "String" ),
     
     // Additional SQL Server types for completeness

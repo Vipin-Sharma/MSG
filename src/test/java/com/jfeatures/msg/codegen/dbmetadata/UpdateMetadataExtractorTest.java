@@ -11,16 +11,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 @ExtendWith(MockitoExtension.class)
 class UpdateMetadataExtractorTest {
 
     @Mock
     private DataSource dataSource;
-    
-    @Mock
-    private NamedParameterJdbcTemplate jdbcTemplate;
     
     @Mock
     private Connection connection;
@@ -41,7 +37,7 @@ class UpdateMetadataExtractorTest {
     
     @BeforeEach
     void setUp() throws SQLException {
-        extractor = new UpdateMetadataExtractor(dataSource, jdbcTemplate);
+        extractor = new UpdateMetadataExtractor(dataSource);
         
         // Setup basic mocks with lenient stubbing
         lenient().when(dataSource.getConnection()).thenReturn(connection);

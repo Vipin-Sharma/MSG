@@ -1,6 +1,7 @@
 package com.jfeatures.msg.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.jfeatures.msg.codegen.MicroServiceGenerator;
 import com.jfeatures.msg.codegen.util.SqlStatementDetector;
@@ -158,6 +159,7 @@ class EndToEndAPIGenerationTest {
                 case 1 -> assertThat(detectedType).isEqualTo(SqlStatementType.INSERT);
                 case 2 -> assertThat(detectedType).isEqualTo(SqlStatementType.UPDATE);
                 case 3 -> assertThat(detectedType).isEqualTo(SqlStatementType.DELETE);
+                default -> fail("Unexpected SQL statement index: " + i);
             }
         }
     }

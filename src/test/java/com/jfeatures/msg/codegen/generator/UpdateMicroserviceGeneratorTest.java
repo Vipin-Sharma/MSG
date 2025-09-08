@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 @ExtendWith(MockitoExtension.class)
 class UpdateMicroserviceGeneratorTest {
@@ -25,9 +24,6 @@ class UpdateMicroserviceGeneratorTest {
     
     @Mock
     private DataSource dataSource;
-    
-    @Mock
-    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
     
     @Mock
     private UpdateMetadataExtractor updateMetadataExtractor;
@@ -43,7 +39,6 @@ class UpdateMicroserviceGeneratorTest {
         
         // Setup database connection mocks with lenient stubbing
         lenient().when(databaseConnection.dataSource()).thenReturn(dataSource);
-        lenient().when(databaseConnection.namedParameterJdbcTemplate()).thenReturn(namedParameterJdbcTemplate);
         
         // Setup update metadata mock with lenient stubbing
         lenient().when(updateMetadata.tableName()).thenReturn("customers");
