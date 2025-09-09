@@ -4,13 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.squareup.javapoet.*;
-import java.util.stream.Stream;
 import javax.lang.model.element.Modifier;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
@@ -282,73 +278,10 @@ class CommonJavaPoetBuildersTest {
         assertThat(param.annotations.get(0).type).isEqualTo(ClassName.get(PathVariable.class));
     }
 
-    // ============================= UTILITY METHOD TESTS ==============================
-
-    @ParameterizedTest
-    @MethodSource("provideBusinessNameAndPackageSuffixArguments")
-    void shouldBuildPackageName(String businessName, String packageSuffix, String expectedPackage) {
-        // When
-        String result = CommonJavaPoetBuilders.buildPackageName(businessName, packageSuffix);
-        
-        // Then
-        assertThat(result).isEqualTo(expectedPackage);
-    }
-
-    static Stream<Arguments> provideBusinessNameAndPackageSuffixArguments() {
-        return Stream.of(
-            Arguments.of("Customer", "dao", "com.jfeatures.msg.customer.dao"),
-            Arguments.of("OrderDetail", "dto", "com.jfeatures.msg.orderdetail.dto"),
-            Arguments.of("USER", "controller", "com.jfeatures.msg.user.controller"),
-            Arguments.of("Product", "service", "com.jfeatures.msg.product.service")
-        );
-    }
-
-    @ParameterizedTest
-    @MethodSource("provideBusinessNameAndClassSuffixArguments")
-    void shouldBuildClassName(String businessName, String classSuffix, String expectedClassName) {
-        // When
-        String result = CommonJavaPoetBuilders.buildClassName(businessName, classSuffix);
-        
-        // Then
-        assertThat(result).isEqualTo(expectedClassName);
-    }
-
-    static Stream<Arguments> provideBusinessNameAndClassSuffixArguments() {
-        return Stream.of(
-            Arguments.of("Customer", "DAO", "CustomerDAO"),
-            Arguments.of("OrderDetail", "DTO", "OrderDetailDTO"),
-            Arguments.of("User", "Controller", "UserController"),
-            Arguments.of("Product", "Service", "ProductService")
-        );
-    }
-
-    @Test
-    void shouldCreateJdbcTemplateFieldName() {
-        // When
-        String result = CommonJavaPoetBuilders.jdbcTemplateFieldName("Customer");
-        
-        // Then
-        assertThat(result).isEqualTo("customerNamedParameterJdbcTemplate");
-    }
-
     @Test
     void shouldHandleNullInputsGracefully() {
         // Test null field name - this should throw NPE
-        assertThrows(NullPointerException.class, () -> 
+        assertThrows(NullPointerException.class, () ->
             CommonJavaPoetBuilders.jdbcTemplateField(null));
-        
-        // Note: buildPackageName with null inputs may not throw NPE if the underlying 
-        // string concatenation handles nulls gracefully, which is acceptable behavior
-    }
-
-    @Test
-    void shouldHandleEmptyInputsCorrectly() {
-        // Empty business name should still work
-        String result = CommonJavaPoetBuilders.buildPackageName("", "dao");
-        assertThat(result).isEqualTo("com.jfeatures.msg..dao");
-        
-        // Empty class suffix should still work
-        String className = CommonJavaPoetBuilders.buildClassName("Customer", "");
-        assertThat(className).isEqualTo("Customer");
     }
 }

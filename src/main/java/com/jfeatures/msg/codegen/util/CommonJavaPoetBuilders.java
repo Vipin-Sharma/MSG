@@ -11,12 +11,12 @@ import org.springframework.web.bind.annotation.*;
 /**
  * Common JavaPoet builders to eliminate code duplication across all generators.
  * Provides standardized field, method, and class builders for consistent code generation.
- * 
- * @deprecated This class is being refactored into specialized builders.
- * Use {@link FieldBuilders}, {@link MethodBuilders}, {@link ClassBuilders} instead.
  */
-@Deprecated(since = "2.0", forRemoval = true)
-public class CommonJavaPoetBuilders {
+public final class CommonJavaPoetBuilders {
+
+    private CommonJavaPoetBuilders() {
+        // utility class
+    }
     
     // =========================== FIELD BUILDERS ===========================
     
@@ -207,32 +207,4 @@ public class CommonJavaPoetBuilders {
                 .build();
     }
     
-    // =========================== UTILITY METHODS ===========================
-    
-    /**
-     * Creates a standard package name for generated classes.
-     * @deprecated Use {@link NamingConventions#buildPackageName(String, String)} instead
-     */
-    @Deprecated(since = "2.0", forRemoval = true)
-    public static String buildPackageName(String businessName, String packageSuffix) {
-        return NamingConventions.buildPackageName(businessName, packageSuffix);
-    }
-    
-    /**
-     * Creates a standard class name for generated classes.
-     * @deprecated Use {@link NamingConventions#buildClassName(String, String)} instead
-     */
-    @Deprecated(since = "2.0", forRemoval = true)
-    public static String buildClassName(String businessName, String classSuffix) {
-        return NamingConventions.buildClassName(businessName, classSuffix);
-    }
-    
-    /**
-     * Creates a field name for JDBC template following naming conventions.
-     * @deprecated Use {@link NamingConventions#jdbcTemplateFieldName(String)} instead
-     */
-    @Deprecated(since = "2.0", forRemoval = true)
-    public static String jdbcTemplateFieldName(String businessName) {
-        return NamingConventions.jdbcTemplateFieldName(businessName);
-    }
 }
