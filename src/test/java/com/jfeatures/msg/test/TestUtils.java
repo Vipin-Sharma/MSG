@@ -20,8 +20,12 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 /**
  * Utility class for test data creation and mock setup
  */
-public class TestUtils {
-    
+public final class TestUtils {
+
+    private TestUtils() {
+        // prevents instantiation
+    }
+
     /**
      * Creates a ColumnMetadata object with proper initialization for testing
      */

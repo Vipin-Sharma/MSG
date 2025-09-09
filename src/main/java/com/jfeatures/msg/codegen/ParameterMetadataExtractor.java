@@ -16,7 +16,12 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ParameterMetadataExtractor {
-    
+
+    private static final int MAX_SQL_LENGTH = 10_000;
+    private static final Pattern COLUMN_PATTERN = Pattern.compile("(\\w+\\.\\w+|\\w+)\\s*=\\s*\\?", Pattern.CASE_INSENSITIVE);
+    private static final Pattern WHERE_PATTERN = Pattern.compile("\\bwhere\\b", Pattern.CASE_INSENSITIVE);
+    private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
+
     private final DataSource dataSource;
     
     public ParameterMetadataExtractor(DataSource dataSource) {
@@ -29,6 +34,9 @@ public class ParameterMetadataExtractor {
     public List<DBColumn> extractParameters(String sql) throws SQLException {
         if (sql == null || sql.trim().isEmpty()) {
             throw new IllegalArgumentException(ProjectConstants.ERROR_NULL_SQL);
+        }
+        if (sql.length() > MAX_SQL_LENGTH) {
+            throw new IllegalArgumentException("SQL query too long");
         }
         
         List<DBColumn> parameters = new ArrayList<>();
@@ -82,10 +90,13 @@ public class ParameterMetadataExtractor {
                 log.warn("Could not extract WHERE clause from SQL, using default parameter names");
                 return generateDefaultParameterNames(expectedParameterCount);
             }
-            
+
+            if (whereClause.length() > MAX_SQL_LENGTH) {
+                throw new IllegalArgumentException("WHERE clause too long");
+            }
+
             // Find all column references before '?' parameters
-            Pattern pattern = Pattern.compile("(\\w+\\.\\w+|\\w+)\\s*=\\s*\\?", Pattern.CASE_INSENSITIVE);
-            Matcher matcher = pattern.matcher(whereClause);
+            Matcher matcher = COLUMN_PATTERN.matcher(whereClause);
             
             while (matcher.find() && columnNames.size() < expectedParameterCount) {
                 String columnReference = matcher.group(1);
@@ -108,12 +119,15 @@ public class ParameterMetadataExtractor {
     }
     
     private String extractWhereClause(String sql) {
+        if (sql.length() > MAX_SQL_LENGTH) {
+            throw new IllegalArgumentException("SQL query too long");
+        }
+
         // Remove line breaks and extra spaces for easier parsing
-        String normalizedSql = sql.replaceAll("\\s+", " ").trim();
-        
+        String normalizedSql = WHITESPACE_PATTERN.matcher(sql).replaceAll(" ").trim();
+
         // Find WHERE keyword (case insensitive)
-        Pattern wherePattern = Pattern.compile("\\bwhere\\b", Pattern.CASE_INSENSITIVE);
-        Matcher whereMatcher = wherePattern.matcher(normalizedSql);
+        Matcher whereMatcher = WHERE_PATTERN.matcher(normalizedSql);
         
         if (!whereMatcher.find()) {
             return null;
