@@ -205,6 +205,19 @@
                 </configuration>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.1</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/*E2E*Test.java</exclude>
+                        <exclude>**/*EndToEnd*Test.java</exclude>
+                    </excludes>
+                    <printSummary>true</printSummary>
+                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>3.3.4</version>
