@@ -107,8 +107,11 @@ public class DeleteMicroserviceGenerator {
             tableName = afterFrom.trim();
         }
         
-        // Remove any trailing semicolon or whitespace
-        tableName = tableName.replaceAll("[;\\s]+$", "");
+        // Remove any trailing semicolon or whitespace without regex
+        tableName = tableName.trim();
+        while (tableName.endsWith(";")) {
+            tableName = tableName.substring(0, tableName.length() - 1).trim();
+        }
         
         return tableName;
     }

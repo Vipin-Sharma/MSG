@@ -24,8 +24,13 @@ public class SqlMetadata {
             throw new IllegalArgumentException("SQL query cannot be null or empty");
         }
         
+        // Remove SQL comments before validation
+        String sanitizedQuery = query
+            .replaceAll("(?s)/\\*.*?\\*/", " ")
+            .replaceAll("(?m)--.*$", " ");
+
         // Basic SQL injection prevention - validate query structure
-        String normalizedQuery = query.trim().replaceAll("\\s+", " ").toUpperCase();
+        String normalizedQuery = sanitizedQuery.trim().replaceAll("\\s+", " ").toUpperCase();
         if (!isValidQueryStructure(normalizedQuery)) {
             throw new IllegalArgumentException("Invalid SQL query structure detected");
         }
@@ -82,23 +87,22 @@ public class SqlMetadata {
      * @return true if the query structure is valid, false otherwise
      */
     private boolean isValidQueryStructure(String normalizedQuery) {
-        // Allow only standard CRUD operations
-        if (!normalizedQuery.matches("^(SELECT|INSERT|UPDATE|DELETE)\\s+.*")) {
+        // Allow standard CRUD operations and CTEs
+        if (!normalizedQuery.matches("^(WITH|SELECT|INSERT|UPDATE|DELETE)\\s+.*")) {
             return false;
         }
-        
+
         // Prevent dangerous SQL keywords and patterns (only multiple statements)
         String[] dangerousPatterns = {
-            ";\\s*(DROP|CREATE|ALTER|EXEC|EXECUTE)\\s+", 
-            "--.*", "/\\*.*\\*/", "\\*/.*"
+            ";\\s*(DROP|CREATE|ALTER|EXEC|EXECUTE)\\s+"
         };
-        
+
         for (String pattern : dangerousPatterns) {
             if (normalizedQuery.matches(".*" + pattern + ".*")) {
                 return false;
             }
         }
-        
+
         return true;
     }
 }
