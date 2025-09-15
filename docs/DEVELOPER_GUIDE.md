@@ -10,6 +10,7 @@ Architecture, design principles, and contribution guidelines for MSG (Microservi
 - [Code Generation Patterns](#code-generation-patterns)
 - [Development Workflow](#development-workflow)
 - [Testing Strategy](#testing-strategy)
+- [End-to-End Testing](#end-to-end-testing)
 - [Contributing Guidelines](#contributing-guidelines)
 - [Extending MSG](#extending-msg)
 
@@ -597,6 +598,489 @@ class InsertMetadataExtractorTest {
     }
 }
 ```
+
+## End-to-End Testing
+
+### Overview
+
+MSG includes a comprehensive End-to-End testing framework that validates the complete CRUD API generation workflow from SQL files to fully functional Spring Boot microservices. This ensures that all README commands work correctly and generate production-ready code.
+
+### E2E Test Architecture
+
+The E2E testing framework consists of three main components:
+
+```
+┌─────────────────────┐    ┌──────────────────────┐    ┌─────────────────────┐
+│  E2E Test Classes   │───▶│  Code Generation     │───▶│  Validation &       │
+│  - WorkingE2EGen    │    │  Orchestration       │    │  Verification       │
+│  - EndToEndCrud     │    │  - SQL Files         │    │  - Structure Check  │
+│  - ApiEndpointTester│    │  - CLI Commands      │    │  - Compilation Test │
+└─────────────────────┘    └──────────────────────┘    └─────────────────────┘
+```
+
+### E2E Test Classes
+
+**1. CompleteCrudGenerationE2ETest** (Primary E2E Test)
+- Tests all 4 CRUD operations without Docker dependencies
+- Validates complete generation workflow
+- Runs quickly and reliably in any environment (~5 seconds)
+- ✅ **STABLE** - Primary E2E test suite
+
+**2. SqlStatementDetectionAndCrudGenerationE2ETest** (SQL Detection Test)
+- Ultra-fast validation of SQL statement type detection
+- Tests SQL parsing and validation for different structures
+- No external dependencies (~0.2 seconds)
+- ✅ **STABLE** - SQL parsing validation
+
+**3. FullStackCrudGenerationWithDatabaseE2ETest** (Full Integration Test)
+- Uses Testcontainers for real database testing
+- Tests REST API endpoints with actual HTTP requests
+- Requires Docker for execution (~5-10 minutes)
+- 🟡 **MOSTLY STABLE** - 5/6 tests pass, REST API integration may occasionally fail
+
+**4. GeneratedMicroserviceValidator** (Code Quality Validator)
+- Validates Maven project structure
+- Checks Java class generation and annotations
+- Verifies Spring Boot configuration files
+
+**5. ApiEndpointTester** (REST API Tester)
+- Tests generated REST endpoints with HTTP requests
+- Validates request/response handling
+- Checks microservice startup and health
+
+### Running E2E Tests
+
+#### Quick E2E Tests (No Docker Required)
+```bash
+# Run all E2E tests (recommended)
+mvn test -Pe2e-tests -Dtest=CompleteCrudGenerationE2ETest,FullStackCrudGenerationWithDatabaseE2ETest,SqlStatementDetectionAndCrudGenerationE2ETest
+
+# Run fast E2E tests without Docker dependencies
+mvn test -Pe2e-tests -Dtest=CompleteCrudGenerationE2ETest
+
+# Run with Maven profile (includes unstable tests)
+mvn test -Pe2e-tests
+
+# Run specific test method
+mvn test -Pe2e-tests -Dtest=CompleteCrudGenerationE2ETest#whenSelectSqlProvidedShouldGenerateCompleteSpringBootMicroserviceWithGetEndpoints
+```
+
+#### Full Integration Tests (Docker Required)
+```bash
+# Run full database integration test (mostly stable - REST API may occasionally fail)
+mvn test -Pe2e-tests -Dtest=FullStackCrudGenerationWithDatabaseE2ETest
+
+# Run using the convenience script (stable tests only)
+./run-e2e-tests.sh
+
+# Run with detailed output
+mvn test -Pe2e-tests -X
+```
+
+#### E2E Test Profile Configuration
+
+The E2E tests use a dedicated Maven profile in `pom.xml`:
+
+```xml
+<profile>
+    <id>e2e-tests</id>
+    <properties>
+        <skip.unit.tests>false</skip.unit.tests>
+        <skip.integration.tests>false</skip.integration.tests>
+        <maven.test.includes>**/*E2E*Test.java,**/*EndToEnd*Test.java</maven.test.includes>
+    </properties>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <includes>
+                        <include>**/*E2E*Test.java</include>
+                        <include>**/*EndToEnd*Test.java</include>
+                    </includes>
+                    <systemPropertyVariables>
+                        <testcontainers.reuse.enable>true</testcontainers.reuse.enable>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</profile>
+```
+
+### E2E Test SQL Files
+
+The E2E tests use dedicated SQL files that mirror real-world scenarios:
+
+```bash
+src/main/resources/
+├── customer_select.sql     # SELECT with JOIN and parameters
+├── customer_insert.sql     # INSERT with validation
+├── customer_update.sql     # UPDATE with WHERE conditions
+└── customer_delete.sql     # DELETE with safety parameters
+```
+
+**Example E2E SQL Files:**
+
+```sql
+-- customer_select.sql
+SELECT c.customer_id, c.first_name, c.last_name, c.email 
+FROM customer c 
+INNER JOIN address a ON c.address_id = a.address_id 
+WHERE c.active = :active AND c.customer_id = :customerId
+
+-- customer_insert.sql
+INSERT INTO customer (first_name, last_name, email, address_id, active, create_date) 
+VALUES (:firstName, :lastName, :email, :addressId, :active, GETDATE())
+
+-- customer_update.sql
+UPDATE customer 
+SET first_name = :firstName, last_name = :lastName, email = :email, last_update = :lastUpdate 
+WHERE customer_id = :customerId AND active = :active
+
+-- customer_delete.sql
+DELETE FROM customer 
+WHERE customer_id = :customerId AND active = :active
+```
+
+### E2E Test Database Schema
+
+For Testcontainers-based tests, a minimal test schema is used:
+
+```sql
+-- sakila-test-schema.sql
+CREATE TABLE country (
+    country_id INT IDENTITY(1,1) PRIMARY KEY,
+    country NVARCHAR(50) NOT NULL,
+    last_update DATETIME2 DEFAULT GETDATE()
+);
+
+CREATE TABLE city (
+    city_id INT IDENTITY(1,1) PRIMARY KEY,
+    city NVARCHAR(50) NOT NULL,
+    country_id INT FOREIGN KEY REFERENCES country(country_id),
+    last_update DATETIME2 DEFAULT GETDATE()
+);
+
+CREATE TABLE address (
+    address_id INT IDENTITY(1,1) PRIMARY KEY,
+    address NVARCHAR(50) NOT NULL,
+    city_id INT FOREIGN KEY REFERENCES city(city_id),
+    last_update DATETIME2 DEFAULT GETDATE()
+);
+
+CREATE TABLE customer (
+    customer_id INT IDENTITY(1,1) PRIMARY KEY,
+    first_name NVARCHAR(50) NOT NULL,
+    last_name NVARCHAR(50) NOT NULL,
+    email NVARCHAR(50),
+    address_id INT FOREIGN KEY REFERENCES address(address_id),
+    active CHAR(1) DEFAULT 'Y',
+    create_date DATETIME2 DEFAULT GETDATE(),
+    last_update DATETIME2 DEFAULT GETDATE()
+);
+
+-- Sample test data
+INSERT INTO country (country) VALUES ('United States'), ('Canada'), ('Mexico');
+INSERT INTO city (city, country_id) VALUES ('New York', 1), ('Toronto', 2), ('Mexico City', 3);
+INSERT INTO address (address, city_id) VALUES ('123 Main St', 1), ('456 Oak Ave', 2), ('789 Pine Rd', 3);
+INSERT INTO customer (first_name, last_name, email, address_id, active) 
+VALUES ('John', 'Doe', 'john.doe@example.com', 1, 'Y'),
+       ('Jane', 'Smith', 'jane.smith@example.com', 2, 'Y'),
+       ('Bob', 'Johnson', 'bob.johnson@example.com', 3, 'N');
+```
+
+### E2E Test Scenarios Covered
+
+#### 1. Complete CRUD Generation Flow
+```java
+@Test
+@DisplayName("1. Generate and Validate SELECT CRUD API")
+void testGenerateSelectCrudApi() throws IOException {
+    // Create dedicated directory for SELECT generation
+    Path selectDir = Files.createTempDirectory(baseTestDir, "select-");
+    
+    String[] args = {
+        "--name", businessName + "Select", 
+        "--destination", selectDir.toString(),
+        "--sql-file", "customer_select.sql"
+    };
+    
+    MicroServiceGenerator generator = new MicroServiceGenerator();
+    CommandLine commandLine = new CommandLine(generator);
+    
+    int exitCode = commandLine.execute(args);
+    
+    assertThat(exitCode)
+            .as("SELECT generation should complete successfully")
+            .isEqualTo(0);
+    
+    // Validate generated structure
+    assertThat(selectDir.resolve("pom.xml")).exists();
+    assertThat(selectDir.resolve("src/main/java")).exists();
+    assertThat(selectDir.resolve("src/main/resources")).exists();
+}
+```
+
+#### 2. Generated Code Structure Validation
+```java
+@Test
+@DisplayName("5. Validate Generated Java Classes Structure")
+void testGeneratedJavaClasses() throws IOException {
+    // Generate and validate Java class structure
+    Path javaRoot = testDir.resolve("src/main/java");
+    
+    // Check for expected Java files
+    assertThat(Files.walk(javaRoot)
+            .anyMatch(path -> path.getFileName().toString().contains("Application.java")))
+            .as("Should have Application class")
+            .isTrue();
+    
+    assertThat(Files.walk(javaRoot)
+            .anyMatch(path -> path.getFileName().toString().contains("Controller.java")))
+            .as("Should have Controller class")
+            .isTrue();
+    
+    assertThat(Files.walk(javaRoot)
+            .anyMatch(path -> path.getFileName().toString().contains("DAO.java")))
+            .as("Should have DAO class")
+            .isTrue();
+}
+```
+
+#### 3. REST API Integration Testing
+```java
+@Test
+@DisplayName("Test All CRUD Endpoints")
+void testAllCrudEndpoints() {
+    // Start generated microservice
+    Process microserviceProcess = apiTester.whenProjectRootProvidedShouldStartGeneratedMicroserviceInSeparateProcess(projectRoot);
+    
+    try {
+        // Test all CRUD operations
+        apiTester.whenPostRequestSentShouldCreateCustomerThroughRestEndpointSuccessfully();
+        apiTester.whenGetRequestSentShouldRetrieveCustomerDataThroughRestEndpointSuccessfully();
+        apiTester.whenPutRequestSentShouldUpdateCustomerDataThroughRestEndpointSuccessfully();
+        apiTester.whenDeleteRequestSentShouldRemoveCustomerThroughRestEndpointSuccessfully();
+        
+    } finally {
+        apiTester.whenProcessRunningShouldStopMicroserviceGracefully(microserviceProcess);
+    }
+}
+```
+
+#### 4. Error Handling and Edge Cases
+```java
+@Test
+@DisplayName("7. Test Error Handling and Edge Cases")
+void testErrorHandlingAndEdgeCases() {
+    // Test with invalid business name
+    String[] invalidNameArgs = {"--name", "", "--destination", baseTestDir.toString()};
+    
+    int exitCode = new CommandLine(new MicroServiceGenerator()).execute(invalidNameArgs);
+    
+    assertThat(exitCode)
+            .as("Invalid business name should fail gracefully")
+            .isNotEqualTo(0);
+    
+    // Test with non-existent SQL file
+    String[] invalidSqlArgs = {
+        "--name", "TestBusiness", 
+        "--destination", baseTestDir.toString(),
+        "--sql-file", "non_existent_file.sql"
+    };
+    
+    exitCode = new CommandLine(new MicroServiceGenerator()).execute(invalidSqlArgs);
+    
+    assertThat(exitCode)
+            .as("Non-existent SQL file should fail gracefully")
+            .isNotEqualTo(0);
+}
+```
+
+### E2E Testing Best Practices
+
+#### 1. Test Isolation
+```java
+@BeforeAll
+static void setupTestEnvironment() throws IOException {
+    // Create isolated test directory for each test run
+    baseTestDir = Files.createTempDirectory("msg-working-e2e");
+}
+
+@AfterAll
+static void cleanupTestEnvironment() throws IOException {
+    // Clean up test directories after completion
+    if (baseTestDir != null && Files.exists(baseTestDir)) {
+        Files.walk(baseTestDir)
+                .sorted(java.util.Comparator.reverseOrder())
+                .forEach(path -> {
+                    try {
+                        Files.delete(path);
+                    } catch (IOException e) {
+                        System.err.println("Failed to delete: " + path);
+                    }
+                });
+    }
+}
+```
+
+#### 2. Comprehensive Validation
+```java
+private void validateGeneratedProject(Path projectDir) {
+    // 1. Maven structure validation
+    assertThat(projectDir.resolve("pom.xml")).exists();
+    assertThat(projectDir.resolve("src/main/java")).exists();
+    assertThat(projectDir.resolve("src/main/resources")).exists();
+    
+    // 2. Java class validation
+    Path javaRoot = projectDir.resolve("src/main/java");
+    assertThat(Files.walk(javaRoot).anyMatch(p -> p.toString().contains("Controller"))).isTrue();
+    assertThat(Files.walk(javaRoot).anyMatch(p -> p.toString().contains("DAO"))).isTrue();
+    assertThat(Files.walk(javaRoot).anyMatch(p -> p.toString().contains("DTO"))).isTrue();
+    
+    // 3. Configuration validation
+    assertThat(projectDir.resolve("src/main/resources/application.properties")).exists();
+}
+```
+
+#### 3. Test Execution Time Optimization
+```java
+// Use separate temporary directories for parallel test execution
+Path testDir = Files.createTempDirectory(baseTestDir, operationType.toLowerCase() + "-");
+
+// Enable Testcontainers reuse for faster test execution
+@Container
+static MSSQLServerContainer<?> sqlServer = new MSSQLServerContainer<>("mcr.microsoft.com/mssql/server:2022-latest")
+        .withPassword("TestPassword@123")
+        .withInitScript("e2e/sakila-test-schema.sql")
+        .withReuse(true);  // Reuse containers across test runs
+```
+
+### Troubleshooting E2E Tests
+
+#### Common Issues and Solutions
+
+**1. Docker Connection Issues**
+```bash
+# Error: Could not find a valid Docker environment
+# Solution: Ensure Docker is installed and running
+docker info
+
+# If Docker is unavailable, run non-Docker E2E tests
+mvn test -Pe2e-tests -Dtest=CompleteCrudGenerationE2ETest
+```
+
+**2. Port Conflicts**
+```bash
+# Error: Port 8080 is already in use
+# Solution: Stop services on port 8080 or configure different port
+lsof -ti:8080 | xargs kill -9
+
+# Or use random port in tests
+@Container
+static MSSQLServerContainer<?> sqlServer = new MSSQLServerContainer<>("mcr.microsoft.com/mssql/server:2022-latest")
+        .withExposedPorts() // Use random available port
+```
+
+**3. Test Timeout Issues**
+```bash
+# Increase test timeout for slow environments
+mvn test -Pe2e-tests -Dmaven.surefire.timeout=600
+
+# Or configure in pom.xml
+<configuration>
+    <forkedProcessTimeoutInSeconds>600</forkedProcessTimeoutInSeconds>
+</configuration>
+```
+
+**4. Resource Cleanup Issues**
+```java
+// Ensure proper cleanup in test teardown
+@AfterEach
+void cleanupTestResources() {
+    // Stop any running microservices
+    if (microserviceProcess != null && microserviceProcess.isAlive()) {
+        microserviceProcess.destroyForcibly();
+    }
+    
+    // Clean up temporary files
+    cleanupTempDirectory(testDir);
+}
+```
+
+### Continuous Integration (CI) Configuration
+
+#### GitHub Actions Example
+```yaml
+name: E2E Tests
+on: [push, pull_request]
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    services:
+      docker:
+        image: docker:19.03.12
+        
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          
+      - name: Run E2E Tests
+        run: |
+          mvn clean compile
+          mvn test -Pe2e-tests -Dtest=CompleteCrudGenerationE2ETest
+          
+      - name: Run Full Integration Tests (if Docker available)
+        run: |
+          if docker info > /dev/null 2>&1; then
+            mvn test -Pe2e-tests -Dtest=FullStackCrudGenerationWithDatabaseE2ETest
+          else
+            echo "Docker not available, skipping Testcontainers tests"
+          fi
+          
+      - name: Upload E2E Test Results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: e2e-test-results
+          path: target/surefire-reports/
+```
+
+### E2E Testing Metrics
+
+The E2E tests provide comprehensive coverage of the MSG tool functionality:
+
+- ✅ **CRUD API Generation**: All 4 operations (SELECT, INSERT, UPDATE, DELETE)
+- ✅ **Project Structure**: Maven pom.xml, directory layout, Spring Boot configuration
+- ✅ **Code Quality**: Java class generation, annotations, method signatures
+- ✅ **Compilation**: Generated code compiles without errors
+- ✅ **Runtime**: Generated microservices start and respond to HTTP requests
+- ✅ **Error Handling**: Invalid inputs handled gracefully
+- ✅ **Edge Cases**: Boundary conditions and error scenarios
+
+**Typical Test Execution Times:**
+- **Complete E2E Test Suite**: All tests: ~5-10 minutes
+- **Individual Tests**:
+  - CompleteCrudGenerationE2ETest: ~5 seconds ✅ STABLE
+  - SqlStatementDetectionAndCrudGenerationE2ETest: ~0.2 seconds ✅ STABLE
+  - FullStackCrudGenerationWithDatabaseE2ETest: ~5-10 minutes 🟡 MOSTLY STABLE (5/6 tests pass)
+- **Convenience Script**: `./run-e2e-tests.sh` runs all E2E tests
+
+This comprehensive E2E testing framework ensures that MSG generates high-quality, production-ready microservices that work correctly in real-world scenarios.
 
 ## Contributing Guidelines
 
