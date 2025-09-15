@@ -3,7 +3,11 @@ package com.jfeatures.msg.codegen.util;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 
-public class JavaPoetClassNameBuilder {
+public final class JavaPoetClassNameBuilder {
+
+    private JavaPoetClassNameBuilder() {
+        throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
+    }
     
     public static TypeName buildJavaPoetTypeName(String targetJavaPackageName, String sqlBusinessDomainName, String classType) {
         if (targetJavaPackageName == null || targetJavaPackageName.trim().isEmpty()) {
