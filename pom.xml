@@ -133,7 +133,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
-            <version>6.1.4</version>
+            <version>6.2.10</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
