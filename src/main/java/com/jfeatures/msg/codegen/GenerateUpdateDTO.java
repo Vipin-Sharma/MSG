@@ -22,7 +22,11 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class GenerateUpdateDTO {
-    
+
+    private GenerateUpdateDTO() {
+        throw new UnsupportedOperationException("Utility class");
+    }
+
     /**
      * Creates the main update DTO containing fields for SET clause columns.
      */

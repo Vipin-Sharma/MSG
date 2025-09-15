@@ -15,7 +15,11 @@ import org.apache.commons.text.CaseUtils;
  * Following Vipin's Principle: Single responsibility - DELETE DTO generation only.
  */
 public class GenerateDeleteDTO {
-    
+
+    private GenerateDeleteDTO() {
+        throw new UnsupportedOperationException("Utility class");
+    }
+
     /**
      * Creates a DTO class for DELETE operations.
      * Single responsibility: Generate DELETE DTO with WHERE parameters.

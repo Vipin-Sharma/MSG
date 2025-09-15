@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CodeGenController {
 
 
-    private SqlMetadata sqlMetadata;
+    private final SqlMetadata sqlMetadata;
 
     public CodeGenController(SqlMetadata sqlMetadata) {
         this.sqlMetadata = sqlMetadata;

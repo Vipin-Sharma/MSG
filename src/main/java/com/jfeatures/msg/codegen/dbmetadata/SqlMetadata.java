@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class SqlMetadata {
 
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
     public SqlMetadata(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;

@@ -21,7 +21,11 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class GenerateInsertDTO {
-    
+
+    private GenerateInsertDTO() {
+        throw new UnsupportedOperationException("Utility class");
+    }
+
     /**
      * Creates INSERT DTO from metadata extracted from INSERT statement.
      * Single responsibility: Generate INSERT request DTO.
