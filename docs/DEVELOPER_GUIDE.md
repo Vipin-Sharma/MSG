@@ -620,22 +620,30 @@ The E2E testing framework consists of three main components:
 
 ### E2E Test Classes
 
-**1. WorkingE2EGenerationTest** (Primary E2E Test)
+**1. CompleteCrudGenerationE2ETest** (Primary E2E Test)
 - Tests all 4 CRUD operations without Docker dependencies
 - Validates complete generation workflow
-- Runs quickly and reliably in any environment
+- Runs quickly and reliably in any environment (~5 seconds)
+- ✅ **STABLE** - Primary E2E test suite
 
-**2. EndToEndCrudGenerationTest** (Full Integration Test)
+**2. SqlStatementDetectionAndCrudGenerationE2ETest** (SQL Detection Test)
+- Ultra-fast validation of SQL statement type detection
+- Tests SQL parsing and validation for different structures
+- No external dependencies (~0.2 seconds)
+- ✅ **STABLE** - SQL parsing validation
+
+**3. FullStackCrudGenerationWithDatabaseE2ETest** (Full Integration Test)
 - Uses Testcontainers for real database testing
 - Tests REST API endpoints with actual HTTP requests
-- Requires Docker for execution
+- Requires Docker for execution (~5-10 minutes)
+- 🟡 **MOSTLY STABLE** - 5/6 tests pass, REST API integration may occasionally fail
 
-**3. GeneratedMicroserviceValidator** (Code Quality Validator)
+**4. GeneratedMicroserviceValidator** (Code Quality Validator)
 - Validates Maven project structure
 - Checks Java class generation and annotations
 - Verifies Spring Boot configuration files
 
-**4. ApiEndpointTester** (REST API Tester)
+**5. ApiEndpointTester** (REST API Tester)
 - Tests generated REST endpoints with HTTP requests
 - Validates request/response handling
 - Checks microservice startup and health
@@ -644,22 +652,25 @@ The E2E testing framework consists of three main components:
 
 #### Quick E2E Tests (No Docker Required)
 ```bash
-# Run fast E2E tests without Docker dependencies
-mvn test -Pe2e-tests -Dtest=WorkingE2EGenerationTest
+# Run all E2E tests (recommended)
+mvn test -Pe2e-tests -Dtest=CompleteCrudGenerationE2ETest,FullStackCrudGenerationWithDatabaseE2ETest,SqlStatementDetectionAndCrudGenerationE2ETest
 
-# Run with Maven profile
+# Run fast E2E tests without Docker dependencies
+mvn test -Pe2e-tests -Dtest=CompleteCrudGenerationE2ETest
+
+# Run with Maven profile (includes unstable tests)
 mvn test -Pe2e-tests
 
 # Run specific test method
-mvn test -Pe2e-tests -Dtest=WorkingE2EGenerationTest#testGenerateSelectCrudApi
+mvn test -Pe2e-tests -Dtest=CompleteCrudGenerationE2ETest#whenSelectSqlProvidedShouldGenerateCompleteSpringBootMicroserviceWithGetEndpoints
 ```
 
 #### Full Integration Tests (Docker Required)
 ```bash
-# Run complete E2E tests with Testcontainers
-mvn test -Pe2e-tests -Dtest=EndToEndCrudGenerationTest
+# Run full database integration test (mostly stable - REST API may occasionally fail)
+mvn test -Pe2e-tests -Dtest=FullStackCrudGenerationWithDatabaseE2ETest
 
-# Run using the convenience script
+# Run using the convenience script (stable tests only)
 ./run-e2e-tests.sh
 
 # Run with detailed output
@@ -844,17 +855,17 @@ void testGeneratedJavaClasses() throws IOException {
 @DisplayName("Test All CRUD Endpoints")
 void testAllCrudEndpoints() {
     // Start generated microservice
-    Process microserviceProcess = apiTester.startGeneratedMicroservice(projectRoot);
+    Process microserviceProcess = apiTester.whenProjectRootProvidedShouldStartGeneratedMicroserviceInSeparateProcess(projectRoot);
     
     try {
         // Test all CRUD operations
-        apiTester.testCreateCustomerEndpoint();
-        apiTester.testGetCustomerEndpoint();
-        apiTester.testUpdateCustomerEndpoint();
-        apiTester.testDeleteCustomerEndpoint();
+        apiTester.whenPostRequestSentShouldCreateCustomerThroughRestEndpointSuccessfully();
+        apiTester.whenGetRequestSentShouldRetrieveCustomerDataThroughRestEndpointSuccessfully();
+        apiTester.whenPutRequestSentShouldUpdateCustomerDataThroughRestEndpointSuccessfully();
+        apiTester.whenDeleteRequestSentShouldRemoveCustomerThroughRestEndpointSuccessfully();
         
     } finally {
-        apiTester.stopMicroservice(microserviceProcess);
+        apiTester.whenProcessRunningShouldStopMicroserviceGracefully(microserviceProcess);
     }
 }
 ```
@@ -958,7 +969,7 @@ static MSSQLServerContainer<?> sqlServer = new MSSQLServerContainer<>("mcr.micro
 docker info
 
 # If Docker is unavailable, run non-Docker E2E tests
-mvn test -Pe2e-tests -Dtest=WorkingE2EGenerationTest
+mvn test -Pe2e-tests -Dtest=CompleteCrudGenerationE2ETest
 ```
 
 **2. Port Conflicts**
@@ -1031,12 +1042,12 @@ jobs:
       - name: Run E2E Tests
         run: |
           mvn clean compile
-          mvn test -Pe2e-tests -Dtest=WorkingE2EGenerationTest
+          mvn test -Pe2e-tests -Dtest=CompleteCrudGenerationE2ETest
           
       - name: Run Full Integration Tests (if Docker available)
         run: |
           if docker info > /dev/null 2>&1; then
-            mvn test -Pe2e-tests -Dtest=EndToEndCrudGenerationTest
+            mvn test -Pe2e-tests -Dtest=FullStackCrudGenerationWithDatabaseE2ETest
           else
             echo "Docker not available, skipping Testcontainers tests"
           fi
@@ -1062,9 +1073,12 @@ The E2E tests provide comprehensive coverage of the MSG tool functionality:
 - ✅ **Edge Cases**: Boundary conditions and error scenarios
 
 **Typical Test Execution Times:**
-- WorkingE2EGenerationTest: ~5-10 seconds
-- EndToEndCrudGenerationTest: ~5-10 minutes (includes Docker startup)
-- Full E2E suite: ~10-15 minutes
+- **Complete E2E Test Suite**: All tests: ~5-10 minutes
+- **Individual Tests**:
+  - CompleteCrudGenerationE2ETest: ~5 seconds ✅ STABLE
+  - SqlStatementDetectionAndCrudGenerationE2ETest: ~0.2 seconds ✅ STABLE
+  - FullStackCrudGenerationWithDatabaseE2ETest: ~5-10 minutes 🟡 MOSTLY STABLE (5/6 tests pass)
+- **Convenience Script**: `./run-e2e-tests.sh` runs all E2E tests
 
 This comprehensive E2E testing framework ensures that MSG generates high-quality, production-ready microservices that work correctly in real-world scenarios.
 

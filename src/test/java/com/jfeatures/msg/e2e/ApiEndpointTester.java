@@ -10,6 +10,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,7 +20,25 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests the REST API endpoints of generated microservices.
+ * Comprehensive REST API endpoint testing utility for generated microservices.
+ * 
+ * PURPOSE: This utility class validates that generated Spring Boot microservices provide
+ * functional REST API endpoints that correctly handle HTTP requests and responses.
+ * 
+ * WHAT IT TESTS:
+ * - Complete CRUD REST API functionality (POST, GET, PUT, DELETE)
+ * - HTTP status code validation for all endpoint types
+ * - Request/response data structure validation
+ * - Service health and availability checks
+ * - Microservice lifecycle management (start/stop processes)
+ * - JSON response structure and format validation
+ * - Error handling for various HTTP client scenarios
+ * 
+ * EXECUTION: Requires running Spring Boot microservice instance (started via Maven).
+ * 
+ * NAMING CONVENTION: All methods follow "when[RequestType/Context]Should[ExpectedBehavior]" pattern.
+ * 
+ * INTEGRATION: Used by full-stack E2E tests to validate generated microservice APIs.
  */
 public class ApiEndpointTester {
     
@@ -33,14 +53,38 @@ public class ApiEndpointTester {
     }
     
     /**
-     * Starts the generated microservice in a separate process.
+     * When project root provided should start generated microservice in separate process.
      */
-    public Process startGeneratedMicroservice(Path projectRoot) throws IOException, InterruptedException {
+    public Process whenProjectRootProvidedShouldStartGeneratedMicroserviceInSeparateProcess(Path projectRoot) throws IOException, InterruptedException {
         System.out.println("Starting microservice from: " + projectRoot);
+        
+        // Build JVM arguments including database configuration from system properties
+        StringBuilder jvmArgs = new StringBuilder("-Dserver.port=8080");
+        
+        // Pass database configuration if available
+        String datasourceUrl = System.getProperty("spring.datasource.url");
+        String datasourceUsername = System.getProperty("spring.datasource.username"); 
+        String datasourcePassword = System.getProperty("spring.datasource.password");
+        String datasourceDriver = System.getProperty("spring.datasource.driver-class-name");
+        
+        if (datasourceUrl != null) {
+            jvmArgs.append(" -Dspring.datasource.url=").append(datasourceUrl);
+        }
+        if (datasourceUsername != null) {
+            jvmArgs.append(" -Dspring.datasource.username=").append(datasourceUsername);
+        }
+        if (datasourcePassword != null) {
+            jvmArgs.append(" -Dspring.datasource.password=").append(datasourcePassword);
+        }
+        if (datasourceDriver != null) {
+            jvmArgs.append(" -Dspring.datasource.driver-class-name=").append(datasourceDriver);
+        }
+        
+        System.out.println("🔧 Starting microservice with JVM args: " + jvmArgs.toString());
         
         ProcessBuilder processBuilder = new ProcessBuilder(
             "mvn", "spring-boot:run", 
-            "-Dspring-boot.run.jvmArguments=-Dserver.port=8080"
+            "-Dspring-boot.run.jvmArguments=" + jvmArgs.toString()
         );
         processBuilder.directory(projectRoot.toFile());
         processBuilder.redirectErrorStream(true);
@@ -61,16 +105,16 @@ public class ApiEndpointTester {
         }).start();
         
         // Wait for service to be ready (check health endpoint or similar)
-        waitForServiceToStart();
+        whenServiceStartingShouldWaitUntilReadyToAcceptHttpRequests();
         
         System.out.println("✅ Microservice started successfully");
         return process;
     }
     
     /**
-     * Stops the microservice process.
+     * When process running should stop microservice gracefully.
      */
-    public void stopMicroservice(Process process) {
+    public void whenProcessRunningShouldStopMicroserviceGracefully(Process process) {
         if (process != null && process.isAlive()) {
             process.destroy();
             try {
@@ -87,9 +131,9 @@ public class ApiEndpointTester {
     }
     
     /**
-     * Tests the CREATE customer endpoint (POST).
+     * When POST request sent should create customer through REST endpoint successfully.
      */
-    public void testCreateCustomerEndpoint() {
+    public void whenPostRequestSentShouldCreateCustomerThroughRestEndpointSuccessfully() {
         System.out.println("Testing CREATE customer endpoint...");
         
         Map<String, Object> customerData = new HashMap<>();
@@ -123,9 +167,9 @@ public class ApiEndpointTester {
     }
     
     /**
-     * Tests the GET customer endpoint (SELECT).
+     * When GET request sent should retrieve customer data through REST endpoint successfully.
      */
-    public void testGetCustomerEndpoint() {
+    public void whenGetRequestSentShouldRetrieveCustomerDataThroughRestEndpointSuccessfully() {
         System.out.println("Testing GET customer endpoint...");
         
         try {
@@ -138,7 +182,7 @@ public class ApiEndpointTester {
             
             if (response.getStatusCode() == HttpStatus.OK) {
                 // Validate JSON response structure if data exists
-                validateJsonResponse(response.getBody());
+                whenJsonResponseReceivedShouldValidateProperStructureAndFormat(response.getBody());
             }
             
             System.out.println("✅ GET customer endpoint test passed");
@@ -153,9 +197,9 @@ public class ApiEndpointTester {
     }
     
     /**
-     * Tests the UPDATE customer endpoint (PUT).
+     * When PUT request sent should update customer data through REST endpoint successfully.
      */
-    public void testUpdateCustomerEndpoint() {
+    public void whenPutRequestSentShouldUpdateCustomerDataThroughRestEndpointSuccessfully() {
         System.out.println("Testing UPDATE customer endpoint...");
         
         Map<String, Object> updateData = new HashMap<>();
@@ -190,9 +234,9 @@ public class ApiEndpointTester {
     }
     
     /**
-     * Tests the DELETE customer endpoint.
+     * When DELETE request sent should remove customer through REST endpoint successfully.
      */
-    public void testDeleteCustomerEndpoint() {
+    public void whenDeleteRequestSentShouldRemoveCustomerThroughRestEndpointSuccessfully() {
         System.out.println("Testing DELETE customer endpoint...");
         
         try {
@@ -216,9 +260,9 @@ public class ApiEndpointTester {
     }
     
     /**
-     * Tests service health/availability.
+     * When service started should respond to health checks indicating availability.
      */
-    public void testServiceHealth() {
+    public void whenServiceStartedShouldRespondToHealthChecksIndicatingAvailability() {
         try {
             ResponseEntity<String> response = restTemplate.getForEntity(
                 "http://localhost:8080/actuator/health", String.class);
@@ -245,32 +289,31 @@ public class ApiEndpointTester {
     }
     
     /**
-     * Waits for the service to start and be ready to accept requests.
+     * When service starting should wait until ready to accept HTTP requests.
      */
-    private void waitForServiceToStart() throws InterruptedException {
-        int maxAttempts = 30; // 30 attempts with 1 second each = 30 seconds max wait
-        int attempts = 0;
+    private void whenServiceStartingShouldWaitUntilReadyToAcceptHttpRequests() throws InterruptedException {
+        Duration maxWaitTime = Duration.ofSeconds(30);
+        Duration pollInterval = Duration.ofSeconds(1);
+        Instant startTime = Instant.now();
         
-        while (attempts < maxAttempts) {
+        while (Duration.between(startTime, Instant.now()).compareTo(maxWaitTime) < 0) {
             try {
-                testServiceHealth();
-                System.out.println("Service is ready after " + attempts + " attempts");
+                whenServiceStartedShouldRespondToHealthChecksIndicatingAvailability();
+                System.out.println("Service is ready after " + Duration.between(startTime, Instant.now()).toSeconds() + " seconds");
                 return;
             } catch (Exception e) {
-                attempts++;
-                if (attempts < maxAttempts) {
-                    Thread.sleep(1000); // Wait 1 second before next attempt
-                }
+                // Service not ready yet, wait before next attempt
+                TimeUnit.MILLISECONDS.sleep(pollInterval.toMillis());
             }
         }
         
-        throw new RuntimeException("Service did not start within " + maxAttempts + " seconds");
+        throw new RuntimeException("Service did not start within " + maxWaitTime.toSeconds() + " seconds");
     }
     
     /**
-     * Validates that the JSON response has proper structure.
+     * When JSON response received should validate proper structure and format.
      */
-    private void validateJsonResponse(String jsonResponse) {
+    private void whenJsonResponseReceivedShouldValidateProperStructureAndFormat(String jsonResponse) {
         try {
             JsonNode jsonNode = objectMapper.readTree(jsonResponse);
             

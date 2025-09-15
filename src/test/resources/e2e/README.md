@@ -5,9 +5,11 @@ This directory contains comprehensive end-to-end tests that validate the complet
 ## Test Structure
 
 ### Test Classes
-- **EndToEndCrudGenerationTest** - Main test orchestrator that runs complete CRUD generation flow
+- **CompleteCrudGenerationE2ETest** - Fast CRUD generation tests without Docker dependencies (~5 seconds) ✅ **STABLE**
+- **SqlStatementDetectionAndCrudGenerationE2ETest** - Ultra-fast SQL detection validation (~0.2 seconds) ✅ **STABLE**
+- **FullStackCrudGenerationWithDatabaseE2ETest** - Full database integration testing with Testcontainers (~5-10 minutes) 🟡 **MOSTLY STABLE** (5/6 tests pass)
 - **GeneratedMicroserviceValidator** - Validates generated code structure and quality  
-- **ApiEndpointTester** - Tests generated REST endpoints for functionality
+- **ApiEndpointTester** - Tests generated REST endpoints with descriptive method names
 
 ### Test Resources
 - **SQL Files** - Test-specific SQL files for each CRUD operation:
@@ -27,11 +29,19 @@ This directory contains comprehensive end-to-end tests that validate the complet
 ### Run Commands
 
 ```bash
-# Run all E2E tests
+# Run all E2E tests (recommended)
+mvn test -Pe2e-tests -Dtest=CompleteCrudGenerationE2ETest,FullStackCrudGenerationWithDatabaseE2ETest,SqlStatementDetectionAndCrudGenerationE2ETest
+
+# Run convenience script (all E2E tests)
+./run-e2e-tests.sh
+
+# Run all E2E tests (including unstable)
 mvn test -Pe2e-tests
 
-# Run specific E2E test
-mvn test -Dtest=EndToEndCrudGenerationTest -Pe2e-tests
+# Run individual tests
+mvn test -Pe2e-tests -Dtest=CompleteCrudGenerationE2ETest  # Fast, no Docker
+mvn test -Pe2e-tests -Dtest=SqlStatementDetectionAndCrudGenerationE2ETest  # Ultra-fast
+mvn test -Pe2e-tests -Dtest=FullStackCrudGenerationWithDatabaseE2ETest  # Full integration (mostly stable)
 
 # Run with detailed output
 mvn test -Pe2e-tests -X

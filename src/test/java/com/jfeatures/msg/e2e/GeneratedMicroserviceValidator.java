@@ -89,7 +89,7 @@ public class GeneratedMicroserviceValidator {
         validateDTOClasses(javaSourceRoot, businessName);
         
         // Validate Config classes
-        validateConfigClasses(javaSourceRoot);
+        validateConfigClasses(javaSourceRoot, businessName);
         
         System.out.println("✅ Java classes validation passed for: " + businessName);
     }
@@ -266,15 +266,21 @@ public class GeneratedMicroserviceValidator {
     }
     
     private void validateApplicationClass(Path javaSourceRoot) {
-        try (Stream<Path> paths = Files.walk(javaSourceRoot)) {
-            boolean hasApplicationClass = paths.anyMatch(path -> 
-                path.getFileName().toString().equals("Application.java"));
+        // The Spring Boot application class is generated at the parent level: src/main/java/com/jfeatures/msg/
+        // with naming pattern: {BusinessName}SpringBootApplication.java
+        Path msgPackageRoot = javaSourceRoot.getParent(); // Go up from customer to msg level
+        
+        try (Stream<Path> paths = Files.walk(msgPackageRoot, 1)) { // Only search one level deep
+            boolean hasApplicationClass = paths.anyMatch(path -> {
+                String fileName = path.getFileName().toString();
+                return fileName.endsWith("SpringBootApplication.java") || fileName.equals("Application.java");
+            });
             
             assertThat(hasApplicationClass)
-                    .as("Should have Application.java class")
+                    .as("Should have SpringBoot Application class (either *SpringBootApplication.java or Application.java)")
                     .isTrue();
         } catch (IOException e) {
-            throw new AssertionError("Failed to find Application class: " + e.getMessage());
+            throw new AssertionError("Failed to find Spring Boot Application class: " + e.getMessage());
         }
     }
     
@@ -317,11 +323,13 @@ public class GeneratedMicroserviceValidator {
                 .isDirectory();
     }
     
-    private void validateConfigClasses(Path javaSourceRoot) {
-        Path configDir = javaSourceRoot.resolve("config");
+    private void validateConfigClasses(Path javaSourceRoot, String businessName) {
+        // Config classes are generated in com.jfeatures.{businessName.toLowerCase()}.config package
+        Path projectRoot = getProjectRoot(businessName);
+        Path configDir = projectRoot.resolve("src/main/java/com/jfeatures/" + businessName.toLowerCase() + "/config");
         
         assertThat(configDir)
-                .as("Config directory should exist")
+                .as("Config directory should exist at com.jfeatures." + businessName.toLowerCase() + ".config")
                 .exists()
                 .isDirectory();
     }

@@ -57,8 +57,8 @@ echo
 
 echo "⏳ Starting E2E test execution (this may take 5-10 minutes)..."
 
-# Run the E2E tests with the special profile
-if mvn test -Pe2e-tests -Dtest=WorkingE2EGenerationTest -q; then
+# Run the E2E tests with the special profile (all E2E tests)
+if mvn test -Pe2e-tests -Dtest=CompleteCrudGenerationE2ETest,FullStackCrudGenerationWithDatabaseE2ETest,SqlStatementDetectionAndCrudGenerationE2ETest -q; then
     echo "✅ All E2E tests passed successfully!"
     echo
     echo "🎉 MSG Project E2E Testing Summary:"
@@ -89,7 +89,7 @@ echo "   • Surefire reports: target/surefire-reports/"
 echo "   • JaCoCo coverage: target/site/jacoco/"
 echo
 echo "🔧 Additional Commands:"
-echo "   • Run specific test: mvn test -Pe2e-tests -Dtest=EndToEndCrudGenerationTest#testCompleteCrudGeneration"
+echo "   • Run specific test: mvn test -Pe2e-tests -Dtest=CompleteCrudGenerationE2ETest#whenSelectSqlProvidedShouldGenerateCompleteSpringBootMicroserviceWithGetEndpoints"
 echo "   • Run with debug output: mvn test -Pe2e-tests -X"
 echo "   • Generate coverage: mvn test jacoco:report -Pe2e-tests"
 
