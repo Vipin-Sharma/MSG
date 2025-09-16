@@ -13,7 +13,11 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
  * Follows Single Responsibility Principle - only field creation logic.
  */
 public final class FieldBuilders {
-    
+
+    private static final String FIELD_NAME_PARAM = "fieldName";
+    private static final String BUSINESS_NAME_PARAM = "businessName";
+    private static final String OPERATION_PARAM = "operation";
+
     private FieldBuilders() {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
     }
@@ -24,9 +28,9 @@ public final class FieldBuilders {
      * Creates a private final NamedParameterJdbcTemplate field.
      */
     public static FieldSpec jdbcTemplateField(String fieldName) {
-        validateNotEmpty(fieldName, "fieldName");
-        
-        return FieldSpec.builder(NamedParameterJdbcTemplate.class, fieldName, 
+        validateNotEmpty(fieldName, FIELD_NAME_PARAM);
+
+        return FieldSpec.builder(NamedParameterJdbcTemplate.class, fieldName,
                 Modifier.PRIVATE, Modifier.FINAL)
                 .build();
     }
@@ -35,9 +39,9 @@ public final class FieldBuilders {
      * Creates a private final DataSource field.
      */
     public static FieldSpec dataSourceField(String fieldName) {
-        validateNotEmpty(fieldName, "fieldName");
-        
-        return FieldSpec.builder(DataSource.class, fieldName, 
+        validateNotEmpty(fieldName, FIELD_NAME_PARAM);
+
+        return FieldSpec.builder(DataSource.class, fieldName,
                 Modifier.PRIVATE, Modifier.FINAL)
                 .build();
     }
@@ -49,7 +53,7 @@ public final class FieldBuilders {
      */
     public static FieldSpec sqlField(String sql, String fieldName) {
         validateNotEmpty(sql, "sql");
-        validateNotEmpty(fieldName, "fieldName");
+        validateNotEmpty(fieldName, FIELD_NAME_PARAM);
         
         return FieldSpec.builder(String.class, fieldName, 
                 Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
@@ -62,9 +66,9 @@ public final class FieldBuilders {
      */
     public static FieldSpec sqlFieldWithJavaDoc(String sql, String fieldName, String operation, String businessName) {
         validateNotEmpty(sql, "sql");
-        validateNotEmpty(fieldName, "fieldName");
-        validateNotEmpty(operation, "operation");
-        validateNotEmpty(businessName, "businessName");
+        validateNotEmpty(fieldName, FIELD_NAME_PARAM);
+        validateNotEmpty(operation, OPERATION_PARAM);
+        validateNotEmpty(businessName, BUSINESS_NAME_PARAM);
         
         return FieldSpec.builder(String.class, fieldName, 
                 Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
@@ -127,7 +131,7 @@ public final class FieldBuilders {
      */
     public static FieldSpec daoField(TypeName daoType, String businessName) {
         validateNotNull(daoType, "daoType");
-        validateNotEmpty(businessName, "businessName");
+        validateNotEmpty(businessName, BUSINESS_NAME_PARAM);
         
         String fieldName = NamingConventions.daoFieldName(businessName);
         

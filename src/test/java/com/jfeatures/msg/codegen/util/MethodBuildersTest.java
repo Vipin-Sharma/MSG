@@ -3,6 +3,7 @@ package com.jfeatures.msg.codegen.util;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.jfeatures.msg.codegen.constants.CodeGenerationConstants;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
@@ -28,16 +29,19 @@ class MethodBuildersTest {
     @Test
     void shouldCreateJdbcTemplateConstructor() {
         // When
-        MethodSpec constructor = MethodBuilders.jdbcTemplateConstructor("namedParameterJdbcTemplate");
+        MethodSpec constructor = MethodBuilders.jdbcTemplateConstructor(CodeGenerationConstants.JDBC_TEMPLATE_FIELD_NAME);
         
         // Then
         assertThat(constructor.name).isEqualTo("<init>");
         assertThat(constructor.modifiers).containsExactlyInAnyOrder(Modifier.PUBLIC);
         assertThat(constructor.parameters).hasSize(1);
         assertThat(constructor.parameters.get(0).type).isEqualTo(TypeName.get(NamedParameterJdbcTemplate.class));
-        assertThat(constructor.parameters.get(0).name).isEqualTo("namedParameterJdbcTemplate");
+        assertThat(constructor.parameters.get(0).name)
+                .isEqualTo(CodeGenerationConstants.JDBC_TEMPLATE_FIELD_NAME);
         assertThat(constructor.javadoc.toString()).contains("Constructor with dependency injection for JDBC template");
-        assertThat(constructor.code.toString()).contains("this.namedParameterJdbcTemplate = namedParameterJdbcTemplate");
+        assertThat(constructor.code.toString())
+                .contains("this." + CodeGenerationConstants.JDBC_TEMPLATE_FIELD_NAME + " = "
+                        + CodeGenerationConstants.JDBC_TEMPLATE_FIELD_NAME);
     }
 
     @Test

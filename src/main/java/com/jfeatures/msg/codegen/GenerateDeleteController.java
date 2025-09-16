@@ -1,5 +1,7 @@
 package com.jfeatures.msg.codegen;
 
+import com.jfeatures.msg.codegen.constants.CodeGenerationConstants;
+import com.jfeatures.msg.codegen.constants.ProjectConstants;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.DeleteMetadata;
 import com.jfeatures.msg.codegen.util.JavaPackageNameBuilder;
@@ -77,11 +79,13 @@ public class GenerateDeleteController {
         for (ColumnMetadata column : deleteMetadata.whereColumns()) {
             Class<?> paramType = SQLServerDataTypeEnum.getClassForType(column.getColumnTypeName());
             String paramName = CaseUtils.toCamelCase(column.getColumnName(), false);
-            
+
             ParameterSpec paramSpec = ParameterSpec.builder(paramType, paramName)
                     .addAnnotation(AnnotationSpec.builder(RequestParam.class)
-                            .addMember("value", "$S", paramName.toLowerCase())
-                            .addMember("required", "$L", true)
+                            .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_VALUE,
+                                    CodeGenerationConstants.STRING_PLACEHOLDER, paramName.toLowerCase())
+                            .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_REQUIRED,
+                                    CodeGenerationConstants.LITERAL_PLACEHOLDER, true)
                             .build())
                     .build();
             
@@ -93,12 +97,18 @@ public class GenerateDeleteController {
         MethodSpec.Builder deleteMethodBuilder = MethodSpec.methodBuilder("delete" + businessPurposeOfSQL)
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(AnnotationSpec.builder(DeleteMapping.class)
-                        .addMember("value", "$S", "/" + businessPurposeOfSQL.toLowerCase())
-                        .addMember("produces", "$S", "application/json")
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_VALUE,
+                                CodeGenerationConstants.STRING_PLACEHOLDER, "/" + businessPurposeOfSQL.toLowerCase())
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_PRODUCES,
+                                CodeGenerationConstants.STRING_PLACEHOLDER, ProjectConstants.APPLICATION_JSON)
                         .build())
                 .addAnnotation(AnnotationSpec.builder(Operation.class)
-                        .addMember("summary", "$S", "Delete " + businessPurposeOfSQL.toLowerCase() + " entity")
-                        .addMember("description", "$S", "DELETE API to remove a " + businessPurposeOfSQL.toLowerCase() + " record")
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_SUMMARY,
+                                CodeGenerationConstants.STRING_PLACEHOLDER,
+                                "Delete " + businessPurposeOfSQL.toLowerCase() + " entity")
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_DESCRIPTION,
+                                CodeGenerationConstants.STRING_PLACEHOLDER,
+                                "DELETE API to remove a " + businessPurposeOfSQL.toLowerCase() + " record")
                         .build())
                 .returns(ClassName.get("org.springframework.http", "ResponseEntity").withoutAnnotations());
         
@@ -131,11 +141,14 @@ public class GenerateDeleteController {
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(AnnotationSpec.builder(RestController.class).build())
                 .addAnnotation(AnnotationSpec.builder(RequestMapping.class)
-                        .addMember("path", "$S", "/api")
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_PATH,
+                                CodeGenerationConstants.STRING_PLACEHOLDER, "/api")
                         .build())
                 .addAnnotation(AnnotationSpec.builder(Tag.class)
-                        .addMember("name", "$S", businessPurposeOfSQL)
-                        .addMember("description", "$S", businessPurposeOfSQL + " DELETE operations")
+                        .addMember("name", CodeGenerationConstants.STRING_PLACEHOLDER, businessPurposeOfSQL)
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_DESCRIPTION,
+                                CodeGenerationConstants.STRING_PLACEHOLDER,
+                                businessPurposeOfSQL + " DELETE operations")
                         .build())
                 .addField(daoFieldSpec)
                 .addMethod(constructorSpec)

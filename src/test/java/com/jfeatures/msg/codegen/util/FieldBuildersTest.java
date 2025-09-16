@@ -3,6 +3,7 @@ package com.jfeatures.msg.codegen.util;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.jfeatures.msg.codegen.constants.CodeGenerationConstants;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
@@ -30,10 +31,10 @@ class FieldBuildersTest {
     @Test
     void shouldCreateJdbcTemplateField() {
         // When
-        FieldSpec field = FieldBuilders.jdbcTemplateField("namedParameterJdbcTemplate");
-        
+        FieldSpec field = FieldBuilders.jdbcTemplateField(CodeGenerationConstants.JDBC_TEMPLATE_FIELD_NAME);
+
         // Then
-        assertThat(field.name).isEqualTo("namedParameterJdbcTemplate");
+        assertThat(field.name).isEqualTo(CodeGenerationConstants.JDBC_TEMPLATE_FIELD_NAME);
         assertThat(field.type).isEqualTo(TypeName.get(NamedParameterJdbcTemplate.class));
         assertThat(field.modifiers).containsExactlyInAnyOrder(Modifier.PRIVATE, Modifier.FINAL);
     }

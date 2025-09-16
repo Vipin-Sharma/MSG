@@ -1,6 +1,7 @@
 package com.jfeatures.msg.codegen;
 
 import com.github.vertical_blank.sqlformatter.SqlFormatter;
+import com.jfeatures.msg.codegen.constants.CodeGenerationConstants;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.UpdateMetadata;
 import com.jfeatures.msg.codegen.util.FieldBuilders;
@@ -40,12 +41,12 @@ public class GenerateUpdateDAO {
      */
     public static JavaFile createUpdateDAO(String businessPurposeOfSQL, UpdateMetadata updateMetadata) throws Exception {
         
-        String jdbcTemplateInstanceFieldName = "namedParameterJdbcTemplate";
-        
+        String jdbcTemplateInstanceFieldName = CodeGenerationConstants.JDBC_TEMPLATE_FIELD_NAME;
+
         // Generate SQL constant using text block for better readability
         String namedParameterSql = generateNamedParameterSql(updateMetadata);
         FieldSpec sqlConstant = FieldBuilders.sqlField(
-                SqlFormatter.format(namedParameterSql), "SQL");
+        SqlFormatter.format(namedParameterSql), CodeGenerationConstants.SQL_FIELD_NAME);
 
         // Constructor using shared MethodBuilders utility
         MethodSpec constructorSpec = MethodBuilders.jdbcTemplateConstructor(jdbcTemplateInstanceFieldName);
@@ -104,10 +105,11 @@ public class GenerateUpdateDAO {
                 .addStatement("$T<String, Object> paramMap = new $T<>()", Map.class, HashMap.class)
                 .add(paramMapCode)
                 .add("\n")
-                .addStatement("log.info(\"Executing UPDATE: {}\", SQL)")
+                .addStatement("log.info(\"Executing UPDATE: {}\", $N)", CodeGenerationConstants.SQL_FIELD_NAME)
                 .addStatement("log.debug(\"Parameters: {}\", paramMap)")
                 .add("\n")
-                .addStatement("int rowsUpdated = $N.update(SQL, paramMap)", jdbcTemplateFieldName)
+                .addStatement("int rowsUpdated = $N.update($N, paramMap)",
+                        jdbcTemplateFieldName, CodeGenerationConstants.SQL_FIELD_NAME)
                 .addStatement("log.info(\"Updated {} rows for {}\", rowsUpdated, $S)", businessPurposeOfSQL)
                 .addStatement("return rowsUpdated")
                 .build();
