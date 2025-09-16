@@ -203,9 +203,6 @@ class CompleteScenarioCoverageTest {
         
         String businessDomainName = "Product";
         
-        // Setup mocks for INSERT scenario
-        TestUtils.setupInsertWorkflowMocks(mockDatabaseConnection, mockDataSource, mockNamedParameterJdbcTemplate);
-        
         // Setup database metadata mocks for INSERT metadata extraction
         DatabaseMetaData mockDatabaseMetaData = mock(DatabaseMetaData.class);
         when(mockConnection.getMetaData()).thenReturn(mockDatabaseMetaData);
@@ -274,9 +271,6 @@ class CompleteScenarioCoverageTest {
         
         String businessDomainName = "CustomerUpdate";
         
-        // Setup mocks for UPDATE scenario
-        TestUtils.setupUpdateWorkflowMocks(mockDatabaseConnection, mockDataSource, mockNamedParameterJdbcTemplate);
-        
         // Setup database metadata mocks for UPDATE metadata extraction
         DatabaseMetaData mockDatabaseMetaData = mock(DatabaseMetaData.class);
         when(mockConnection.getMetaData()).thenReturn(mockDatabaseMetaData);
@@ -334,9 +328,6 @@ class CompleteScenarioCoverageTest {
             """;
         
         String businessDomainName = "OrderItem";
-        
-        // Setup mocks for DELETE scenario
-        TestUtils.setupDeleteWorkflowMocks(mockDatabaseConnection, mockDataSource);
         
         // Mock ParameterMetadataExtractor for DELETE scenario
         try (var mockedConstruction = mockConstruction(ParameterMetadataExtractor.class, (mock, context) -> {
