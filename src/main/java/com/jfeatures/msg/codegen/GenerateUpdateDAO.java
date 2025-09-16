@@ -3,7 +3,8 @@ package com.jfeatures.msg.codegen;
 import com.github.vertical_blank.sqlformatter.SqlFormatter;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.UpdateMetadata;
-import com.jfeatures.msg.codegen.util.CommonJavaPoetBuilders;
+import com.jfeatures.msg.codegen.util.FieldBuilders;
+import com.jfeatures.msg.codegen.util.MethodBuilders;
 import com.jfeatures.msg.codegen.util.JavaPackageNameBuilder;
 import com.jfeatures.msg.codegen.util.JavaPoetTypeNameBuilder;
 import com.squareup.javapoet.ClassName;
@@ -21,6 +22,7 @@ import java.util.Map;
 import javax.lang.model.element.Modifier;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.CaseUtils;
+import org.springframework.stereotype.Component;
 
 /**
  * Generates DAO classes for UPDATE operations using database metadata.
@@ -42,17 +44,21 @@ public class GenerateUpdateDAO {
         
         // Generate SQL constant using text block for better readability
         String namedParameterSql = generateNamedParameterSql(updateMetadata);
-        FieldSpec sqlConstant = CommonJavaPoetBuilders.sqlFieldWithName(
+        FieldSpec sqlConstant = FieldBuilders.sqlField(
                 SqlFormatter.format(namedParameterSql), "SQL");
-        
-        // Constructor using CommonJavaPoetBuilders
-        MethodSpec constructorSpec = CommonJavaPoetBuilders.jdbcTemplateConstructor(jdbcTemplateInstanceFieldName);
+
+        // Constructor using shared MethodBuilders utility
+        MethodSpec constructorSpec = MethodBuilders.jdbcTemplateConstructor(jdbcTemplateInstanceFieldName);
         
         // Generate UPDATE method (single public method following clean code principles)
         MethodSpec updateMethod = createUpdateMethod(businessPurposeOfSQL, updateMetadata, jdbcTemplateInstanceFieldName);
         
-        // Create DAO class using CommonJavaPoetBuilders
-        TypeSpec.Builder daoBuilder = CommonJavaPoetBuilders.basicDAOClass(businessPurposeOfSQL + "Update", jdbcTemplateInstanceFieldName);
+        // Create DAO class definition manually to avoid deprecated helpers
+        TypeSpec.Builder daoBuilder = TypeSpec.classBuilder(businessPurposeOfSQL + "UpdateDAO")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Component.class)
+                .addField(FieldBuilders.jdbcTemplateField(jdbcTemplateInstanceFieldName))
+                .addMethod(constructorSpec);
         TypeSpec daoClass = daoBuilder
                 .addAnnotation(Slf4j.class)
                 .addField(sqlConstant)
