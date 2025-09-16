@@ -116,9 +116,10 @@ class FieldBuildersTest {
         FieldSpec field = FieldBuilders.sqlField(multiLineSql, "SELECT_SQL");
         
         // Then
-        assertThat(field.initializer.toString()).contains("SELECT c.id, c.name, c.email");
-        assertThat(field.initializer.toString()).contains("FROM customer c");
-        assertThat(field.initializer.toString()).contains("WHERE c.id = :id");
+        assertThat(field.initializer.toString())
+            .contains("SELECT c.id, c.name, c.email")
+            .contains("FROM customer c")
+            .contains("WHERE c.id = :id");
     }
 
     @Test
@@ -186,8 +187,9 @@ class FieldBuildersTest {
         assertThat(field.name).isEqualTo(expectedFieldName);
         assertThat(field.type).isEqualTo(TypeName.get(expectedType));
         assertThat(field.modifiers).containsExactlyInAnyOrder(Modifier.PRIVATE);
-        assertThat(field.javadoc.toString()).contains("Database column: " + columnName);
-        assertThat(field.javadoc.toString()).contains("Type: " + columnType);
+        assertThat(field.javadoc.toString())
+            .contains("Database column: " + columnName)
+            .contains("Type: " + columnType);
     }
 
     static Stream<Arguments> provideDtoFieldArguments() {
@@ -339,8 +341,10 @@ class FieldBuildersTest {
         Exception exception = assertThrows(Exception.class, constructor::newInstance);
         
         // The actual exception will be InvocationTargetException wrapping UnsupportedOperationException
-        assertThat(exception.getCause()).isInstanceOf(UnsupportedOperationException.class);
-        assertThat(exception.getCause().getMessage()).contains("This is a utility class and cannot be instantiated");
+        Throwable cause = exception.getCause();
+        assertThat(cause)
+            .isInstanceOf(UnsupportedOperationException.class)
+            .hasMessageContaining("This is a utility class and cannot be instantiated");
     }
 
     // ============================= HELPER METHODS ====================================

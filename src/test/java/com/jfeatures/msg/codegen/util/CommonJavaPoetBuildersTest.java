@@ -73,8 +73,9 @@ class CommonJavaPoetBuildersTest {
         assertThat(constructor.isConstructor()).isTrue();
         assertThat(constructor.modifiers).contains(Modifier.PUBLIC);
         assertThat(constructor.parameters).hasSize(1);
-        assertThat(constructor.parameters.get(0).type).isEqualTo(TypeName.get(NamedParameterJdbcTemplate.class));
-        assertThat(constructor.parameters.get(0).name).isEqualTo("jdbcTemplate");
+        ParameterSpec parameter = constructor.parameters.get(0);
+        assertThat(parameter.type).isEqualTo(TypeName.get(NamedParameterJdbcTemplate.class));
+        assertThat(parameter.name).isEqualTo("jdbcTemplate");
         
         // Check the constructor body contains assignment
         String codeString = constructor.code.toString();
@@ -90,19 +91,20 @@ class CommonJavaPoetBuildersTest {
         assertThat(constructor.isConstructor()).isTrue();
         assertThat(constructor.modifiers).contains(Modifier.PUBLIC);
         assertThat(constructor.parameters).hasSize(2);
-        
-        // Check DataSource parameter
-        assertThat(constructor.parameters.get(0).type).isEqualTo(TypeName.get(DataSource.class));
-        assertThat(constructor.parameters.get(0).name).isEqualTo("dataSource");
-        
-        // Check JdbcTemplate parameter
-        assertThat(constructor.parameters.get(1).type).isEqualTo(TypeName.get(NamedParameterJdbcTemplate.class));
-        assertThat(constructor.parameters.get(1).name).isEqualTo("jdbcTemplate");
+
+        ParameterSpec dataSourceParam = constructor.parameters.get(0);
+        assertThat(dataSourceParam.type).isEqualTo(TypeName.get(DataSource.class));
+        assertThat(dataSourceParam.name).isEqualTo("dataSource");
+
+        ParameterSpec jdbcTemplateParam = constructor.parameters.get(1);
+        assertThat(jdbcTemplateParam.type).isEqualTo(TypeName.get(NamedParameterJdbcTemplate.class));
+        assertThat(jdbcTemplateParam.name).isEqualTo("jdbcTemplate");
         
         // Check both assignments are present
         String codeString = constructor.code.toString();
-        assertThat(codeString).contains("this.dataSource = dataSource");
-        assertThat(codeString).contains("this.jdbcTemplate = jdbcTemplate");
+        assertThat(codeString)
+            .contains("this.dataSource = dataSource")
+            .contains("this.jdbcTemplate = jdbcTemplate");
     }
 
     // ============================= CLASS BUILDER TESTS ===============================

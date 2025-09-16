@@ -355,7 +355,9 @@ class NamingConventionsTest {
         Exception exception = assertThrows(Exception.class, constructor::newInstance);
         
         // The actual exception will be InvocationTargetException wrapping UnsupportedOperationException
-        assertThat(exception.getCause()).isInstanceOf(UnsupportedOperationException.class);
-        assertThat(exception.getCause().getMessage()).contains("This is a utility class and cannot be instantiated");
+        Throwable cause = exception.getCause();
+        assertThat(cause)
+            .isInstanceOf(UnsupportedOperationException.class)
+            .hasMessageContaining("This is a utility class and cannot be instantiated");
     }
 }

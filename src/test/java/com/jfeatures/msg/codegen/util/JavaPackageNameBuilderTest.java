@@ -50,9 +50,10 @@ class JavaPackageNameBuilderTest {
         String result = JavaPackageNameBuilder.buildJavaPackageName(domain, "dto");
 
         // Then
-        assertThat(result).startsWith("com.jfeatures.msg.");
-        assertThat(result).contains(domain.toLowerCase()); // Domain names are converted to lowercase
-        assertThat(result).endsWith(".dto");
+        assertThat(result)
+            .startsWith("com.jfeatures.msg.")
+            .contains(domain.toLowerCase()) // Domain names are converted to lowercase
+            .endsWith(".dto");
     }
 
     @Test

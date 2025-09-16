@@ -40,8 +40,9 @@ class ClassBuildersTest {
             .anyMatch(a -> a.type.toString().contains("Slf4j"))).isTrue();
         
         // Check JavaDoc
-        assertThat(typeSpec.javadoc.toString()).contains("Data Access Object for customer operations");
-        assertThat(typeSpec.javadoc.toString()).contains("Follows single responsibility principle");
+        assertThat(typeSpec.javadoc.toString())
+            .contains("Data Access Object for customer operations")
+            .contains("Follows single responsibility principle");
     }
 
     @Test
@@ -85,8 +86,9 @@ class ClassBuildersTest {
             .anyMatch(a -> a.type.toString().contains("Slf4j"))).isTrue();
         
         // Check JavaDoc
-        assertThat(typeSpec.javadoc.toString()).contains("Data Access Object for customer insert operations");
-        assertThat(typeSpec.javadoc.toString()).contains("Follows single responsibility principle - insert operations only");
+        assertThat(typeSpec.javadoc.toString())
+            .contains("Data Access Object for customer insert operations")
+            .contains("Follows single responsibility principle - insert operations only");
     }
 
     @ParameterizedTest
@@ -98,7 +100,8 @@ class ClassBuildersTest {
         
         // Then
         assertThat(typeSpec.name).isEqualTo(expectedClassName);
-        assertThat(typeSpec.javadoc.toString()).contains(businessName.toLowerCase() + " " + operation.toLowerCase() + " operations");
+        assertThat(typeSpec.javadoc.toString())
+            .contains(businessName.toLowerCase() + " " + operation.toLowerCase() + " operations");
     }
 
     static Stream<Arguments> provideOperationDAOTestArguments() {
@@ -148,8 +151,9 @@ class ClassBuildersTest {
             .anyMatch(a -> a.type.toString().contains("Tag"))).isTrue();
         
         // Check JavaDoc
-        assertThat(typeSpec.javadoc.toString()).contains("REST Controller for customer operations");
-        assertThat(typeSpec.javadoc.toString()).contains("Provides HTTP endpoints for data access");
+        assertThat(typeSpec.javadoc.toString())
+            .contains("REST Controller for customer operations")
+            .contains("Provides HTTP endpoints for data access");
     }
 
     @Test
@@ -189,8 +193,9 @@ class ClassBuildersTest {
         assertThat(typeSpec.annotations).hasSize(3); // RestController, RequestMapping, Tag
         
         // Check JavaDoc
-        assertThat(typeSpec.javadoc.toString()).contains("REST Controller for customer insert operations");
-        assertThat(typeSpec.javadoc.toString()).contains("Follows single responsibility principle - insert operations only");
+        assertThat(typeSpec.javadoc.toString())
+            .contains("REST Controller for customer insert operations")
+            .contains("Follows single responsibility principle - insert operations only");
     }
 
     @Test
@@ -242,8 +247,9 @@ class ClassBuildersTest {
             .anyMatch(a -> a.type.toString().contains("Jacksonized"))).isTrue();
         
         // Check JavaDoc
-        assertThat(typeSpec.javadoc.toString()).contains("Data Transfer Object for customer");
-        assertThat(typeSpec.javadoc.toString()).contains("Immutable class with builder pattern support");
+        assertThat(typeSpec.javadoc.toString())
+            .contains("Data Transfer Object for customer")
+            .contains("Immutable class with builder pattern support");
     }
 
     @Test
@@ -272,8 +278,9 @@ class ClassBuildersTest {
         assertThat(typeSpec.annotations).hasSize(3); // Builder, Value, Jacksonized
         
         // Check JavaDoc
-        assertThat(typeSpec.javadoc.toString()).contains("Data Transfer Object for customer create operations");
-        assertThat(typeSpec.javadoc.toString()).contains("Immutable class with builder pattern support");
+        assertThat(typeSpec.javadoc.toString())
+            .contains("Data Transfer Object for customer create operations")
+            .contains("Immutable class with builder pattern support");
     }
 
     @Test
@@ -302,8 +309,9 @@ class ClassBuildersTest {
         assertThat(typeSpec.annotations).isEmpty(); // No Lombok annotations for POJO
         
         // Check JavaDoc
-        assertThat(typeSpec.javadoc.toString()).contains("Data Transfer Object for customer");
-        assertThat(typeSpec.javadoc.toString()).contains("Standard POJO implementation due to field count limitations");
+        assertThat(typeSpec.javadoc.toString())
+            .contains("Data Transfer Object for customer")
+            .contains("Standard POJO implementation due to field count limitations");
     }
 
     @Test
@@ -336,8 +344,9 @@ class ClassBuildersTest {
             .anyMatch(a -> a.type.toString().contains("Configuration"))).isTrue();
         
         // Check JavaDoc
-        assertThat(typeSpec.javadoc.toString()).contains("Configuration class for database");
-        assertThat(typeSpec.javadoc.toString()).contains("Defines beans and configuration settings");
+        assertThat(typeSpec.javadoc.toString())
+            .contains("Configuration class for database")
+            .contains("Defines beans and configuration settings");
     }
 
     @Test
@@ -364,8 +373,10 @@ class ClassBuildersTest {
         Exception exception = assertThrows(Exception.class, constructor::newInstance);
         
         // The actual exception will be InvocationTargetException wrapping UnsupportedOperationException
-        assertThat(exception.getCause()).isInstanceOf(UnsupportedOperationException.class);
-        assertThat(exception.getCause().getMessage()).contains("This is a utility class and cannot be instantiated");
+        Throwable cause = exception.getCause();
+        assertThat(cause)
+            .isInstanceOf(UnsupportedOperationException.class)
+            .hasMessageContaining("This is a utility class and cannot be instantiated");
     }
 
     // ============================= EDGE CASE TESTS ===================================

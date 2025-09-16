@@ -26,13 +26,14 @@ class GenerateControllerTest {
         assertThat(result.typeSpec.name).isEqualTo("CustomerController");
         
         String generatedCode = result.toString();
-        assertThat(generatedCode).contains("@RestController");
-        assertThat(generatedCode).contains("path = \"/api\"");
-        assertThat(generatedCode).contains("name = \"Customer\"");
-        assertThat(generatedCode).contains("description = \"Customer\"");
-        assertThat(generatedCode).contains("getDataForCustomer");
-        assertThat(generatedCode).contains("value = \"/Customer\"");
-        assertThat(generatedCode).contains("produces = \"application/json\"");
+        assertThat(generatedCode)
+            .contains("@RestController")
+            .contains("path = \"/api\"")
+            .contains("name = \"Customer\"")
+            .contains("description = \"Customer\"")
+            .contains("getDataForCustomer")
+            .contains("value = \"/Customer\"")
+            .contains("produces = \"application/json\"");
     }
 
     @Test
@@ -49,10 +50,11 @@ class GenerateControllerTest {
 
         // Then
         String generatedCode = result.toString();
-        assertThat(generatedCode).contains("@RequestParam(\"customerid\") Integer customerid");
-        assertThat(generatedCode).contains("@RequestParam(\"status\") String status");
-        assertThat(generatedCode).contains("@RequestParam(\"minamount\") BigDecimal minamount");
-        assertThat(generatedCode).contains("return orderDAO.getOrder(customerid, status, minamount)");
+        assertThat(generatedCode)
+            .contains("@RequestParam(\"customerid\") Integer customerid")
+            .contains("@RequestParam(\"status\") String status")
+            .contains("@RequestParam(\"minamount\") BigDecimal minamount")
+            .contains("return orderDAO.getOrder(customerid, status, minamount)");
     }
 
     @Test
@@ -65,9 +67,10 @@ class GenerateControllerTest {
 
         // Then
         String generatedCode = result.toString();
-        assertThat(generatedCode).contains("getDataForAllCustomers()");
-        assertThat(generatedCode).contains("return allcustomersDAO.getAllCustomers()");
-        assertThat(generatedCode).contains("List<AllCustomersDTO>");
+        assertThat(generatedCode)
+            .contains("getDataForAllCustomers()")
+            .contains("return allcustomersDAO.getAllCustomers()")
+            .contains("List<AllCustomersDTO>");
     }
 
     @Test
@@ -82,9 +85,10 @@ class GenerateControllerTest {
 
         // Then
         String generatedCode = result.toString();
-        assertThat(generatedCode).contains("summary = \"Get API to fetch data for Product\"");
-        assertThat(generatedCode).contains("name = \"Product\"");
-        assertThat(generatedCode).contains("description = \"Product\"");
+        assertThat(generatedCode)
+            .contains("summary = \"Get API to fetch data for Product\"")
+            .contains("name = \"Product\"")
+            .contains("description = \"Product\"");
     }
 
     @Test
@@ -103,9 +107,10 @@ class GenerateControllerTest {
         assertThat(result.packageName).isEqualTo("com.jfeatures.msg.quarterlysalesreport.controller");
         
         String generatedCode = result.toString();
-        assertThat(generatedCode).contains("getDataForQuarterlySalesReport");
-        assertThat(generatedCode).contains("quarterlysalesreportDAO.getQuarterlySalesReport");
-        assertThat(generatedCode).contains("List<QuarterlySalesReportDTO>");
+        assertThat(generatedCode)
+            .contains("getDataForQuarterlySalesReport")
+            .contains("quarterlysalesreportDAO.getQuarterlySalesReport")
+            .contains("List<QuarterlySalesReportDTO>");
     }
 
     @Test
@@ -120,9 +125,10 @@ class GenerateControllerTest {
 
         // Then
         String generatedCode = result.toString();
-        assertThat(generatedCode).contains("private final UserDAO userDAO");
-        assertThat(generatedCode).contains("UserController(UserDAO userDAO)");
-        assertThat(generatedCode).contains("this.userDAO = userDAO");
+        assertThat(generatedCode)
+            .contains("private final UserDAO userDAO")
+            .contains("UserController(UserDAO userDAO)")
+            .contains("this.userDAO = userDAO");
     }
 
     @Test
@@ -138,9 +144,10 @@ class GenerateControllerTest {
 
         // Then
         String generatedCode = result.toString();
-        assertThat(generatedCode).contains("@RequestParam(\"user_id\") Integer user_id");
-        assertThat(generatedCode).contains("@RequestParam(\"created_date\") Date created_date");
-        assertThat(generatedCode).contains("return useractivityDAO.getUserActivity(user_id, created_date)");
+        assertThat(generatedCode)
+            .contains("@RequestParam(\"user_id\") Integer user_id")
+            .contains("@RequestParam(\"created_date\") Date created_date")
+            .contains("return useractivityDAO.getUserActivity(user_id, created_date)");
     }
 
     @Test

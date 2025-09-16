@@ -286,16 +286,19 @@ class ParameterBuildersTest {
         
         // Then
         assertThat(parameters).hasSize(3);
-        
-        assertThat(parameters.get(0).name).isEqualTo("customerId");
-        assertThat(parameters.get(0).type).isEqualTo(ClassName.get(Long.class));
-        assertThat(parameters.get(0).annotations).hasSize(1);
-        
-        assertThat(parameters.get(1).name).isEqualTo("customerName");
-        assertThat(parameters.get(1).type).isEqualTo(ClassName.get(String.class));
-        
-        assertThat(parameters.get(2).name).isEqualTo("isActive");
-        assertThat(parameters.get(2).type).isEqualTo(ClassName.get(Boolean.class));
+
+        ParameterSpec firstParameter = parameters.get(0);
+        assertThat(firstParameter.name).isEqualTo("customerId");
+        assertThat(firstParameter.type).isEqualTo(ClassName.get(Long.class));
+        assertThat(firstParameter.annotations).hasSize(1);
+
+        ParameterSpec secondParameter = parameters.get(1);
+        assertThat(secondParameter.name).isEqualTo("customerName");
+        assertThat(secondParameter.type).isEqualTo(ClassName.get(String.class));
+
+        ParameterSpec thirdParameter = parameters.get(2);
+        assertThat(thirdParameter.name).isEqualTo("isActive");
+        assertThat(thirdParameter.type).isEqualTo(ClassName.get(Boolean.class));
     }
 
     @Test
@@ -346,13 +349,15 @@ class ParameterBuildersTest {
         
         // Then
         assertThat(parameters).hasSize(2);
-        
-        assertThat(parameters.get(0).name).isEqualTo("customerId");
-        assertThat(parameters.get(0).type.toString()).contains("Long");
-        assertThat(parameters.get(0).annotations).hasSize(1);
-        
-        assertThat(parameters.get(1).name).isEqualTo("customerName");
-        assertThat(parameters.get(1).type.toString()).contains("String");
+
+        ParameterSpec firstParameter = parameters.get(0);
+        assertThat(firstParameter.name).isEqualTo("customerId");
+        assertThat(firstParameter.type.toString()).contains("Long");
+        assertThat(firstParameter.annotations).hasSize(1);
+
+        ParameterSpec secondParameter = parameters.get(1);
+        assertThat(secondParameter.name).isEqualTo("customerName");
+        assertThat(secondParameter.type.toString()).contains("String");
     }
 
     @Test
@@ -397,15 +402,18 @@ class ParameterBuildersTest {
         
         // Then
         assertThat(parameters).hasSize(3);
-        
-        assertThat(parameters.get(0).name).isEqualTo("page");
-        assertThat(parameters.get(0).type).isEqualTo(ClassName.get(Integer.class));
-        
-        assertThat(parameters.get(1).name).isEqualTo("size");
-        assertThat(parameters.get(1).type).isEqualTo(ClassName.get(Integer.class));
-        
-        assertThat(parameters.get(2).name).isEqualTo("sort");
-        assertThat(parameters.get(2).type).isEqualTo(ClassName.get(String.class));
+
+        ParameterSpec pageParam = parameters.get(0);
+        assertThat(pageParam.name).isEqualTo("page");
+        assertThat(pageParam.type).isEqualTo(ClassName.get(Integer.class));
+
+        ParameterSpec sizeParam = parameters.get(1);
+        assertThat(sizeParam.name).isEqualTo("size");
+        assertThat(sizeParam.type).isEqualTo(ClassName.get(Integer.class));
+
+        ParameterSpec sortParam = parameters.get(2);
+        assertThat(sortParam.name).isEqualTo("sort");
+        assertThat(sortParam.type).isEqualTo(ClassName.get(String.class));
     }
 
     @Test
@@ -445,18 +453,22 @@ class ParameterBuildersTest {
         
         // Then
         assertThat(parameters).hasSize(4);
-        
-        assertThat(parameters.get(0).name).isEqualTo("customerId");
-        assertThat(parameters.get(0).type.toString()).contains("Long");
-        
-        assertThat(parameters.get(1).name).isEqualTo("status");
-        assertThat(parameters.get(1).type.toString()).contains("String");
-        
-        assertThat(parameters.get(2).name).isEqualTo("category");
-        assertThat(parameters.get(2).type.toString()).contains("String");
-        
-        assertThat(parameters.get(3).name).isEqualTo("extraParam");
-        assertThat(parameters.get(3).type.toString()).contains("Integer");
+
+        ParameterSpec firstParameter = parameters.get(0);
+        assertThat(firstParameter.name).isEqualTo("customerId");
+        assertThat(firstParameter.type.toString()).contains("Long");
+
+        ParameterSpec secondParameter = parameters.get(1);
+        assertThat(secondParameter.name).isEqualTo("status");
+        assertThat(secondParameter.type.toString()).contains("String");
+
+        ParameterSpec thirdParameter = parameters.get(2);
+        assertThat(thirdParameter.name).isEqualTo("category");
+        assertThat(thirdParameter.type.toString()).contains("String");
+
+        ParameterSpec fourthParameter = parameters.get(3);
+        assertThat(fourthParameter.name).isEqualTo("extraParam");
+        assertThat(fourthParameter.type.toString()).contains("Integer");
     }
 
     @Test
@@ -474,13 +486,10 @@ class ParameterBuildersTest {
         List<ParameterSpec> parameters = ParameterBuilders.whereClauseParameters(whereColumns);
         
         // Then
-        assertThat(parameters).hasSize(5);
-        
-        assertThat(parameters.get(0).name).isEqualTo("id");
-        assertThat(parameters.get(1).name).isEqualTo("status");
-        assertThat(parameters.get(2).name).isEqualTo("category");
-        assertThat(parameters.get(3).name).isEqualTo("param4");
-        assertThat(parameters.get(4).name).isEqualTo("param5");
+        assertThat(parameters)
+            .hasSize(5)
+            .extracting(parameter -> parameter.name)
+            .containsExactly("id", "status", "category", "param4", "param5");
     }
 
     @Test
@@ -513,8 +522,10 @@ class ParameterBuildersTest {
         Exception exception = assertThrows(Exception.class, constructor::newInstance);
         
         // The actual exception will be InvocationTargetException wrapping UnsupportedOperationException
-        assertThat(exception.getCause()).isInstanceOf(UnsupportedOperationException.class);
-        assertThat(exception.getCause().getMessage()).contains("This is a utility class and cannot be instantiated");
+        Throwable cause = exception.getCause();
+        assertThat(cause)
+            .isInstanceOf(UnsupportedOperationException.class)
+            .hasMessageContaining("This is a utility class and cannot be instantiated");
     }
 
     // ============================= EDGE CASE TESTS ===================================
@@ -585,8 +596,9 @@ class ParameterBuildersTest {
         
         // Then - Should be boxed to Integer, not primitive int
         assertThat(parameters).hasSize(1);
-        assertThat(parameters.get(0).type).isEqualTo(ClassName.get(Integer.class));
-        assertThat(parameters.get(0).name).isEqualTo("countValue");
+        ParameterSpec parameter = parameters.get(0);
+        assertThat(parameter.type).isEqualTo(ClassName.get(Integer.class));
+        assertThat(parameter.name).isEqualTo("countValue");
     }
 
     // ============================= HELPER METHODS ====================================

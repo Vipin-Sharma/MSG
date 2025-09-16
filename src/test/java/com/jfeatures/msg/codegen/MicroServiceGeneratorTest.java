@@ -39,10 +39,11 @@ class MicroServiceGeneratorTest {
         // Then
         assertThat(exitCode).isEqualTo(0);
         String output = outContent.toString() + errContent.toString();
-        assertThat(output).contains("Creates a microservice application");
-        assertThat(output).contains("-d, --destination");
-        assertThat(output).contains("-n, --name");
-        assertThat(output).contains("-f, --sql-file");
+        assertThat(output)
+            .contains("Creates a microservice application")
+            .contains("-d, --destination")
+            .contains("-n, --name")
+            .contains("-f, --sql-file");
     }
 
     @Test
@@ -117,9 +118,12 @@ class MicroServiceGeneratorTest {
         cmd.parseArgs("--destination", tempDir.toString(), "--name", "TestService", "--sql-file", "test.sql");
 
         // Then
-        assertThat(cmd.getParseResult().hasMatchedOption("destination")).isTrue();
-        assertThat(cmd.getParseResult().hasMatchedOption("name")).isTrue();
-        assertThat(cmd.getParseResult().hasMatchedOption("sql-file")).isTrue();
+        assertThat(cmd.getParseResult())
+            .satisfies(parseResult -> {
+                assertThat(parseResult.hasMatchedOption("destination")).isTrue();
+                assertThat(parseResult.hasMatchedOption("name")).isTrue();
+                assertThat(parseResult.hasMatchedOption("sql-file")).isTrue();
+            });
     }
 
     @Test
@@ -155,9 +159,12 @@ class MicroServiceGeneratorTest {
         cmd.parseArgs("-d", tempDir.toString(), "-n", "Customer", "-f", "customer.sql");
 
         // Then
-        assertThat(cmd.getParseResult().hasMatchedOption('d')).isTrue();
-        assertThat(cmd.getParseResult().hasMatchedOption('n')).isTrue();
-        assertThat(cmd.getParseResult().hasMatchedOption('f')).isTrue();
+        assertThat(cmd.getParseResult())
+            .satisfies(parseResult -> {
+                assertThat(parseResult.hasMatchedOption('d')).isTrue();
+                assertThat(parseResult.hasMatchedOption('n')).isTrue();
+                assertThat(parseResult.hasMatchedOption('f')).isTrue();
+            });
     }
 
     @Test

@@ -31,11 +31,12 @@ class GenerateDTOTest {
         assertThat(result.typeSpec.name).isEqualTo("CustomerDTO");
         
         String generatedCode = result.toString();
-        assertThat(generatedCode).contains("@Builder");
-        assertThat(generatedCode).contains("@Value");
-        assertThat(generatedCode).contains("@Jacksonized");
-        assertThat(generatedCode).contains("public Integer id;");
-        assertThat(generatedCode).contains("public String name;");
+        assertThat(generatedCode)
+            .contains("@Builder")
+            .contains("@Value")
+            .contains("@Jacksonized")
+            .contains("public Integer id;")
+            .contains("public String name;");
     }
 
     @Test
@@ -51,8 +52,9 @@ class GenerateDTOTest {
 
         // Then
         String generatedCode = result.toString();
-        assertThat(generatedCode).contains("public Integer userId;");
-        assertThat(generatedCode).contains("public Timestamp createdAt;");
+        assertThat(generatedCode)
+            .contains("public Integer userId;")
+            .contains("public Timestamp createdAt;");
     }
 
     @Test
@@ -115,10 +117,11 @@ class GenerateDTOTest {
 
         // Then
         String generatedCode = result.toString();
-        assertThat(generatedCode).contains("public Long id;");
-        assertThat(generatedCode).contains("public BigDecimal price;");
-        assertThat(generatedCode).contains("public Boolean active;");
-        assertThat(generatedCode).contains("public Date createdDate;");
+        assertThat(generatedCode)
+            .contains("public Long id;")
+            .contains("public BigDecimal price;")
+            .contains("public Boolean active;")
+            .contains("public Date createdDate;");
     }
 
     @Test
