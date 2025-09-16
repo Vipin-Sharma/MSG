@@ -130,10 +130,7 @@ class ComprehensiveCRUDWorkflowTest {
             VALUES (?, ?, ?, ?, ?)
             """;
         
-        // Setup database mocks for INSERT workflow
-        TestUtils.setupInsertWorkflowMocks(mockDatabaseConnection, mockDataSource, mockNamedParameterJdbcTemplate);
-        
-        // Setup database metadata mocking for INSERT (uses database metadata, not parameter metadata)
+        // Setup database metadata mocking for INSERT workflow (uses database metadata, not parameter metadata)
         when(mockDataSource.getConnection()).thenReturn(mockConnection);
         when(mockConnection.getMetaData()).thenReturn(mockDatabaseMetaData);
         
@@ -193,9 +190,6 @@ class ComprehensiveCRUDWorkflowTest {
             SET order_status = ?, updated_date = ?, notes = ?
             WHERE order_id = ? AND customer_id = ?
             """;
-        
-        // Setup database mocks for UPDATE workflow
-        TestUtils.setupUpdateWorkflowMocks(mockDatabaseConnection, mockDataSource, mockNamedParameterJdbcTemplate);
         
         // Setup parameter metadata mocking for ParameterMetadataExtractor (UPDATE has 5 parameters)
         when(mockDataSource.getConnection()).thenReturn(mockConnection);
@@ -271,10 +265,7 @@ class ComprehensiveCRUDWorkflowTest {
             WHERE user_id = ? AND status = 'INACTIVE' AND last_login < ?
             """;
         
-        // Setup database mocks for DELETE workflow - need proper parameter metadata mocking
-        TestUtils.setupDeleteWorkflowMocks(mockDatabaseConnection, mockDataSource);
-        
-        // Setup parameter metadata mocking for ParameterMetadataExtractor
+        // Setup parameter metadata mocking for ParameterMetadataExtractor (DELETE workflow)
         when(mockDataSource.getConnection()).thenReturn(mockConnection);
         when(mockConnection.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
         when(mockPreparedStatement.getParameterMetaData()).thenReturn(mockParameterMetaData);
@@ -329,10 +320,7 @@ class ComprehensiveCRUDWorkflowTest {
             AND c.customer_id = ?
             """;
         
-        // Setup database mocks for UPDATE workflow
-        TestUtils.setupUpdateWorkflowMocks(mockDatabaseConnection, mockDataSource, mockNamedParameterJdbcTemplate);
-        
-        // Setup database metadata mocking for UPDATE (uses database metadata, not parameter metadata)
+        // Setup database metadata mocking for UPDATE workflow (uses database metadata, not parameter metadata)
         when(mockDataSource.getConnection()).thenReturn(mockConnection);
         when(mockConnection.getMetaData()).thenReturn(mockDatabaseMetaData);
         
@@ -412,10 +400,7 @@ class ComprehensiveCRUDWorkflowTest {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """;
         
-        // Setup INSERT workflow mocks
-        TestUtils.setupInsertWorkflowMocks(mockDatabaseConnection, mockDataSource, mockNamedParameterJdbcTemplate);
-        
-        // Setup database metadata mocking for INSERT (uses database metadata, not parameter metadata)
+        // Setup database metadata mocking for INSERT workflow (uses database metadata, not parameter metadata)
         when(mockDataSource.getConnection()).thenReturn(mockConnection);
         when(mockConnection.getMetaData()).thenReturn(mockDatabaseMetaData);
         
@@ -464,10 +449,7 @@ class ComprehensiveCRUDWorkflowTest {
         String businessDomainName = "Integration";
         String updateSql = "UPDATE test_table SET name = ?, description = ? WHERE id = ?";
         
-        // Setup UPDATE workflow mocks
-        TestUtils.setupUpdateWorkflowMocks(mockDatabaseConnection, mockDataSource, mockNamedParameterJdbcTemplate);
-        
-        // Setup database metadata mocking for UPDATE (uses database metadata, not parameter metadata)
+        // Setup database metadata mocking for UPDATE workflow (uses database metadata, not parameter metadata)
         when(mockDataSource.getConnection()).thenReturn(mockConnection);
         when(mockConnection.getMetaData()).thenReturn(mockDatabaseMetaData);
         
