@@ -5,7 +5,8 @@ import com.jfeatures.msg.codegen.constants.CodeGenerationConstants;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.DeleteMetadata;
 import com.jfeatures.msg.codegen.sql.SqlParameterReplacer;
-import com.jfeatures.msg.codegen.util.CommonJavaPoetBuilders;
+import com.jfeatures.msg.codegen.util.FieldBuilders;
+import com.jfeatures.msg.codegen.util.MethodBuilders;
 import com.jfeatures.msg.codegen.util.JavaPackageNameBuilder;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
@@ -19,6 +20,7 @@ import java.util.Map;
 import javax.lang.model.element.Modifier;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.CaseUtils;
+import org.springframework.stereotype.Component;
 
 /**
  * Generates DAO classes for DELETE operations.
@@ -49,12 +51,12 @@ public class GenerateDeleteDAO {
         
         String jdbcTemplateFieldName = CodeGenerationConstants.JDBC_TEMPLATE_FIELD_NAME;
         
-        // Constructor using CommonJavaPoetBuilders
-        MethodSpec constructorSpec = CommonJavaPoetBuilders.jdbcTemplateConstructor(jdbcTemplateFieldName);
-        
-        // JDBC template field using CommonJavaPoetBuilders
-        FieldSpec jdbcTemplateFieldSpec = CommonJavaPoetBuilders.jdbcTemplateField(jdbcTemplateFieldName);
-        
+        // Constructor using shared MethodBuilders utility
+        MethodSpec constructorSpec = MethodBuilders.jdbcTemplateConstructor(jdbcTemplateFieldName);
+
+        // JDBC template field using shared FieldBuilders utility
+        FieldSpec jdbcTemplateFieldSpec = FieldBuilders.jdbcTemplateField(jdbcTemplateFieldName);
+
         // Convert original SQL to named parameter format
         String namedParameterSql = SqlParameterReplacer.convertToNamedParameterSql(
                 deleteMetadata.originalSql(), 
@@ -62,7 +64,7 @@ public class GenerateDeleteDAO {
         );
         String formattedSql = SqlFormatter.format(namedParameterSql);
         
-        // SQL field using CommonJavaPoetBuilders with JavaDoc
+        // SQL field built inline to preserve existing documentation
         FieldSpec sqlFieldSpec = FieldSpec.builder(String.class, CodeGenerationConstants.SQL_FIELD_NAME, 
                 Modifier.PRIVATE, Modifier.FINAL, Modifier.STATIC)
                 .initializer("\"\"\"\n$L\"\"\"", formattedSql)
@@ -72,8 +74,12 @@ public class GenerateDeleteDAO {
         // DELETE method
         MethodSpec deleteMethodSpec = createDeleteMethod(businessPurposeOfSQL, deleteMetadata, jdbcTemplateFieldName);
         
-        // DAO class using CommonJavaPoetBuilders
-        TypeSpec.Builder daoBuilder = CommonJavaPoetBuilders.basicDAOClass(businessPurposeOfSQL + "Delete", jdbcTemplateFieldName);
+        // DAO class definition assembled manually to avoid deprecated helpers
+        TypeSpec.Builder daoBuilder = TypeSpec.classBuilder(businessPurposeOfSQL + "DeleteDAO")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Component.class)
+                .addField(jdbcTemplateFieldSpec)
+                .addMethod(constructorSpec);
         TypeSpec dao = daoBuilder
                 .addField(sqlFieldSpec)
                 .addMethod(deleteMethodSpec)
