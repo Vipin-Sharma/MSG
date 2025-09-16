@@ -34,9 +34,11 @@ class MicroserviceProjectWriterTest {
 
     @Test
     void testWriteMicroserviceProject_NullMicroservice(@TempDir Path tempDir) {
+        String destinationPath = tempDir.toString();
+
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> writer.writeMicroserviceProject(null, tempDir.toString())
+            () -> writer.writeMicroserviceProject(null, destinationPath)
         );
         assertEquals("Generated microservice cannot be null", exception.getMessage());
     }
@@ -115,9 +117,11 @@ class MicroserviceProjectWriterTest {
         when(mockMicroservice.databaseConfigContent()).thenReturn("// Database config");
 
         // Should propagate IOException
+        String destinationPath = tempDir.toString();
+
         IOException exception = assertThrows(
             IOException.class,
-            () -> writer.writeMicroserviceProject(mockMicroservice, tempDir.toString())
+            () -> writer.writeMicroserviceProject(mockMicroservice, destinationPath)
         );
         
         assertNotNull(exception.getMessage());
@@ -132,9 +136,11 @@ class MicroserviceProjectWriterTest {
         when(mockMicroservice.statementType()).thenThrow(new RuntimeException("Runtime error"));
 
         // Should wrap RuntimeException in IOException
+        String destinationPath = tempDir.toString();
+
         Exception exception = assertThrows(
             Exception.class,
-            () -> writer.writeMicroserviceProject(mockMicroservice, tempDir.toString())
+            () -> writer.writeMicroserviceProject(mockMicroservice, destinationPath)
         );
         
         // The exception could be either IOException (wrapped) or RuntimeException (direct)
@@ -159,8 +165,10 @@ class MicroserviceProjectWriterTest {
         when(mockMicroservice.databaseConfigContent()).thenReturn("// Database config");
 
         // Should fail due to missing template files, but might succeed if files exist in resources
+        String destinationPath = tempDir.toString();
+
         try {
-            writer.writeMicroserviceProject(mockMicroservice, tempDir.toString());
+            writer.writeMicroserviceProject(mockMicroservice, destinationPath);
             // If no exception, template files were found in resources
             assertTrue(true, "Template files were found");
         } catch (IOException exception) {

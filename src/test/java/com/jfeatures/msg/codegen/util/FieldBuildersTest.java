@@ -3,6 +3,7 @@ package com.jfeatures.msg.codegen.util;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.jfeatures.msg.codegen.constants.CodeGenerationConstants;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
@@ -30,10 +31,10 @@ class FieldBuildersTest {
     @Test
     void shouldCreateJdbcTemplateField() {
         // When
-        FieldSpec field = FieldBuilders.jdbcTemplateField("namedParameterJdbcTemplate");
-        
+        FieldSpec field = FieldBuilders.jdbcTemplateField(CodeGenerationConstants.JDBC_TEMPLATE_FIELD_NAME);
+
         // Then
-        assertThat(field.name).isEqualTo("namedParameterJdbcTemplate");
+        assertThat(field.name).isEqualTo(CodeGenerationConstants.JDBC_TEMPLATE_FIELD_NAME);
         assertThat(field.type).isEqualTo(TypeName.get(NamedParameterJdbcTemplate.class));
         assertThat(field.modifiers).containsExactlyInAnyOrder(Modifier.PRIVATE, Modifier.FINAL);
     }
@@ -373,14 +374,15 @@ class FieldBuildersTest {
     @Test
     void shouldHandleWhitespaceStringValidation() {
         // All these should throw IllegalArgumentException for whitespace-only strings
-        assertThrows(IllegalArgumentException.class, 
+        assertThrows(IllegalArgumentException.class,
             () -> FieldBuilders.sqlField("   ", "fieldName"));
-        assertThrows(IllegalArgumentException.class, 
+        assertThrows(IllegalArgumentException.class,
             () -> FieldBuilders.sqlField("SELECT * FROM test", "   "));
-        assertThrows(IllegalArgumentException.class, 
+        assertThrows(IllegalArgumentException.class,
             () -> FieldBuilders.dataSourceField("\t\n"));
-        assertThrows(IllegalArgumentException.class, 
-            () -> FieldBuilders.daoField(TypeName.get(String.class), "   "));
+        TypeName stringType = TypeName.get(String.class);
+        assertThrows(IllegalArgumentException.class,
+            () -> FieldBuilders.daoField(stringType, "   "));
     }
 
     @Test

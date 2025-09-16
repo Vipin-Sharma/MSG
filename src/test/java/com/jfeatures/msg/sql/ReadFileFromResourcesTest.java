@@ -115,8 +115,10 @@ class ReadFileFromResourcesTest {
         }
         longName.append(".txt");
         
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> 
-            ReadFileFromResources.readFileFromResources(longName.toString()));
+        String longFileName = longName.toString();
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+            ReadFileFromResources.readFileFromResources(longFileName));
         
         assertNotNull(exception);
         assertTrue(exception.getMessage().contains("Resource file not found"));

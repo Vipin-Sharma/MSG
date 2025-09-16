@@ -3,6 +3,7 @@ package com.jfeatures.msg.codegen.util;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.jfeatures.msg.codegen.constants.CodeGenerationConstants;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
@@ -28,16 +29,19 @@ class MethodBuildersTest {
     @Test
     void shouldCreateJdbcTemplateConstructor() {
         // When
-        MethodSpec constructor = MethodBuilders.jdbcTemplateConstructor("namedParameterJdbcTemplate");
+        MethodSpec constructor = MethodBuilders.jdbcTemplateConstructor(CodeGenerationConstants.JDBC_TEMPLATE_FIELD_NAME);
         
         // Then
         assertThat(constructor.name).isEqualTo("<init>");
         assertThat(constructor.modifiers).containsExactlyInAnyOrder(Modifier.PUBLIC);
         assertThat(constructor.parameters).hasSize(1);
         assertThat(constructor.parameters.get(0).type).isEqualTo(TypeName.get(NamedParameterJdbcTemplate.class));
-        assertThat(constructor.parameters.get(0).name).isEqualTo("namedParameterJdbcTemplate");
+        assertThat(constructor.parameters.get(0).name)
+                .isEqualTo(CodeGenerationConstants.JDBC_TEMPLATE_FIELD_NAME);
         assertThat(constructor.javadoc.toString()).contains("Constructor with dependency injection for JDBC template");
-        assertThat(constructor.code.toString()).contains("this.namedParameterJdbcTemplate = namedParameterJdbcTemplate");
+        assertThat(constructor.code.toString())
+                .contains("this." + CodeGenerationConstants.JDBC_TEMPLATE_FIELD_NAME + " = "
+                        + CodeGenerationConstants.JDBC_TEMPLATE_FIELD_NAME);
     }
 
     @Test
@@ -209,8 +213,10 @@ class MethodBuildersTest {
 
     @Test
     void shouldThrowExceptionForNullMethodNameInGetEndpoint() {
-        assertThrows(IllegalArgumentException.class, 
-            () -> MethodBuilders.getEndpointMethod(null, TypeName.get(String.class), "/path", "summary"));
+        TypeName returnType = TypeName.get(String.class);
+
+        assertThrows(IllegalArgumentException.class,
+            () -> MethodBuilders.getEndpointMethod(null, returnType, "/path", "summary"));
     }
 
     @Test
@@ -368,9 +374,11 @@ class MethodBuildersTest {
 
     @Test
     void shouldThrowExceptionForNullParametersInDeleteEndpoint() {
-        assertThrows(IllegalArgumentException.class, 
-            () -> MethodBuilders.deleteEndpointMethod(null, TypeName.get(String.class), "summary"));
-        assertThrows(IllegalArgumentException.class, 
+        TypeName returnType = TypeName.get(String.class);
+
+        assertThrows(IllegalArgumentException.class,
+            () -> MethodBuilders.deleteEndpointMethod(null, returnType, "summary"));
+        assertThrows(IllegalArgumentException.class,
             () -> MethodBuilders.deleteEndpointMethod("method", null, "summary"));
     }
 
@@ -433,9 +441,11 @@ class MethodBuildersTest {
 
     @Test
     void shouldThrowExceptionForNullParametersInDaoMethod() {
-        assertThrows(IllegalArgumentException.class, 
-            () -> MethodBuilders.daoMethod(null, TypeName.get(String.class), null));
-        assertThrows(IllegalArgumentException.class, 
+        TypeName returnType = TypeName.get(String.class);
+
+        assertThrows(IllegalArgumentException.class,
+            () -> MethodBuilders.daoMethod(null, returnType, null));
+        assertThrows(IllegalArgumentException.class,
             () -> MethodBuilders.daoMethod("method", null, null));
     }
 
@@ -518,15 +528,20 @@ class MethodBuildersTest {
 
     @Test
     void shouldValidateEmptyMethodNameInGetEndpoint() {
-        assertThrows(IllegalArgumentException.class, 
-            () -> MethodBuilders.getEndpointMethod("", TypeName.get(String.class), "/path", "summary"));
+        TypeName returnType = TypeName.get(String.class);
+
+        assertThrows(IllegalArgumentException.class,
+            () -> MethodBuilders.getEndpointMethod("", returnType, "/path", "summary"));
     }
 
     @Test
     void shouldValidateWhitespaceMethodNameInPostEndpoint() {
-        assertThrows(IllegalArgumentException.class, 
-            () -> MethodBuilders.postEndpointMethod("   ", TypeName.get(String.class), 
-                ClassName.get("com.example", "Request"), "param", "summary"));
+        TypeName returnType = TypeName.get(String.class);
+        ClassName requestType = ClassName.get("com.example", "Request");
+
+        assertThrows(IllegalArgumentException.class,
+            () -> MethodBuilders.postEndpointMethod("   ", returnType,
+                requestType, "param", "summary"));
     }
 
     @Test
