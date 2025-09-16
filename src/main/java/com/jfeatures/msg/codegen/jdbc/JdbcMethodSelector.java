@@ -2,7 +2,11 @@ package com.jfeatures.msg.codegen.jdbc;
 
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 
-public class JdbcMethodSelector {
+public final class JdbcMethodSelector {
+
+    private JdbcMethodSelector() {
+        throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
+    }
     
     public static String selectJdbcGetterMethodFor(ColumnMetadata databaseColumnDefinition) {
         if (databaseColumnDefinition == null) {

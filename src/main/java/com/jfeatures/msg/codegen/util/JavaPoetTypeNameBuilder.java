@@ -4,7 +4,11 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 
-public class JavaPoetTypeNameBuilder {
+public final class JavaPoetTypeNameBuilder {
+
+    private JavaPoetTypeNameBuilder() {
+        throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
+    }
     
     public static ParameterizedTypeName buildParameterizedTypeName(TypeName dtoTypeName, ClassName containerType) {
         if (dtoTypeName == null) {

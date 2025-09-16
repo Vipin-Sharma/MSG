@@ -10,7 +10,11 @@ import java.nio.charset.StandardCharsets;
  * This class provides the necessary beans for database connectivity.
  */
 public class GenerateDatabaseConfig {
-    
+
+    private GenerateDatabaseConfig() {
+        throw new UnsupportedOperationException("Utility class");
+    }
+
     private static final String TEMPLATE_PATH = "/templates/DatabaseConfig.java.template";
     
     public static String createDatabaseConfig(String businessPurposeOfSQL) {

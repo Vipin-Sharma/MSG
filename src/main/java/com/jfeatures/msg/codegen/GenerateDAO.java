@@ -32,7 +32,11 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 public class GenerateDAO {
-    
+
+    private GenerateDAO() {
+        throw new UnsupportedOperationException("Utility class");
+    }
+
     /**
      * Creates DAO using database metadata instead of complex SQL parsing.
      * Much simpler, more reliable, and easier to maintain.

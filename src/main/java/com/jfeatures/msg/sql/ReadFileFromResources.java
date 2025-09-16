@@ -9,7 +9,11 @@ import java.nio.charset.StandardCharsets;
  * Utility class for reading files from the resources directory.
  * Provides robust file reading with proper error handling and resource management.
  */
-public class ReadFileFromResources {
+public final class ReadFileFromResources {
+
+    private ReadFileFromResources() {
+        throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
+    }
     
     /**
      * Reads a file from the resources directory and returns its content as a String using UTF-8 encoding.

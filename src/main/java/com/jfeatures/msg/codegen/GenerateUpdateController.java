@@ -39,7 +39,11 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Slf4j
 public class GenerateUpdateController {
-    
+
+    private GenerateUpdateController() {
+        throw new UnsupportedOperationException("Utility class");
+    }
+
     /**
      * Creates controller with PUT mapping for UPDATE operations.
      */

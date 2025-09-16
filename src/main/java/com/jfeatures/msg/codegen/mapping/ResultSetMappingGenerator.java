@@ -8,7 +8,11 @@ import com.squareup.javapoet.TypeName;
 import java.util.List;
 import org.apache.commons.text.CaseUtils;
 
-public class ResultSetMappingGenerator {
+public final class ResultSetMappingGenerator {
+
+    private ResultSetMappingGenerator() {
+        throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
+    }
     
     public static String buildResultSetToObjectMappingCode(List<ColumnMetadata> resultSetColumnDefinitions, TypeName targetDtoType) {
         if (resultSetColumnDefinitions == null) {

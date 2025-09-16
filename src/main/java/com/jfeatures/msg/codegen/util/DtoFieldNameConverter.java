@@ -3,7 +3,11 @@ package com.jfeatures.msg.codegen.util;
 import com.jfeatures.msg.codegen.domain.TableColumn;
 import org.apache.commons.text.CaseUtils;
 
-public class DtoFieldNameConverter {
+public final class DtoFieldNameConverter {
+
+    private DtoFieldNameConverter() {
+        throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
+    }
     
     public static String convertToJavaCamelCase(TableColumn databaseTableColumn) {
         if (databaseTableColumn == null) {

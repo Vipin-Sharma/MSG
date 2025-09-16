@@ -19,6 +19,9 @@ import org.apache.commons.text.CaseUtils;
 @Slf4j
 public class GenerateDTO {
 
+    private GenerateDTO() {
+        throw new UnsupportedOperationException("Utility class");
+    }
 
     /**
      * This method has limitation of number of fields lesser than 255, due to Lombok limitation. After that, we will need to generate POJO.

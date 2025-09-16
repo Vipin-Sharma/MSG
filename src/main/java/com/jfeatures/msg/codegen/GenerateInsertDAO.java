@@ -31,7 +31,11 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 public class GenerateInsertDAO {
-    
+
+    private GenerateInsertDAO() {
+        throw new UnsupportedOperationException("Utility class");
+    }
+
     /**
      * Creates INSERT DAO with insert method using NamedParameterJdbcTemplate.
      * Single responsibility: Generate INSERT data access object.

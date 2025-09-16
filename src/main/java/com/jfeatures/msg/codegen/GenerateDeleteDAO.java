@@ -28,7 +28,11 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 public class GenerateDeleteDAO {
-    
+
+    private GenerateDeleteDAO() {
+        throw new UnsupportedOperationException("Utility class");
+    }
+
     /**
      * Creates DELETE DAO with delete method using NamedParameterJdbcTemplate.
      * Single responsibility: Generate DELETE data access object.

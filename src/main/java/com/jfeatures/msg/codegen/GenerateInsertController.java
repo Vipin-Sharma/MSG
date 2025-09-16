@@ -32,7 +32,11 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Slf4j
 public class GenerateInsertController {
-    
+
+    private GenerateInsertController() {
+        throw new UnsupportedOperationException("Utility class");
+    }
+
     /**
      * Creates controller with POST mapping for INSERT operations.
      * Single responsibility: Generate INSERT REST controller.

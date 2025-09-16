@@ -29,7 +29,11 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 public class GenerateUpdateDAO {
-    
+
+    private GenerateUpdateDAO() {
+        throw new UnsupportedOperationException("Utility class");
+    }
+
     /**
      * Creates DAO with UPDATE method using database metadata approach.
      * Follows clean code principles with single responsibility - one public method per class.
