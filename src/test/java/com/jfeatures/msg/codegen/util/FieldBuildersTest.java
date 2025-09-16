@@ -373,14 +373,15 @@ class FieldBuildersTest {
     @Test
     void shouldHandleWhitespaceStringValidation() {
         // All these should throw IllegalArgumentException for whitespace-only strings
-        assertThrows(IllegalArgumentException.class, 
+        assertThrows(IllegalArgumentException.class,
             () -> FieldBuilders.sqlField("   ", "fieldName"));
-        assertThrows(IllegalArgumentException.class, 
+        assertThrows(IllegalArgumentException.class,
             () -> FieldBuilders.sqlField("SELECT * FROM test", "   "));
-        assertThrows(IllegalArgumentException.class, 
+        assertThrows(IllegalArgumentException.class,
             () -> FieldBuilders.dataSourceField("\t\n"));
-        assertThrows(IllegalArgumentException.class, 
-            () -> FieldBuilders.daoField(TypeName.get(String.class), "   "));
+        TypeName stringType = TypeName.get(String.class);
+        assertThrows(IllegalArgumentException.class,
+            () -> FieldBuilders.daoField(stringType, "   "));
     }
 
     @Test

@@ -107,21 +107,27 @@ class ParameterBuildersTest {
 
     @Test
     void shouldThrowExceptionForNullParamNameInRequestParam() {
-        assertThrows(IllegalArgumentException.class, 
-            () -> ParameterBuilders.requestParam(TypeName.get(String.class), null));
+        TypeName stringType = TypeName.get(String.class);
+
+        assertThrows(IllegalArgumentException.class,
+            () -> ParameterBuilders.requestParam(stringType, null));
     }
 
     @Test
     void shouldThrowExceptionForEmptyParamNameInRequestParam() {
-        assertThrows(IllegalArgumentException.class, 
-            () -> ParameterBuilders.requestParam(TypeName.get(String.class), ""));
+        TypeName stringType = TypeName.get(String.class);
+
+        assertThrows(IllegalArgumentException.class,
+            () -> ParameterBuilders.requestParam(stringType, ""));
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"   ", "\t", "\n", " \t\n "})
     void shouldThrowExceptionForWhitespaceParamNameInRequestParam(String paramName) {
-        assertThrows(IllegalArgumentException.class, 
-            () -> ParameterBuilders.requestParam(TypeName.get(String.class), paramName));
+        TypeName stringType = TypeName.get(String.class);
+
+        assertThrows(IllegalArgumentException.class,
+            () -> ParameterBuilders.requestParam(stringType, paramName));
     }
 
     @Test
@@ -142,12 +148,14 @@ class ParameterBuildersTest {
 
     @Test
     void shouldThrowExceptionForNullParametersInOptionalRequestParam() {
-        assertThrows(IllegalArgumentException.class, 
+        TypeName stringType = TypeName.get(String.class);
+
+        assertThrows(IllegalArgumentException.class,
             () -> ParameterBuilders.optionalRequestParam(null, "param", "default"));
-        assertThrows(IllegalArgumentException.class, 
-            () -> ParameterBuilders.optionalRequestParam(TypeName.get(String.class), null, "default"));
-        assertThrows(IllegalArgumentException.class, 
-            () -> ParameterBuilders.optionalRequestParam(TypeName.get(String.class), "", "default"));
+        assertThrows(IllegalArgumentException.class,
+            () -> ParameterBuilders.optionalRequestParam(stringType, null, "default"));
+        assertThrows(IllegalArgumentException.class,
+            () -> ParameterBuilders.optionalRequestParam(stringType, "", "default"));
     }
 
     // ============================= PATH VARIABLE TESTS ===========================
@@ -182,12 +190,14 @@ class ParameterBuildersTest {
 
     @Test
     void shouldThrowExceptionForNullParametersInPathVariable() {
-        assertThrows(IllegalArgumentException.class, 
+        TypeName longType = TypeName.get(Long.class);
+
+        assertThrows(IllegalArgumentException.class,
             () -> ParameterBuilders.pathVariable(null, "id"));
-        assertThrows(IllegalArgumentException.class, 
-            () -> ParameterBuilders.pathVariable(TypeName.get(Long.class), null));
-        assertThrows(IllegalArgumentException.class, 
-            () -> ParameterBuilders.pathVariable(TypeName.get(Long.class), ""));
+        assertThrows(IllegalArgumentException.class,
+            () -> ParameterBuilders.pathVariable(longType, null));
+        assertThrows(IllegalArgumentException.class,
+            () -> ParameterBuilders.pathVariable(longType, ""));
     }
 
     @Test
@@ -422,12 +432,14 @@ class ParameterBuildersTest {
 
     @Test
     void shouldThrowExceptionForNullParametersInIdParameter() {
-        assertThrows(IllegalArgumentException.class, 
+        TypeName idType = TypeName.get(Long.class);
+
+        assertThrows(IllegalArgumentException.class,
             () -> ParameterBuilders.idParameter(null, "id"));
-        assertThrows(IllegalArgumentException.class, 
-            () -> ParameterBuilders.idParameter(TypeName.get(Long.class), null));
-        assertThrows(IllegalArgumentException.class, 
-            () -> ParameterBuilders.idParameter(TypeName.get(Long.class), ""));
+        assertThrows(IllegalArgumentException.class,
+            () -> ParameterBuilders.idParameter(idType, null));
+        assertThrows(IllegalArgumentException.class,
+            () -> ParameterBuilders.idParameter(idType, ""));
     }
 
     @Test

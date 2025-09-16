@@ -219,9 +219,11 @@ class ResultSetMappingGeneratorTest {
 
     @Test
     void testBuildResultSetToObjectMappingCodeEmptyColumnDefinitions() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> 
-            ResultSetMappingGenerator.buildResultSetToObjectMappingCode(Collections.emptyList(), targetDtoType));
-        
+        List<ColumnMetadata> emptyColumnMetadata = Collections.emptyList();
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+            ResultSetMappingGenerator.buildResultSetToObjectMappingCode(emptyColumnMetadata, targetDtoType));
+
         assertEquals("ResultSet column definitions list cannot be empty", exception.getMessage());
     }
 

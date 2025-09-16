@@ -246,14 +246,9 @@ class MicroServiceGeneratorTest {
         setPrivateField(generator, "destinationDirectory", tempDir.toString());
         
         // Should throw IllegalArgumentException
-        assertThrows(IllegalArgumentException.class, () -> {
-            try {
-                generator.call();
-            } catch (IllegalArgumentException e) {
-                assertEquals(ProjectConstants.ERROR_NULL_BUSINESS_NAME, e.getMessage());
-                throw e;
-            }
-        });
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, generator::call);
+
+        assertEquals(ProjectConstants.ERROR_NULL_BUSINESS_NAME, exception.getMessage());
     }
 
     @Test
@@ -265,14 +260,9 @@ class MicroServiceGeneratorTest {
         setPrivateField(generator, "destinationDirectory", tempDir.toString());
         
         // Should throw IllegalArgumentException
-        assertThrows(IllegalArgumentException.class, () -> {
-            try {
-                generator.call();
-            } catch (IllegalArgumentException e) {
-                assertEquals(ProjectConstants.ERROR_NULL_BUSINESS_NAME, e.getMessage());
-                throw e;
-            }
-        });
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, generator::call);
+
+        assertEquals(ProjectConstants.ERROR_NULL_BUSINESS_NAME, exception.getMessage());
     }
 
     @Test
@@ -284,14 +274,9 @@ class MicroServiceGeneratorTest {
         setPrivateField(generator, "destinationDirectory", tempDir.toString());
         
         // Should throw IllegalArgumentException
-        assertThrows(IllegalArgumentException.class, () -> {
-            try {
-                generator.call();
-            } catch (IllegalArgumentException e) {
-                assertEquals(ProjectConstants.ERROR_NULL_BUSINESS_NAME, e.getMessage());
-                throw e;
-            }
-        });
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, generator::call);
+
+        assertEquals(ProjectConstants.ERROR_NULL_BUSINESS_NAME, exception.getMessage());
     }
 
     @Test
@@ -303,14 +288,9 @@ class MicroServiceGeneratorTest {
         setPrivateField(generator, "destinationDirectory", null);
         
         // Should throw IllegalArgumentException
-        assertThrows(IllegalArgumentException.class, () -> {
-            try {
-                generator.call();
-            } catch (IllegalArgumentException e) {
-                assertEquals(ProjectConstants.ERROR_NULL_DESTINATION, e.getMessage());
-                throw e;
-            }
-        });
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, generator::call);
+
+        assertEquals(ProjectConstants.ERROR_NULL_DESTINATION, exception.getMessage());
     }
 
     @Test
@@ -322,14 +302,9 @@ class MicroServiceGeneratorTest {
         setPrivateField(generator, "destinationDirectory", "");
         
         // Should throw IllegalArgumentException
-        assertThrows(IllegalArgumentException.class, () -> {
-            try {
-                generator.call();
-            } catch (IllegalArgumentException e) {
-                assertEquals(ProjectConstants.ERROR_NULL_DESTINATION, e.getMessage());
-                throw e;
-            }
-        });
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, generator::call);
+
+        assertEquals(ProjectConstants.ERROR_NULL_DESTINATION, exception.getMessage());
     }
 
     @Test
@@ -341,14 +316,9 @@ class MicroServiceGeneratorTest {
         setPrivateField(generator, "destinationDirectory", tempDir.toString());
         
         // Should throw IllegalArgumentException
-        assertThrows(IllegalArgumentException.class, () -> {
-            try {
-                generator.call();
-            } catch (IllegalArgumentException e) {
-                assertEquals(ProjectConstants.ERROR_INVALID_BUSINESS_NAME, e.getMessage());
-                throw e;
-            }
-        });
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, generator::call);
+
+        assertEquals(ProjectConstants.ERROR_INVALID_BUSINESS_NAME, exception.getMessage());
     }
 
     @Test
