@@ -46,7 +46,7 @@ public class GenerateUpdateDAO {
         // Generate SQL constant using text block for better readability
         String namedParameterSql = generateNamedParameterSql(updateMetadata);
         FieldSpec sqlConstant = FieldBuilders.sqlField(
-                SqlFormatter.format(namedParameterSql), CodeGenerationConstants.SQL_FIELD_NAME);
+        SqlFormatter.format(namedParameterSql), CodeGenerationConstants.SQL_FIELD_NAME);
 
         // Constructor using shared MethodBuilders utility
         MethodSpec constructorSpec = MethodBuilders.jdbcTemplateConstructor(jdbcTemplateInstanceFieldName);
