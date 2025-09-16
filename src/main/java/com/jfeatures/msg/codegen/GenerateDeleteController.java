@@ -34,7 +34,11 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Slf4j
 public class GenerateDeleteController {
-    
+
+    private GenerateDeleteController() {
+        throw new UnsupportedOperationException("Utility class");
+    }
+
     /**
      * Creates controller with DELETE mapping for DELETE operations.
      * Single responsibility: Generate DELETE REST controller.

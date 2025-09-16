@@ -12,6 +12,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @Slf4j
 public class GenerateSpringBootApp {
+
+    private GenerateSpringBootApp() {
+        throw new UnsupportedOperationException("Utility class");
+    }
+
     public static JavaFile createSpringBootApp(String businessPurposeOfSQL) throws IOException {
 
         MethodSpec methodSpec = MethodSpec.methodBuilder("main")

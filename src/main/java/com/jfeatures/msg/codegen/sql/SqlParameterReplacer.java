@@ -4,7 +4,11 @@ import com.jfeatures.msg.codegen.domain.DBColumn;
 import java.util.List;
 import org.apache.commons.text.CaseUtils;
 
-public class SqlParameterReplacer {
+public final class SqlParameterReplacer {
+
+    private SqlParameterReplacer() {
+        throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
+    }
     
     public static String convertToNamedParameterSql(String sql, List<DBColumn> sqlWhereClauseParameters) {
         if (sql == null || sql.trim().isEmpty()) {

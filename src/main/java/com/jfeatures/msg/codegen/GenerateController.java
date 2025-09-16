@@ -28,6 +28,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 public class GenerateController {
+
+    private GenerateController() {
+        throw new UnsupportedOperationException("Utility class");
+    }
+
     public static JavaFile createController(String businessPurposeOfSQL, List<DBColumn> predicateHavingLiterals) throws IOException
     {
         TypeName daoTypeName = JavaPoetTypeNameBuilder.buildJavaPoetTypeNameForClass(businessPurposeOfSQL, "dao", "DAO");

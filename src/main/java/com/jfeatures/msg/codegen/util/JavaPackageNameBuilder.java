@@ -1,6 +1,10 @@
 package com.jfeatures.msg.codegen.util;
 
-public class JavaPackageNameBuilder {
+public final class JavaPackageNameBuilder {
+
+    private JavaPackageNameBuilder() {
+        throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
+    }
     
     public static String buildJavaPackageName(String sqlBusinessDomainName, String packageType) {
         if (sqlBusinessDomainName == null || sqlBusinessDomainName.trim().isEmpty()) {
