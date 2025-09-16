@@ -1,7 +1,6 @@
 package com.jfeatures.msg.codegen;
 
 import com.jfeatures.msg.codegen.dbmetadata.InsertMetadata;
-import com.jfeatures.msg.codegen.util.CommonJavaPoetBuilders;
 import com.jfeatures.msg.codegen.util.JavaPackageNameBuilder;
 import com.jfeatures.msg.codegen.util.JavaPoetTypeNameBuilder;
 import com.squareup.javapoet.AnnotationSpec;
@@ -24,6 +23,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Generates REST Controller with POST endpoints for INSERT operations.
@@ -83,8 +84,13 @@ public class GenerateInsertController {
                         .build())
                 .build();
         
-        // Controller class using CommonJavaPoetBuilders
-        TypeSpec.Builder controllerBuilder = CommonJavaPoetBuilders.basicControllerClass(businessPurposeOfSQL + "Insert", "/api");
+        // Controller class defined manually to avoid deprecated helpers
+        TypeSpec.Builder controllerBuilder = TypeSpec.classBuilder(businessPurposeOfSQL + "InsertController")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(RestController.class)
+                .addAnnotation(AnnotationSpec.builder(RequestMapping.class)
+                        .addMember("path", "$S", "/api")
+                        .build());
         TypeSpec controller = controllerBuilder
                 .addAnnotation(AnnotationSpec.builder(Tag.class)
                         .addMember("name", "$S", businessPurposeOfSQL)
