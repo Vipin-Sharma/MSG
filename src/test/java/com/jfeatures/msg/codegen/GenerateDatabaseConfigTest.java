@@ -58,22 +58,16 @@ class GenerateDatabaseConfigTest {
     @Test
     void testCreateDatabaseConfig_WithNullBusinessName_HandlesGracefully() {
         // Test null business name - should either handle gracefully or throw meaningful exception
-        assertThrows(Exception.class, () -> {
-            GenerateDatabaseConfig.createDatabaseConfig(null);
-        });
+        assertThrows(Exception.class, () -> GenerateDatabaseConfig.createDatabaseConfig(null));
     }
 
     @Test
     void testCreateDatabaseConfig_WithEmptyBusinessName_ThrowsException() {
         // Test empty business name - should throw exception for invalid input
-        assertThrows(IllegalArgumentException.class, () -> {
-            GenerateDatabaseConfig.createDatabaseConfig("");
-        });
-        
+        assertThrows(IllegalArgumentException.class, () -> GenerateDatabaseConfig.createDatabaseConfig(""));
+
         // Test null business name - should also throw exception
-        assertThrows(IllegalArgumentException.class, () -> {
-            GenerateDatabaseConfig.createDatabaseConfig(null);
-        });
+        assertThrows(IllegalArgumentException.class, () -> GenerateDatabaseConfig.createDatabaseConfig(null));
     }
 
     @Test
@@ -348,10 +342,8 @@ class GenerateDatabaseConfigTest {
         });
         
         // Test that the method doesn't accept null business names properly
-        assertThrows(Exception.class, () -> {
-            // This will test the JavaPackageNameBuilder.buildJavaPackageName error path
-            GenerateDatabaseConfig.createDatabaseConfig(null);
-        });
+        assertThrows(Exception.class, () ->
+            GenerateDatabaseConfig.createDatabaseConfig(null));
     }
     
     @Test  

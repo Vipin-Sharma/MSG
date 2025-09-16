@@ -1,6 +1,7 @@
 package com.jfeatures.msg.codegen.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.jfeatures.msg.codegen.constants.CodeGenerationConstants;
@@ -34,10 +35,11 @@ class MethodBuildersTest {
         // Then
         assertThat(constructor.name).isEqualTo("<init>");
         assertThat(constructor.modifiers).containsExactlyInAnyOrder(Modifier.PUBLIC);
-        assertThat(constructor.parameters).hasSize(1);
-        assertThat(constructor.parameters.get(0).type).isEqualTo(TypeName.get(NamedParameterJdbcTemplate.class));
-        assertThat(constructor.parameters.get(0).name)
-                .isEqualTo(CodeGenerationConstants.JDBC_TEMPLATE_FIELD_NAME);
+        assertThat(constructor.parameters)
+            .hasSize(1)
+            .first()
+            .returns(TypeName.get(NamedParameterJdbcTemplate.class), parameter -> parameter.type)
+            .returns(CodeGenerationConstants.JDBC_TEMPLATE_FIELD_NAME, parameter -> parameter.name);
         assertThat(constructor.javadoc.toString()).contains("Constructor with dependency injection for JDBC template");
         assertThat(constructor.code.toString())
                 .contains("this." + CodeGenerationConstants.JDBC_TEMPLATE_FIELD_NAME + " = "
@@ -73,13 +75,12 @@ class MethodBuildersTest {
         // Then
         assertThat(constructor.name).isEqualTo("<init>");
         assertThat(constructor.modifiers).containsExactlyInAnyOrder(Modifier.PUBLIC);
-        assertThat(constructor.parameters).hasSize(2);
-        ParameterSpec dataSourceParam = constructor.parameters.get(0);
-        assertThat(dataSourceParam.type).isEqualTo(TypeName.get(DataSource.class));
-        assertThat(dataSourceParam.name).isEqualTo("dataSource");
-        ParameterSpec jdbcTemplateParam = constructor.parameters.get(1);
-        assertThat(jdbcTemplateParam.type).isEqualTo(TypeName.get(NamedParameterJdbcTemplate.class));
-        assertThat(jdbcTemplateParam.name).isEqualTo("jdbcTemplate");
+        assertThat(constructor.parameters)
+            .extracting(parameter -> parameter.type, parameter -> parameter.name)
+            .containsExactly(
+                tuple(TypeName.get(DataSource.class), "dataSource"),
+                tuple(TypeName.get(NamedParameterJdbcTemplate.class), "jdbcTemplate")
+            );
         assertThat(constructor.javadoc.toString()).contains("Constructor with dependency injection");
         assertThat(constructor.code.toString())
             .contains("this.dataSource = dataSource")
@@ -120,10 +121,11 @@ class MethodBuildersTest {
         // Then
         assertThat(constructor.name).isEqualTo("<init>");
         assertThat(constructor.modifiers).containsExactlyInAnyOrder(Modifier.PUBLIC);
-        assertThat(constructor.parameters).hasSize(1);
-        ParameterSpec parameter = constructor.parameters.get(0);
-        assertThat(parameter.type).isEqualTo(dependencyType);
-        assertThat(parameter.name).isEqualTo(fieldName);
+        assertThat(constructor.parameters)
+            .hasSize(1)
+            .first()
+            .returns(dependencyType, parameter -> parameter.type)
+            .returns(fieldName, parameter -> parameter.name);
         assertThat(constructor.javadoc.toString()).contains("Constructor with dependency injection");
         assertThat(constructor.code.toString()).contains("this.customerDAO = customerDAO");
     }
