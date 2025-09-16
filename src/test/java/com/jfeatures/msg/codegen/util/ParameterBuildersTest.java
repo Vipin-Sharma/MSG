@@ -21,18 +21,20 @@ import org.junit.jupiter.params.provider.ValueSource;
  */
 class ParameterBuildersTest {
 
+    private static final String REQUEST_PARAM = "org.springframework.web.bind.annotation.RequestParam";
+    private static final String PATH_VARIABLE = "org.springframework.web.bind.annotation.PathVariable";
+    private static final String REQUEST_BODY = "org.springframework.web.bind.annotation.RequestBody";
+    private static final String VALID = "jakarta.validation.Valid";
+
     // ============================= REQUEST PARAM TESTS =========================
 
     @Test
     void shouldCreateBasicRequestParam() {
         // When
         ParameterSpec param = ParameterBuilders.requestParam(TypeName.get(String.class), "customerId");
-        
+
         // Then
-        assertThat(param.name).isEqualTo("customerId");
-        assertThat(param.type).isEqualTo(TypeName.get(String.class));
-        assertThat(param.annotations).hasSize(1);
-        assertThat(param.annotations.get(0).type.toString()).contains("RequestParam");
+        assertParameter(param, "customerId", TypeName.get(String.class), REQUEST_PARAM);
     }
 
     @Test
@@ -43,12 +45,9 @@ class ParameterBuildersTest {
             "customerId", 
             "customer_id"
         );
-        
+
         // Then
-        assertThat(param.name).isEqualTo("customerId");
-        assertThat(param.type).isEqualTo(TypeName.get(Integer.class));
-        assertThat(param.annotations).hasSize(1);
-        assertThat(param.annotations.get(0).type.toString()).contains("RequestParam");
+        assertParameter(param, "customerId", TypeName.get(Integer.class), REQUEST_PARAM);
     }
 
     @Test
@@ -59,12 +58,9 @@ class ParameterBuildersTest {
             "status", 
             "active"
         );
-        
+
         // Then
-        assertThat(param.name).isEqualTo("status");
-        assertThat(param.type).isEqualTo(TypeName.get(String.class));
-        assertThat(param.annotations).hasSize(1);
-        assertThat(param.annotations.get(0).type.toString()).contains("RequestParam");
+        assertParameter(param, "status", TypeName.get(String.class), REQUEST_PARAM);
     }
 
     @Test
@@ -75,12 +71,9 @@ class ParameterBuildersTest {
             "limit", 
             100
         );
-        
+
         // Then
-        assertThat(param.name).isEqualTo("limit");
-        assertThat(param.type).isEqualTo(TypeName.get(Integer.class));
-        assertThat(param.annotations).hasSize(1);
-        assertThat(param.annotations.get(0).type.toString()).contains("RequestParam");
+        assertParameter(param, "limit", TypeName.get(Integer.class), REQUEST_PARAM);
     }
 
     @Test
@@ -91,12 +84,9 @@ class ParameterBuildersTest {
             "filter", 
             null
         );
-        
+
         // Then
-        assertThat(param.name).isEqualTo("filter");
-        assertThat(param.type).isEqualTo(TypeName.get(String.class));
-        assertThat(param.annotations).hasSize(1);
-        assertThat(param.annotations.get(0).type.toString()).contains("RequestParam");
+        assertParameter(param, "filter", TypeName.get(String.class), REQUEST_PARAM);
     }
 
     @Test
@@ -164,12 +154,9 @@ class ParameterBuildersTest {
     void shouldCreateBasicPathVariable() {
         // When
         ParameterSpec param = ParameterBuilders.pathVariable(TypeName.get(Long.class), "id");
-        
+
         // Then
-        assertThat(param.name).isEqualTo("id");
-        assertThat(param.type).isEqualTo(TypeName.get(Long.class));
-        assertThat(param.annotations).hasSize(1);
-        assertThat(param.annotations.get(0).type.toString()).contains("PathVariable");
+        assertParameter(param, "id", TypeName.get(Long.class), PATH_VARIABLE);
     }
 
     @Test
@@ -180,12 +167,9 @@ class ParameterBuildersTest {
             "customerId", 
             "customer-id"
         );
-        
+
         // Then
-        assertThat(param.name).isEqualTo("customerId");
-        assertThat(param.type).isEqualTo(TypeName.get(Long.class));
-        assertThat(param.annotations).hasSize(1);
-        assertThat(param.annotations.get(0).type.toString()).contains("PathVariable");
+        assertParameter(param, "customerId", TypeName.get(Long.class), PATH_VARIABLE);
     }
 
     @Test
@@ -222,38 +206,35 @@ class ParameterBuildersTest {
     void shouldCreateValidRequestBody() {
         // When
         ParameterSpec param = ParameterBuilders.validRequestBody(
-            ClassName.get("com.example", "CustomerDTO"), 
+            ClassName.get("com.example", "CustomerDTO"),
             "customerRequest"
         );
-        
+
         // Then
-        assertThat(param.name).isEqualTo("customerRequest");
-        assertThat(param.type.toString()).contains("CustomerDTO");
-        assertThat(param.annotations).hasSize(2); // @Valid and @RequestBody
-        
-        boolean hasValid = param.annotations.stream()
-            .anyMatch(a -> a.type.toString().contains("Valid"));
-        boolean hasRequestBody = param.annotations.stream()
-            .anyMatch(a -> a.type.toString().contains("RequestBody"));
-        
-        assertThat(hasValid).isTrue();
-        assertThat(hasRequestBody).isTrue();
+        assertParameter(
+            param,
+            "customerRequest",
+            ClassName.get("com.example", "CustomerDTO"),
+            VALID,
+            REQUEST_BODY
+        );
     }
 
     @Test
     void shouldCreateSimpleRequestBody() {
         // When
         ParameterSpec param = ParameterBuilders.requestBody(
-            ClassName.get("com.example", "CustomerDTO"), 
+            ClassName.get("com.example", "CustomerDTO"),
             "customerRequest"
         );
-        
+
         // Then
-        assertThat(param.name).isEqualTo("customerRequest");
-        assertThat(param.type.toString()).contains("CustomerDTO");
-        assertThat(param.annotations).hasSize(1); // Only @RequestBody
-        
-        assertThat(param.annotations.get(0).type.toString()).contains("RequestBody");
+        assertParameter(
+            param,
+            "customerRequest",
+            ClassName.get("com.example", "CustomerDTO"),
+            REQUEST_BODY
+        );
     }
 
     @Test
@@ -293,19 +274,12 @@ class ParameterBuildersTest {
         
         // When
         List<ParameterSpec> parameters = ParameterBuilders.fromColumnMetadata(columns, true);
-        
+
         // Then
         assertThat(parameters).hasSize(3);
-        
-        assertThat(parameters.get(0).name).isEqualTo("customerId");
-        assertThat(parameters.get(0).type).isEqualTo(ClassName.get(Long.class));
-        assertThat(parameters.get(0).annotations).hasSize(1);
-        
-        assertThat(parameters.get(1).name).isEqualTo("customerName");
-        assertThat(parameters.get(1).type).isEqualTo(ClassName.get(String.class));
-        
-        assertThat(parameters.get(2).name).isEqualTo("isActive");
-        assertThat(parameters.get(2).type).isEqualTo(ClassName.get(Boolean.class));
+        assertParameter(parameters.get(0), "customerId", ClassName.get(Long.class), REQUEST_PARAM);
+        assertParameter(parameters.get(1), "customerName", ClassName.get(String.class), REQUEST_PARAM);
+        assertParameter(parameters.get(2), "isActive", ClassName.get(Boolean.class), REQUEST_PARAM);
     }
 
     @Test
@@ -317,10 +291,10 @@ class ParameterBuildersTest {
         
         // When
         List<ParameterSpec> parameters = ParameterBuilders.fromColumnMetadata(columns, false);
-        
+
         // Then
         assertThat(parameters).hasSize(1);
-        assertThat(parameters.get(0).annotations).isEmpty();
+        assertParameter(parameters.get(0), "customerId", ClassName.get(Long.class));
     }
 
     @Test
@@ -353,16 +327,11 @@ class ParameterBuildersTest {
         
         // When
         List<ParameterSpec> parameters = ParameterBuilders.fromDBColumns(columns, true);
-        
+
         // Then
         assertThat(parameters).hasSize(2);
-        
-        assertThat(parameters.get(0).name).isEqualTo("customerId");
-        assertThat(parameters.get(0).type.toString()).contains("Long");
-        assertThat(parameters.get(0).annotations).hasSize(1);
-        
-        assertThat(parameters.get(1).name).isEqualTo("customerName");
-        assertThat(parameters.get(1).type.toString()).contains("String");
+        assertParameter(parameters.get(0), "customerId", ClassName.get(Long.class), REQUEST_PARAM);
+        assertParameter(parameters.get(1), "customerName", ClassName.get(String.class), REQUEST_PARAM);
     }
 
     @Test
@@ -374,10 +343,10 @@ class ParameterBuildersTest {
         
         // When
         List<ParameterSpec> parameters = ParameterBuilders.fromDBColumns(columns, false);
-        
+
         // Then
         assertThat(parameters).hasSize(1);
-        assertThat(parameters.get(0).annotations).isEmpty();
+        assertParameter(parameters.get(0), "customerId", ClassName.get(Long.class));
     }
 
     @Test
@@ -404,30 +373,21 @@ class ParameterBuildersTest {
     void shouldCreatePaginationParameters() {
         // When
         List<ParameterSpec> parameters = ParameterBuilders.paginationParameters();
-        
+
         // Then
         assertThat(parameters).hasSize(3);
-        
-        assertThat(parameters.get(0).name).isEqualTo("page");
-        assertThat(parameters.get(0).type).isEqualTo(ClassName.get(Integer.class));
-        
-        assertThat(parameters.get(1).name).isEqualTo("size");
-        assertThat(parameters.get(1).type).isEqualTo(ClassName.get(Integer.class));
-        
-        assertThat(parameters.get(2).name).isEqualTo("sort");
-        assertThat(parameters.get(2).type).isEqualTo(ClassName.get(String.class));
+        assertParameter(parameters.get(0), "page", ClassName.get(Integer.class), REQUEST_PARAM);
+        assertParameter(parameters.get(1), "size", ClassName.get(Integer.class), REQUEST_PARAM);
+        assertParameter(parameters.get(2), "sort", ClassName.get(String.class), REQUEST_PARAM);
     }
 
     @Test
     void shouldCreateIdParameter() {
         // When
         ParameterSpec param = ParameterBuilders.idParameter(TypeName.get(Long.class), "customerId");
-        
+
         // Then
-        assertThat(param.name).isEqualTo("customerId");
-        assertThat(param.type).isEqualTo(TypeName.get(Long.class));
-        assertThat(param.annotations).hasSize(1);
-        assertThat(param.annotations.get(0).type.toString()).contains("PathVariable");
+        assertParameter(param, "customerId", TypeName.get(Long.class), PATH_VARIABLE);
     }
 
     @Test
@@ -454,21 +414,13 @@ class ParameterBuildersTest {
         
         // When
         List<ParameterSpec> parameters = ParameterBuilders.whereClauseParameters(whereColumns);
-        
+
         // Then
         assertThat(parameters).hasSize(4);
-        
-        assertThat(parameters.get(0).name).isEqualTo("customerId");
-        assertThat(parameters.get(0).type.toString()).contains("Long");
-        
-        assertThat(parameters.get(1).name).isEqualTo("status");
-        assertThat(parameters.get(1).type.toString()).contains("String");
-        
-        assertThat(parameters.get(2).name).isEqualTo("category");
-        assertThat(parameters.get(2).type.toString()).contains("String");
-        
-        assertThat(parameters.get(3).name).isEqualTo("extraParam");
-        assertThat(parameters.get(3).type.toString()).contains("Integer");
+        assertParameter(parameters.get(0), "customerId", ClassName.get(Long.class));
+        assertParameter(parameters.get(1), "status", ClassName.get(String.class));
+        assertParameter(parameters.get(2), "category", ClassName.get(String.class));
+        assertParameter(parameters.get(3), "extraParam", ClassName.get(Integer.class));
     }
 
     @Test
@@ -486,13 +438,10 @@ class ParameterBuildersTest {
         List<ParameterSpec> parameters = ParameterBuilders.whereClauseParameters(whereColumns);
         
         // Then
-        assertThat(parameters).hasSize(5);
-        
-        assertThat(parameters.get(0).name).isEqualTo("id");
-        assertThat(parameters.get(1).name).isEqualTo("status");
-        assertThat(parameters.get(2).name).isEqualTo("category");
-        assertThat(parameters.get(3).name).isEqualTo("param4");
-        assertThat(parameters.get(4).name).isEqualTo("param5");
+        assertThat(parameters)
+            .hasSize(5)
+            .extracting(parameter -> parameter.name)
+            .containsExactly("id", "status", "category", "param4", "param5");
     }
 
     @Test
@@ -525,8 +474,10 @@ class ParameterBuildersTest {
         Exception exception = assertThrows(Exception.class, constructor::newInstance);
         
         // The actual exception will be InvocationTargetException wrapping UnsupportedOperationException
-        assertThat(exception.getCause()).isInstanceOf(UnsupportedOperationException.class);
-        assertThat(exception.getCause().getMessage()).contains("This is a utility class and cannot be instantiated");
+        Throwable cause = exception.getCause();
+        assertThat(cause)
+            .isInstanceOf(UnsupportedOperationException.class)
+            .hasMessageContaining("This is a utility class and cannot be instantiated");
     }
 
     // ============================= EDGE CASE TESTS ===================================
@@ -536,11 +487,9 @@ class ParameterBuildersTest {
         // When
         TypeName complexType = ClassName.get("com.example.dto.nested", "CustomerOrderDTO");
         ParameterSpec param = ParameterBuilders.validRequestBody(complexType, "orderRequest");
-        
+
         // Then
-        assertThat(param.type).isEqualTo(complexType);
-        assertThat(param.name).isEqualTo("orderRequest");
-        assertThat(param.annotations).hasSize(2);
+        assertParameter(param, "orderRequest", complexType, VALID, REQUEST_BODY);
     }
 
     @Test
@@ -551,11 +500,11 @@ class ParameterBuildersTest {
             ParameterBuilders.pathVariable(TypeName.get(Boolean.class), "boolParam"),
             ParameterBuilders.optionalRequestParam(TypeName.get(Double.class), "doubleParam", 0.0)
         );
-        
+
         // Then
-        assertThat(params.get(0).type).isEqualTo(TypeName.get(Integer.class));
-        assertThat(params.get(1).type).isEqualTo(TypeName.get(Boolean.class));
-        assertThat(params.get(2).type).isEqualTo(TypeName.get(Double.class));
+        assertParameter(params.get(0), "intParam", TypeName.get(Integer.class), REQUEST_PARAM);
+        assertParameter(params.get(1), "boolParam", TypeName.get(Boolean.class), PATH_VARIABLE);
+        assertParameter(params.get(2), "doubleParam", TypeName.get(Double.class), REQUEST_PARAM);
     }
 
     @ParameterizedTest
@@ -594,11 +543,30 @@ class ParameterBuildersTest {
         
         // When
         List<ParameterSpec> parameters = ParameterBuilders.fromColumnMetadata(columns, false);
-        
+
         // Then - Should be boxed to Integer, not primitive int
         assertThat(parameters).hasSize(1);
-        assertThat(parameters.get(0).type).isEqualTo(ClassName.get(Integer.class));
-        assertThat(parameters.get(0).name).isEqualTo("countValue");
+        assertParameter(parameters.get(0), "countValue", ClassName.get(Integer.class));
+    }
+
+    private static void assertParameter(
+        ParameterSpec parameter,
+        String expectedName,
+        TypeName expectedType,
+        String... expectedAnnotationClassNames
+    ) {
+        assertThat(parameter)
+            .returns(expectedName, spec -> spec.name)
+            .returns(expectedType, spec -> spec.type);
+
+        if (expectedAnnotationClassNames.length == 0) {
+            assertThat(parameter.annotations).isEmpty();
+            return;
+        }
+
+        assertThat(parameter.annotations)
+            .extracting(annotation -> annotation.type.toString())
+            .containsExactly(expectedAnnotationClassNames);
     }
 
     // ============================= HELPER METHODS ====================================

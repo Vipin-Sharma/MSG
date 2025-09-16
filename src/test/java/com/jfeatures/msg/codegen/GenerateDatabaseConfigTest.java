@@ -17,12 +17,13 @@ class GenerateDatabaseConfigTest {
         String result = GenerateDatabaseConfig.createDatabaseConfig("Customer");
 
         // Then
-        assertThat(result).isNotNull();
-        assertThat(result).contains("@Configuration");
-        assertThat(result).contains("DatabaseConfig");
-        assertThat(result).contains("@Bean");
-        assertThat(result).contains("DataSource");
-        assertThat(result).contains("NamedParameterJdbcTemplate");
+        assertThat(result)
+            .isNotNull()
+            .contains("@Configuration")
+            .contains("DatabaseConfig")
+            .contains("@Bean")
+            .contains("DataSource")
+            .contains("NamedParameterJdbcTemplate");
     }
 
     @Test
@@ -32,8 +33,9 @@ class GenerateDatabaseConfigTest {
 
         // Then
         // The generated config uses ConfigurationProperties, so it doesn't hard-code the URL
-        assertThat(result).contains("@ConfigurationProperties(\"spring.datasource\")");
-        assertThat(result).contains("DataSourceBuilder.create().build()");
+        assertThat(result)
+            .contains("@ConfigurationProperties(\"spring.datasource\")")
+            .contains("DataSourceBuilder.create().build()");
     }
 
     // New tests to improve coverage

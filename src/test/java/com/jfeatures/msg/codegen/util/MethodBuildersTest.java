@@ -74,13 +74,16 @@ class MethodBuildersTest {
         assertThat(constructor.name).isEqualTo("<init>");
         assertThat(constructor.modifiers).containsExactlyInAnyOrder(Modifier.PUBLIC);
         assertThat(constructor.parameters).hasSize(2);
-        assertThat(constructor.parameters.get(0).type).isEqualTo(TypeName.get(DataSource.class));
-        assertThat(constructor.parameters.get(0).name).isEqualTo("dataSource");
-        assertThat(constructor.parameters.get(1).type).isEqualTo(TypeName.get(NamedParameterJdbcTemplate.class));
-        assertThat(constructor.parameters.get(1).name).isEqualTo("jdbcTemplate");
+        ParameterSpec dataSourceParam = constructor.parameters.get(0);
+        assertThat(dataSourceParam.type).isEqualTo(TypeName.get(DataSource.class));
+        assertThat(dataSourceParam.name).isEqualTo("dataSource");
+        ParameterSpec jdbcTemplateParam = constructor.parameters.get(1);
+        assertThat(jdbcTemplateParam.type).isEqualTo(TypeName.get(NamedParameterJdbcTemplate.class));
+        assertThat(jdbcTemplateParam.name).isEqualTo("jdbcTemplate");
         assertThat(constructor.javadoc.toString()).contains("Constructor with dependency injection");
-        assertThat(constructor.code.toString()).contains("this.dataSource = dataSource");
-        assertThat(constructor.code.toString()).contains("this.jdbcTemplate = jdbcTemplate");
+        assertThat(constructor.code.toString())
+            .contains("this.dataSource = dataSource")
+            .contains("this.jdbcTemplate = jdbcTemplate");
     }
 
     @Test
@@ -118,8 +121,9 @@ class MethodBuildersTest {
         assertThat(constructor.name).isEqualTo("<init>");
         assertThat(constructor.modifiers).containsExactlyInAnyOrder(Modifier.PUBLIC);
         assertThat(constructor.parameters).hasSize(1);
-        assertThat(constructor.parameters.get(0).type).isEqualTo(dependencyType);
-        assertThat(constructor.parameters.get(0).name).isEqualTo(fieldName);
+        ParameterSpec parameter = constructor.parameters.get(0);
+        assertThat(parameter.type).isEqualTo(dependencyType);
+        assertThat(parameter.name).isEqualTo(fieldName);
         assertThat(constructor.javadoc.toString()).contains("Constructor with dependency injection");
         assertThat(constructor.code.toString()).contains("this.customerDAO = customerDAO");
     }
@@ -493,8 +497,10 @@ class MethodBuildersTest {
         Exception exception = assertThrows(Exception.class, constructor::newInstance);
         
         // The actual exception will be InvocationTargetException wrapping UnsupportedOperationException
-        assertThat(exception.getCause()).isInstanceOf(UnsupportedOperationException.class);
-        assertThat(exception.getCause().getMessage()).contains("This is a utility class and cannot be instantiated");
+        Throwable cause = exception.getCause();
+        assertThat(cause)
+            .isInstanceOf(UnsupportedOperationException.class)
+            .hasMessageContaining("This is a utility class and cannot be instantiated");
     }
 
     // ============================= EDGE CASE TESTS ===================================
@@ -505,7 +511,8 @@ class MethodBuildersTest {
         MethodSpec constructor = MethodBuilders.jdbcTemplateConstructor("jdbcTemplate$WithSpecialChars");
         
         // Then
-        assertThat(constructor.parameters.get(0).name).isEqualTo("jdbcTemplate$WithSpecialChars");
+        ParameterSpec parameter = constructor.parameters.get(0);
+        assertThat(parameter.name).isEqualTo("jdbcTemplate$WithSpecialChars");
     }
 
     @Test
@@ -568,7 +575,8 @@ class MethodBuildersTest {
         
         // Then
         assertThat(method.returnType).isEqualTo(complexReturnType);
-        assertThat(method.parameters.get(0).type).isEqualTo(complexRequestType);
-        assertThat(method.parameters.get(0).name).isEqualTo("createRequest");
+        ParameterSpec parameter = method.parameters.get(0);
+        assertThat(parameter.type).isEqualTo(complexRequestType);
+        assertThat(parameter.name).isEqualTo("createRequest");
     }
 }
