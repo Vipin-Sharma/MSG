@@ -1,5 +1,6 @@
 package com.jfeatures.msg.codegen.util;
 
+import com.jfeatures.msg.codegen.constants.CodeGenerationConstants;
 import com.jfeatures.msg.codegen.constants.ProjectConstants;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.TypeSpec;
@@ -72,11 +73,14 @@ public final class ClassBuilders {
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(RestController.class)
                 .addAnnotation(AnnotationSpec.builder(RequestMapping.class)
-                        .addMember("path", "$S", apiPath)
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_PATH,
+                                CodeGenerationConstants.STRING_PLACEHOLDER, apiPath)
                         .build())
                 .addAnnotation(AnnotationSpec.builder(Tag.class)
-                        .addMember("name", "$S", businessName)
-                        .addMember("description", "$S", "REST API for " + businessName.toLowerCase() + " operations")
+                        .addMember("name", CodeGenerationConstants.STRING_PLACEHOLDER, businessName)
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_DESCRIPTION,
+                                CodeGenerationConstants.STRING_PLACEHOLDER,
+                                "REST API for " + businessName.toLowerCase() + " operations")
                         .build())
                 .addJavadoc("REST Controller for $L operations.\\nProvides HTTP endpoints for data access.", businessName.toLowerCase());
     }
@@ -95,11 +99,14 @@ public final class ClassBuilders {
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(RestController.class)
                 .addAnnotation(AnnotationSpec.builder(RequestMapping.class)
-                        .addMember("path", "$S", apiPath)
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_PATH,
+                                CodeGenerationConstants.STRING_PLACEHOLDER, apiPath)
                         .build())
                 .addAnnotation(AnnotationSpec.builder(Tag.class)
-                        .addMember("name", "$S", businessName + " " + operation)
-                        .addMember("description", "$S", operation + " operations for " + businessName.toLowerCase())
+                        .addMember("name", CodeGenerationConstants.STRING_PLACEHOLDER, businessName + " " + operation)
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_DESCRIPTION,
+                                CodeGenerationConstants.STRING_PLACEHOLDER,
+                                operation + " operations for " + businessName.toLowerCase())
                         .build())
                 .addJavadoc("REST Controller for $L $L operations.\\nFollows single responsibility principle - $L operations only.", 
                            businessName.toLowerCase(), operation.toLowerCase(), operation.toLowerCase());
@@ -118,7 +125,8 @@ public final class ClassBuilders {
         return TypeSpec.classBuilder(className)
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(AnnotationSpec.builder(Builder.class)
-                        .addMember("builderClassName", "$S", "Builder")
+                        .addMember("builderClassName", CodeGenerationConstants.STRING_PLACEHOLDER,
+                                CodeGenerationConstants.BUILDER_VARIABLE_NAME)
                         .build())
                 .addAnnotation(Value.class)
                 .addAnnotation(Jacksonized.class)
@@ -137,7 +145,8 @@ public final class ClassBuilders {
         return TypeSpec.classBuilder(className)
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(AnnotationSpec.builder(Builder.class)
-                        .addMember("builderClassName", "$S", "Builder")
+                        .addMember("builderClassName", CodeGenerationConstants.STRING_PLACEHOLDER,
+                                CodeGenerationConstants.BUILDER_VARIABLE_NAME)
                         .build())
                 .addAnnotation(Value.class)
                 .addAnnotation(Jacksonized.class)

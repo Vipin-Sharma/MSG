@@ -1,5 +1,6 @@
 package com.jfeatures.msg.codegen.util;
 
+import com.jfeatures.msg.codegen.constants.CodeGenerationConstants;
 import com.squareup.javapoet.*;
 import jakarta.validation.Valid;
 import javax.lang.model.element.Modifier;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
  * Provides standardized field, method, and class builders for consistent code generation.
  */
 public final class CommonJavaPoetBuilders {
+
+    private static final String THIS_ASSIGNMENT_STATEMENT = "this.$N = $N";
 
     private CommonJavaPoetBuilders() {
         // utility class
@@ -34,9 +37,9 @@ public final class CommonJavaPoetBuilders {
      */
     public static FieldSpec sqlField(String sql, String businessName) {
         String fieldName = businessName.toLowerCase() + "Sql";
-        return FieldSpec.builder(String.class, fieldName, 
+        return FieldSpec.builder(String.class, fieldName,
                 Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                .initializer("$S", sql)
+                .initializer(CodeGenerationConstants.STRING_PLACEHOLDER, sql)
                 .build();
     }
     
@@ -70,7 +73,7 @@ public final class CommonJavaPoetBuilders {
         return MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(NamedParameterJdbcTemplate.class, fieldName)
-                .addStatement("this.$N = $N", fieldName, fieldName)
+                .addStatement(THIS_ASSIGNMENT_STATEMENT, fieldName, fieldName)
                 .build();
     }
     
@@ -82,8 +85,8 @@ public final class CommonJavaPoetBuilders {
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(DataSource.class, dataSourceField)
                 .addParameter(NamedParameterJdbcTemplate.class, jdbcTemplateField)
-                .addStatement("this.$N = $N", dataSourceField, dataSourceField)
-                .addStatement("this.$N = $N", jdbcTemplateField, jdbcTemplateField)
+                .addStatement(THIS_ASSIGNMENT_STATEMENT, dataSourceField, dataSourceField)
+                .addStatement(THIS_ASSIGNMENT_STATEMENT, jdbcTemplateField, jdbcTemplateField)
                 .build();
     }
     
@@ -112,7 +115,8 @@ public final class CommonJavaPoetBuilders {
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(RestController.class)
                 .addAnnotation(AnnotationSpec.builder(RequestMapping.class)
-                        .addMember("path", "$S", basePath)
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_PATH,
+                                CodeGenerationConstants.STRING_PLACEHOLDER, basePath)
                         .build());
     }
     
@@ -193,7 +197,8 @@ public final class CommonJavaPoetBuilders {
     public static ParameterSpec requestParamWithName(TypeName type, String paramName, String requestParamName) {
         return ParameterSpec.builder(type, paramName)
                 .addAnnotation(AnnotationSpec.builder(RequestParam.class)
-                        .addMember("value", "$S", requestParamName)
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_VALUE,
+                                CodeGenerationConstants.STRING_PLACEHOLDER, requestParamName)
                         .build())
                 .build();
     }

@@ -18,35 +18,35 @@ import java.util.stream.Collectors;
 public enum SQLServerDataTypeEnum {
 
     BIGINT("BIGINT", Long.class, "Long" ),
-    BINARY("BINARY", byte[].class, "Byte[]" ),
+    BINARY("BINARY", byte[].class, BYTE_ARRAY_SIMPLE_NAME ),
     BIT("BIT", Boolean.class, "Boolean"),
-    CHAR("CHAR", String.class, "String" ),
+    CHAR("CHAR", String.class, JAVA_STRING_SIMPLE_NAME ),
     DATE("DATE", java.sql.Date.class, "Date"),
-    DATETIME("DATETIME", java.sql.Timestamp.class, "Timestamp" ),
-    DATETIME2("DATETIME2", java.sql.Timestamp.class, "Timestamp" ),
-    DECIMAL("DECIMAL", java.math.BigDecimal.class, "BigDecimal" ),
-    INT("INT", Integer.class, "Int" ),
+    DATETIME("DATETIME", java.sql.Timestamp.class, JAVA_TIMESTAMP_SIMPLE_NAME ),
+    DATETIME2("DATETIME2", java.sql.Timestamp.class, JAVA_TIMESTAMP_SIMPLE_NAME ),
+    DECIMAL("DECIMAL", java.math.BigDecimal.class, JAVA_BIG_DECIMAL_SIMPLE_NAME ),
+    INT("INT", Integer.class, JAVA_INT_SIMPLE_NAME ),
     FLOAT("FLOAT", Double.class, "Double" ),
-    IMAGE("IMAGE", byte[].class, "Byte[]" ),
-    MONEY("MONEY", java.math.BigDecimal.class, "BigDecimal" ),
-    NCHAR("NCHAR", String.class, "String" ),
-    NTEXT("NTEXT", String.class, "String" ),
-    NUMERIC("NUMERIC", java.math.BigDecimal.class, "BigDecimal" ),
-    NVARCHAR("NVARCHAR", String.class, "String"),
+    IMAGE("IMAGE", byte[].class, BYTE_ARRAY_SIMPLE_NAME ),
+    MONEY("MONEY", java.math.BigDecimal.class, JAVA_BIG_DECIMAL_SIMPLE_NAME ),
+    NCHAR("NCHAR", String.class, JAVA_STRING_SIMPLE_NAME ),
+    NTEXT("NTEXT", String.class, JAVA_STRING_SIMPLE_NAME ),
+    NUMERIC("NUMERIC", java.math.BigDecimal.class, JAVA_BIG_DECIMAL_SIMPLE_NAME ),
+    NVARCHAR("NVARCHAR", String.class, JAVA_STRING_SIMPLE_NAME),
     REAL("REAL", Float.class, "Float" ),
-    SMALLDATETIME("SMALLDATETIME", java.sql.Timestamp.class, "Timestamp" ),
-    SMALLINT("SMALLINT", Integer.class, "Int" ),
-    SMALLMONEY("SMALLMONEY", java.math.BigDecimal.class, "BigDecimal" ),
-    TEXT("TEXT", String.class, "String" ),
+    SMALLDATETIME("SMALLDATETIME", java.sql.Timestamp.class, JAVA_TIMESTAMP_SIMPLE_NAME ),
+    SMALLINT("SMALLINT", Integer.class, JAVA_INT_SIMPLE_NAME ),
+    SMALLMONEY("SMALLMONEY", java.math.BigDecimal.class, JAVA_BIG_DECIMAL_SIMPLE_NAME ),
+    TEXT("TEXT", String.class, JAVA_STRING_SIMPLE_NAME ),
     TIME("TIME", java.sql.Time.class, "Time" ),
-    TIMESTAMP("TIMESTAMP", java.sql.Timestamp.class, "Timestamp" ),
-    TINYINT("TINYINT", Integer.class, "Int" ),
-    VARCHAR("VARCHAR", String.class, "String" ),
+    TIMESTAMP("TIMESTAMP", java.sql.Timestamp.class, JAVA_TIMESTAMP_SIMPLE_NAME ),
+    TINYINT("TINYINT", Integer.class, JAVA_INT_SIMPLE_NAME ),
+    VARCHAR("VARCHAR", String.class, JAVA_STRING_SIMPLE_NAME ),
     
     // Additional SQL Server types for completeness
-    UNIQUEIDENTIFIER("UNIQUEIDENTIFIER", String.class, "String"),
-    VARBINARY("VARBINARY", byte[].class, "Byte[]"),
-    XML("XML", String.class, "String");
+    UNIQUEIDENTIFIER("UNIQUEIDENTIFIER", String.class, JAVA_STRING_SIMPLE_NAME),
+    VARBINARY("VARBINARY", byte[].class, BYTE_ARRAY_SIMPLE_NAME),
+    XML("XML", String.class, JAVA_STRING_SIMPLE_NAME);
 
     private final String dbDataType;
     private final Class<?> javaClassType;
@@ -99,7 +99,7 @@ public enum SQLServerDataTypeEnum {
      * Retrieves the JDBC type string for a given SQL Server data type.
      * 
      * @param dbDataType The SQL Server data type (case-insensitive)
-     * @return The corresponding JDBC type string, or "VARCHAR" if type not found
+     * @return The corresponding JDBC type string, or the default JDBC type if none is found
      * @throws IllegalArgumentException if the dbDataType is null or empty
      */
     public static String getJdbcTypeForDBType(String dbDataType) {
@@ -108,6 +108,13 @@ public enum SQLServerDataTypeEnum {
         }
         
         SQLServerDataTypeEnum enumValue = DB_TYPE_LOOKUP.get(dbDataType.toUpperCase().trim());
-        return enumValue != null ? enumValue.jdbcType : "VARCHAR";
+        return enumValue != null ? enumValue.jdbcType : JDBC_DEFAULT_TYPE;
     }
+
+    private static final String JAVA_STRING_SIMPLE_NAME = "String";
+    private static final String JAVA_TIMESTAMP_SIMPLE_NAME = "Timestamp";
+    private static final String JAVA_BIG_DECIMAL_SIMPLE_NAME = "BigDecimal";
+    private static final String JAVA_INT_SIMPLE_NAME = "Int";
+    private static final String BYTE_ARRAY_SIMPLE_NAME = "Byte[]";
+    private static final String JDBC_DEFAULT_TYPE = "VARCHAR";
 }

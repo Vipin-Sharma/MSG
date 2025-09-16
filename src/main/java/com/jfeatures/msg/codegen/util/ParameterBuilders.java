@@ -1,6 +1,7 @@
 package com.jfeatures.msg.codegen.util;
 
 import com.jfeatures.msg.codegen.SQLServerDataTypeEnum;
+import com.jfeatures.msg.codegen.constants.CodeGenerationConstants;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.domain.DBColumn;
 import com.squareup.javapoet.AnnotationSpec;
@@ -19,7 +20,14 @@ import org.springframework.web.bind.annotation.RequestParam;
  * Follows Single Responsibility Principle - only parameter creation logic.
  */
 public final class ParameterBuilders {
-    
+
+    private static final String TYPE_PARAM = "type";
+    private static final String PARAM_NAME_PARAM = "paramName";
+    private static final String REQUEST_PARAM_NAME_PARAM = "requestParamName";
+    private static final String PATH_VAR_NAME_PARAM = "pathVarName";
+    private static final String DTO_COLUMNS_PARAM = "dtoColumns";
+    private static final String DTO_PARAMETER_NAME_PARAM = "dtoParameterName";
+
     private ParameterBuilders() {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
     }
@@ -30,9 +38,9 @@ public final class ParameterBuilders {
      * Creates a @RequestParam parameter with default settings.
      */
     public static ParameterSpec requestParam(TypeName type, String paramName) {
-        validateNotNull(type, "type");
-        validateNotEmpty(paramName, "paramName");
-        
+        validateNotNull(type, TYPE_PARAM);
+        validateNotEmpty(paramName, PARAM_NAME_PARAM);
+
         return ParameterSpec.builder(type, paramName)
                 .addAnnotation(RequestParam.class)
                 .build();
@@ -42,13 +50,14 @@ public final class ParameterBuilders {
      * Creates a @RequestParam parameter with custom request parameter name.
      */
     public static ParameterSpec requestParamWithName(TypeName type, String paramName, String requestParamName) {
-        validateNotNull(type, "type");
-        validateNotEmpty(paramName, "paramName");
-        validateNotEmpty(requestParamName, "requestParamName");
-        
+        validateNotNull(type, TYPE_PARAM);
+        validateNotEmpty(paramName, PARAM_NAME_PARAM);
+        validateNotEmpty(requestParamName, REQUEST_PARAM_NAME_PARAM);
+
         return ParameterSpec.builder(type, paramName)
                 .addAnnotation(AnnotationSpec.builder(RequestParam.class)
-                        .addMember("value", "$S", requestParamName)
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_VALUE,
+                                CodeGenerationConstants.STRING_PLACEHOLDER, requestParamName)
                         .build())
                 .build();
     }
@@ -57,17 +66,18 @@ public final class ParameterBuilders {
      * Creates an optional @RequestParam parameter.
      */
     public static ParameterSpec optionalRequestParam(TypeName type, String paramName, Object defaultValue) {
-        validateNotNull(type, "type");
-        validateNotEmpty(paramName, "paramName");
-        
+        validateNotNull(type, TYPE_PARAM);
+        validateNotEmpty(paramName, PARAM_NAME_PARAM);
+
         AnnotationSpec.Builder requestParamBuilder = AnnotationSpec.builder(RequestParam.class)
-                .addMember("required", "$L", false);
+                .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_REQUIRED,
+                        CodeGenerationConstants.LITERAL_PLACEHOLDER, false);
         
         if (defaultValue != null) {
             if (defaultValue instanceof String) {
-                requestParamBuilder.addMember("defaultValue", "$S", defaultValue);
+                requestParamBuilder.addMember("defaultValue", CodeGenerationConstants.STRING_PLACEHOLDER, defaultValue);
             } else {
-                requestParamBuilder.addMember("defaultValue", "$L", defaultValue);
+                requestParamBuilder.addMember("defaultValue", CodeGenerationConstants.LITERAL_PLACEHOLDER, defaultValue);
             }
         }
         
@@ -82,8 +92,8 @@ public final class ParameterBuilders {
      * Creates a @PathVariable parameter.
      */
     public static ParameterSpec pathVariable(TypeName type, String paramName) {
-        validateNotNull(type, "type");
-        validateNotEmpty(paramName, "paramName");
+        validateNotNull(type, TYPE_PARAM);
+        validateNotEmpty(paramName, PARAM_NAME_PARAM);
         
         return ParameterSpec.builder(type, paramName)
                 .addAnnotation(PathVariable.class)
@@ -94,13 +104,14 @@ public final class ParameterBuilders {
      * Creates a @PathVariable parameter with custom path variable name.
      */
     public static ParameterSpec pathVariableWithName(TypeName type, String paramName, String pathVarName) {
-        validateNotNull(type, "type");
-        validateNotEmpty(paramName, "paramName");
-        validateNotEmpty(pathVarName, "pathVarName");
-        
+        validateNotNull(type, TYPE_PARAM);
+        validateNotEmpty(paramName, PARAM_NAME_PARAM);
+        validateNotEmpty(pathVarName, PATH_VAR_NAME_PARAM);
+
         return ParameterSpec.builder(type, paramName)
                 .addAnnotation(AnnotationSpec.builder(PathVariable.class)
-                        .addMember("value", "$S", pathVarName)
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_VALUE,
+                                CodeGenerationConstants.STRING_PLACEHOLDER, pathVarName)
                         .build())
                 .build();
     }
@@ -111,8 +122,8 @@ public final class ParameterBuilders {
      * Creates a @Valid @RequestBody parameter for DTO objects.
      */
     public static ParameterSpec validRequestBody(TypeName type, String paramName) {
-        validateNotNull(type, "type");
-        validateNotEmpty(paramName, "paramName");
+        validateNotNull(type, TYPE_PARAM);
+        validateNotEmpty(paramName, PARAM_NAME_PARAM);
         
         return ParameterSpec.builder(type, paramName)
                 .addAnnotation(Valid.class)
@@ -124,8 +135,8 @@ public final class ParameterBuilders {
      * Creates a simple @RequestBody parameter without validation.
      */
     public static ParameterSpec requestBody(TypeName type, String paramName) {
-        validateNotNull(type, "type");
-        validateNotEmpty(paramName, "paramName");
+        validateNotNull(type, TYPE_PARAM);
+        validateNotEmpty(paramName, PARAM_NAME_PARAM);
         
         return ParameterSpec.builder(type, paramName)
                 .addAnnotation(RequestBody.class)
@@ -153,7 +164,8 @@ public final class ParameterBuilders {
             
             if (asRequestParams) {
                 paramBuilder.addAnnotation(AnnotationSpec.builder(RequestParam.class)
-                        .addMember("value", "$S", paramName)
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_VALUE,
+                                CodeGenerationConstants.STRING_PLACEHOLDER, paramName)
                         .build());
             }
             
@@ -181,7 +193,8 @@ public final class ParameterBuilders {
             
             if (asRequestParams) {
                 paramBuilder.addAnnotation(AnnotationSpec.builder(RequestParam.class)
-                        .addMember("value", "$S", paramName)
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_VALUE,
+                                CodeGenerationConstants.STRING_PLACEHOLDER, paramName)
                         .build());
             }
             
@@ -211,8 +224,8 @@ public final class ParameterBuilders {
      */
     public static ParameterSpec idParameter(TypeName idType, String paramName) {
         validateNotNull(idType, "idType");
-        validateNotEmpty(paramName, "paramName");
-        
+        validateNotEmpty(paramName, PARAM_NAME_PARAM);
+
         return pathVariable(idType, paramName);
     }
     

@@ -21,6 +21,10 @@ public class ParameterMetadataExtractor {
     private static final Pattern COLUMN_PATTERN = Pattern.compile("(\\w+\\.\\w+|\\w+)\\s*=\\s*\\?", Pattern.CASE_INSENSITIVE);
     private static final Pattern WHERE_PATTERN = Pattern.compile("\\bwhere\\b", Pattern.CASE_INSENSITIVE);
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
+    private static final String SQL_QUERY_TOO_LONG_MESSAGE = "SQL query too long";
+    private static final String DEFAULT_PARAM_PREFIX = "param";
+    private static final String DEFAULT_JAVA_TYPE = "String";
+    private static final String DEFAULT_JDBC_TYPE = "VARCHAR";
 
     private final DataSource dataSource;
     
@@ -36,7 +40,7 @@ public class ParameterMetadataExtractor {
             throw new IllegalArgumentException(ProjectConstants.ERROR_NULL_SQL);
         }
         if (sql.length() > MAX_SQL_LENGTH) {
-            throw new IllegalArgumentException("SQL query too long");
+            throw new IllegalArgumentException(SQL_QUERY_TOO_LONG_MESSAGE);
         }
         
         List<DBColumn> parameters = new ArrayList<>();
@@ -56,8 +60,8 @@ public class ParameterMetadataExtractor {
             for (int i = 1; i <= parameterCount; i++) {
                 try {
                     int sqlType = pmd.getParameterType(i);
-                    String parameterName = (i <= columnNames.size()) ? 
-                        columnNames.get(i - 1) : "param" + i;
+                    String parameterName = (i <= columnNames.size()) ?
+                        columnNames.get(i - 1) : DEFAULT_PARAM_PREFIX + i;
                     String javaType = getJavaTypeForSqlType(sqlType);
                     String jdbcType = getJdbcTypeForSqlType(sqlType);
                     
@@ -69,9 +73,9 @@ public class ParameterMetadataExtractor {
                     
                 } catch (SQLException e) {
                     log.warn("Could not get metadata for parameter {}: {}", i, e.getMessage());
-                    String parameterName = (i <= columnNames.size()) ? 
-                        columnNames.get(i - 1) : "param" + i;
-                    DBColumn defaultParam = new DBColumn(null, parameterName, "String", "VARCHAR");
+                    String parameterName = (i <= columnNames.size()) ?
+                        columnNames.get(i - 1) : DEFAULT_PARAM_PREFIX + i;
+                    DBColumn defaultParam = new DBColumn(null, parameterName, DEFAULT_JAVA_TYPE, DEFAULT_JDBC_TYPE);
                     parameters.add(defaultParam);
                 }
             }
@@ -107,7 +111,7 @@ public class ParameterMetadataExtractor {
             
             // Fill remaining parameters with default names if needed
             while (columnNames.size() < expectedParameterCount) {
-                columnNames.add("param" + (columnNames.size() + 1));
+                columnNames.add(DEFAULT_PARAM_PREFIX + (columnNames.size() + 1));
             }
             
         } catch (IllegalArgumentException | IllegalStateException e) {
@@ -123,7 +127,7 @@ public class ParameterMetadataExtractor {
     
     private String extractWhereClause(String sql) {
         if (sql.length() > MAX_SQL_LENGTH) {
-            throw new IllegalArgumentException("SQL query too long");
+            throw new IllegalArgumentException(SQL_QUERY_TOO_LONG_MESSAGE);
         }
 
         // Remove line breaks and extra spaces for easier parsing
@@ -187,7 +191,7 @@ public class ParameterMetadataExtractor {
     private List<String> generateDefaultParameterNames(int count) {
         List<String> defaultNames = new ArrayList<>();
         for (int i = 1; i <= count; i++) {
-            defaultNames.add("param" + i);
+            defaultNames.add(DEFAULT_PARAM_PREFIX + i);
         }
         return defaultNames;
     }
@@ -205,7 +209,7 @@ public class ParameterMetadataExtractor {
             case Types.TIME -> "Time";
             case Types.TIMESTAMP -> "Timestamp";
             case Types.BLOB -> "byte[]";
-            default -> "String"; // Default fallback
+            default -> DEFAULT_JAVA_TYPE; // Default fallback
         };
     }
     
@@ -231,7 +235,7 @@ public class ParameterMetadataExtractor {
             case Types.TIME -> "TIME";
             case Types.TIMESTAMP -> "TIMESTAMP";
             case Types.BLOB -> "BLOB";
-            default -> "VARCHAR"; // Default fallback
+            default -> DEFAULT_JDBC_TYPE; // Default fallback
         };
     }
 }
