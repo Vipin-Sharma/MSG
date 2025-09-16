@@ -1,5 +1,7 @@
 package com.jfeatures.msg.codegen;
 
+import com.jfeatures.msg.codegen.constants.CodeGenerationConstants;
+import com.jfeatures.msg.codegen.constants.ProjectConstants;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.UpdateMetadata;
 import com.jfeatures.msg.codegen.util.JavaPackageNameBuilder;
@@ -39,6 +41,8 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Slf4j
 public class GenerateUpdateController {
+
+    private static final String ID_PARAMETER = "id";
 
     private GenerateUpdateController() {
         throw new UnsupportedOperationException("Utility class");
@@ -80,11 +84,14 @@ public class GenerateUpdateController {
                 .addMethod(putMethod)
                 .addAnnotation(RestController.class)
                 .addAnnotation(AnnotationSpec.builder(RequestMapping.class)
-                        .addMember("path", "$S", "/api")
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_PATH,
+                                CodeGenerationConstants.STRING_PLACEHOLDER, "/api")
                         .build())
                 .addAnnotation(AnnotationSpec.builder(Tag.class)
-                        .addMember("name", "$S", businessPurposeOfSQL + " Update API")
-                        .addMember("description", "$S", "REST API for updating " + businessPurposeOfSQL.toLowerCase() + " records")
+                        .addMember("name", CodeGenerationConstants.STRING_PLACEHOLDER, businessPurposeOfSQL + " Update API")
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_DESCRIPTION,
+                                CodeGenerationConstants.STRING_PLACEHOLDER,
+                                "REST API for updating " + businessPurposeOfSQL.toLowerCase() + " records")
                         .build())
                 .build();
         
@@ -110,8 +117,11 @@ public class GenerateUpdateController {
                 .addAnnotation(Valid.class)
                 .addAnnotation(RequestBody.class)
                 .addAnnotation(AnnotationSpec.builder(Parameter.class)
-                        .addMember("description", "$S", "Updated " + businessPurposeOfSQL.toLowerCase() + " data")
-                        .addMember("required", "true")
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_DESCRIPTION,
+                                CodeGenerationConstants.STRING_PLACEHOLDER,
+                                "Updated " + businessPurposeOfSQL.toLowerCase() + " data")
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_REQUIRED,
+                                CodeGenerationConstants.LITERAL_PLACEHOLDER, true)
                         .build())
                 .build());
         methodCallParams.add("updateDto");
@@ -122,16 +132,19 @@ public class GenerateUpdateController {
             ColumnMetadata firstWhereColumn = updateMetadata.whereColumns().get(0);
             Class<?> idType = SQLServerDataTypeEnum.getClassForType(firstWhereColumn.getColumnTypeName());
             
-            parameterSpecs.add(ParameterSpec.builder(idType, "id")
+            parameterSpecs.add(ParameterSpec.builder(idType, ID_PARAMETER)
                     .addAnnotation(AnnotationSpec.builder(PathVariable.class)
-                            .addMember("value", "$S", "id")
+                            .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_VALUE,
+                                    CodeGenerationConstants.STRING_PLACEHOLDER, ID_PARAMETER)
                             .build())
                     .addAnnotation(AnnotationSpec.builder(Parameter.class)
-                            .addMember("description", "$S", "Unique identifier")
-                            .addMember("required", "true")
+                            .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_DESCRIPTION,
+                                    CodeGenerationConstants.STRING_PLACEHOLDER, "Unique identifier")
+                            .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_REQUIRED,
+                                    CodeGenerationConstants.LITERAL_PLACEHOLDER, true)
                             .build())
                     .build());
-            methodCallParams.add("id");
+            methodCallParams.add(ID_PARAMETER);
             hasPathVariable = true;
         }
         
@@ -143,11 +156,14 @@ public class GenerateUpdateController {
             
             parameterSpecs.add(ParameterSpec.builder(paramType, paramName)
                     .addAnnotation(AnnotationSpec.builder(RequestParam.class)
-                            .addMember("value", "$S", paramName)
-                            .addMember("required", "true")
+                            .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_VALUE,
+                                    CodeGenerationConstants.STRING_PLACEHOLDER, paramName)
+                            .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_REQUIRED,
+                                    CodeGenerationConstants.LITERAL_PLACEHOLDER, true)
                             .build())
                     .addAnnotation(AnnotationSpec.builder(Parameter.class)
-                            .addMember("description", "$S", "Filter parameter: " + paramName)
+                            .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_DESCRIPTION,
+                                    CodeGenerationConstants.STRING_PLACEHOLDER, "Filter parameter: " + paramName)
                             .build())
                     .build());
             methodCallParams.add(paramName);
@@ -177,12 +193,18 @@ public class GenerateUpdateController {
                 .addParameters(parameterSpecs)
                 .returns(ParameterizedTypeName.get(ClassName.get(ResponseEntity.class), ClassName.get(Void.class)))
                 .addAnnotation(AnnotationSpec.builder(PutMapping.class)
-                        .addMember("value", "$S", mappingUrl)
-                        .addMember("consumes", "$S", "application/json")
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_VALUE,
+                                CodeGenerationConstants.STRING_PLACEHOLDER, mappingUrl)
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_CONSUMES,
+                                CodeGenerationConstants.STRING_PLACEHOLDER, ProjectConstants.APPLICATION_JSON)
                         .build())
                 .addAnnotation(AnnotationSpec.builder(Operation.class)
-                        .addMember("summary", "$S", "Update " + businessPurposeOfSQL.toLowerCase() + " record")
-                        .addMember("description", "$S", "Updates an existing " + businessPurposeOfSQL.toLowerCase() + " record with the provided data")
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_SUMMARY,
+                                CodeGenerationConstants.STRING_PLACEHOLDER,
+                                "Update " + businessPurposeOfSQL.toLowerCase() + " record")
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_DESCRIPTION,
+                                CodeGenerationConstants.STRING_PLACEHOLDER,
+                                "Updates an existing " + businessPurposeOfSQL.toLowerCase() + " record with the provided data")
                         .build())
                 .addAnnotation(AnnotationSpec.builder(ApiResponses.class)
                         .addMember("value", "{\n" +
@@ -213,7 +235,7 @@ public class GenerateUpdateController {
         
         // Generate names based on common patterns
         return switch (index) {
-            case 0 -> "id";
+            case 0 -> ID_PARAMETER;
             case 1 -> "status";
             case 2 -> "category";
             default -> "param" + (index + 1);

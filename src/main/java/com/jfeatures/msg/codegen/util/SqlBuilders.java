@@ -13,7 +13,15 @@ import java.util.Map;
  * Follows Single Responsibility Principle - only SQL construction and formatting logic.
  */
 public final class SqlBuilders {
-    
+
+    private static final String TABLE_NAME_PARAM = "tableName";
+    private static final String COLUMNS_PARAM = "columns";
+    private static final String SET_COLUMNS_PARAM = "setColumns";
+    private static final String DTO_PARAMETER_NAME_PARAM = "dtoParameterName";
+    private static final String PARAM_MAP_STATEMENT_FORMAT = "$T<$T, $T> paramMap = new $T<>()";
+    private static final String COLUMN_DELIMITER = ", ";
+    private static final String PARAMETER_ASSIGNMENT = " = :";
+
     private SqlBuilders() {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
     }
@@ -24,8 +32,8 @@ public final class SqlBuilders {
      * Builds a parameterized INSERT statement from column metadata.
      */
     public static String buildInsertSql(String tableName, List<ColumnMetadata> columns) {
-        validateNotEmpty(tableName, "tableName");
-        validateNotEmpty(columns, "columns");
+        validateNotEmpty(tableName, TABLE_NAME_PARAM);
+        validateNotEmpty(columns, COLUMNS_PARAM);
         
         StringBuilder sqlBuilder = new StringBuilder();
         sqlBuilder.append("INSERT INTO ").append(tableName).append(" (");
@@ -34,7 +42,7 @@ public final class SqlBuilders {
         List<String> columnNames = columns.stream()
                 .map(ColumnMetadata::getColumnName)
                 .toList();
-        sqlBuilder.append(String.join(", ", columnNames));
+        sqlBuilder.append(String.join(COLUMN_DELIMITER, columnNames));
         
         sqlBuilder.append(") VALUES (");
         
@@ -42,7 +50,7 @@ public final class SqlBuilders {
         List<String> parameterNames = columns.stream()
                 .map(col -> ":" + NamingConventions.parameterName(col.getColumnName()))
                 .toList();
-        sqlBuilder.append(String.join(", ", parameterNames));
+        sqlBuilder.append(String.join(COLUMN_DELIMITER, parameterNames));
         sqlBuilder.append(")");
         
         return formatSql(sqlBuilder.toString());
@@ -52,17 +60,17 @@ public final class SqlBuilders {
      * Builds a parameterized UPDATE statement from column metadata.
      */
     public static String buildUpdateSql(String tableName, List<ColumnMetadata> setColumns, List<ColumnMetadata> whereColumns) {
-        validateNotEmpty(tableName, "tableName");
-        validateNotEmpty(setColumns, "setColumns");
+        validateNotEmpty(tableName, TABLE_NAME_PARAM);
+        validateNotEmpty(setColumns, SET_COLUMNS_PARAM);
         
         StringBuilder sqlBuilder = new StringBuilder();
         sqlBuilder.append("UPDATE ").append(tableName).append(" SET ");
         
         // SET clause with named parameters
         List<String> setClauses = setColumns.stream()
-                .map(col -> col.getColumnName() + " = :" + NamingConventions.parameterName(col.getColumnName()))
+                .map(col -> col.getColumnName() + PARAMETER_ASSIGNMENT + NamingConventions.parameterName(col.getColumnName()))
                 .toList();
-        sqlBuilder.append(String.join(", ", setClauses));
+        sqlBuilder.append(String.join(COLUMN_DELIMITER, setClauses));
         
         // WHERE clause if present
         if (whereColumns != null && !whereColumns.isEmpty()) {
@@ -72,7 +80,7 @@ public final class SqlBuilders {
                 ColumnMetadata column = whereColumns.get(i);
                 String paramName = generateWhereParamName(column, i);
                 String columnName = inferColumnName(column, i);
-                whereClauses.add(columnName + " = :" + paramName);
+                whereClauses.add(columnName + PARAMETER_ASSIGNMENT + paramName);
             }
             sqlBuilder.append(String.join(" AND ", whereClauses));
         }
@@ -84,7 +92,7 @@ public final class SqlBuilders {
      * Builds a parameterized DELETE statement.
      */
     public static String buildDeleteSql(String tableName, List<ColumnMetadata> whereColumns) {
-        validateNotEmpty(tableName, "tableName");
+        validateNotEmpty(tableName, TABLE_NAME_PARAM);
         validateNotEmpty(whereColumns, "whereColumns");
         
         StringBuilder sqlBuilder = new StringBuilder();
@@ -97,7 +105,7 @@ public final class SqlBuilders {
                 ColumnMetadata column = whereColumns.get(i);
                 String paramName = generateWhereParamName(column, i);
                 String columnName = inferColumnName(column, i);
-                whereClauses.add(columnName + " = :" + paramName);
+                whereClauses.add(columnName + PARAMETER_ASSIGNMENT + paramName);
             }
             sqlBuilder.append(String.join(" AND ", whereClauses));
         }
@@ -111,11 +119,11 @@ public final class SqlBuilders {
      * Builds CodeBlock for creating and populating a parameter map from DTO.
      */
     public static CodeBlock buildDtoParameterMapping(List<ColumnMetadata> columns, String dtoParameterName) {
-        validateNotEmpty(columns, "columns");
-        validateNotEmpty(dtoParameterName, "dtoParameterName");
-        
+        validateNotEmpty(columns, COLUMNS_PARAM);
+        validateNotEmpty(dtoParameterName, DTO_PARAMETER_NAME_PARAM);
+
         CodeBlock.Builder codeBuilder = CodeBlock.builder()
-                .addStatement("$T<$T, $T> paramMap = new $T<>()", 
+                .addStatement(PARAM_MAP_STATEMENT_FORMAT,
                              Map.class, String.class, Object.class, HashMap.class);
         
         for (ColumnMetadata column : columns) {
@@ -136,9 +144,9 @@ public final class SqlBuilders {
         if (paramNames == null || paramValues == null || paramNames.size() != paramValues.size()) {
             throw new IllegalArgumentException("Parameter names and values must be non-null and same size");
         }
-        
+
         CodeBlock.Builder codeBuilder = CodeBlock.builder()
-                .addStatement("$T<$T, $T> paramMap = new $T<>()", 
+                .addStatement(PARAM_MAP_STATEMENT_FORMAT,
                              Map.class, String.class, Object.class, HashMap.class);
         
         for (int i = 0; i < paramNames.size(); i++) {
@@ -154,10 +162,10 @@ public final class SqlBuilders {
     public static CodeBlock buildMixedParameterMapping(List<ColumnMetadata> dtoColumns, String dtoParameterName,
                                                       List<String> additionalParamNames, List<String> additionalParamValues) {
         validateNotEmpty(dtoColumns, "dtoColumns");
-        validateNotEmpty(dtoParameterName, "dtoParameterName");
-        
+        validateNotEmpty(dtoParameterName, DTO_PARAMETER_NAME_PARAM);
+
         CodeBlock.Builder codeBuilder = CodeBlock.builder()
-                .addStatement("$T<$T, $T> paramMap = new $T<>()", 
+                .addStatement(PARAM_MAP_STATEMENT_FORMAT,
                              Map.class, String.class, Object.class, HashMap.class);
         
         // Add DTO parameters

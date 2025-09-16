@@ -1,7 +1,8 @@
 package com.jfeatures.msg.codegen;
 
+import com.jfeatures.msg.codegen.constants.CodeGenerationConstants;
+import com.jfeatures.msg.codegen.constants.ProjectConstants;
 import com.jfeatures.msg.codegen.dbmetadata.InsertMetadata;
-import com.jfeatures.msg.codegen.util.CommonJavaPoetBuilders;
 import com.jfeatures.msg.codegen.util.JavaPackageNameBuilder;
 import com.jfeatures.msg.codegen.util.JavaPoetTypeNameBuilder;
 import com.squareup.javapoet.AnnotationSpec;
@@ -24,6 +25,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Generates REST Controller with POST endpoints for INSERT operations.
@@ -62,13 +65,20 @@ public class GenerateInsertController {
         MethodSpec insertMethodSpec = MethodSpec.methodBuilder("create" + businessPurposeOfSQL)
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(AnnotationSpec.builder(PostMapping.class)
-                        .addMember("value", "$S", "/" + businessPurposeOfSQL.toLowerCase())
-                        .addMember("consumes", "$S", "application/json")
-                        .addMember("produces", "$S", "application/json")
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_VALUE,
+                                CodeGenerationConstants.STRING_PLACEHOLDER, "/" + businessPurposeOfSQL.toLowerCase())
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_CONSUMES,
+                                CodeGenerationConstants.STRING_PLACEHOLDER, ProjectConstants.APPLICATION_JSON)
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_PRODUCES,
+                                CodeGenerationConstants.STRING_PLACEHOLDER, ProjectConstants.APPLICATION_JSON)
                         .build())
                 .addAnnotation(AnnotationSpec.builder(Operation.class)
-                        .addMember("summary", "$S", "Create new " + businessPurposeOfSQL.toLowerCase() + " entity")
-                        .addMember("description", "$S", "POST API to create a new " + businessPurposeOfSQL.toLowerCase() + " record")
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_SUMMARY,
+                                CodeGenerationConstants.STRING_PLACEHOLDER,
+                                "Create new " + businessPurposeOfSQL.toLowerCase() + " entity")
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_DESCRIPTION,
+                                CodeGenerationConstants.STRING_PLACEHOLDER,
+                                "POST API to create a new " + businessPurposeOfSQL.toLowerCase() + " record")
                         .build())
                 .addParameter(ParameterSpec.builder(insertDtoTypeName, "insertRequest")
                         .addAnnotation(AnnotationSpec.builder(Valid.class).build())
@@ -87,12 +97,19 @@ public class GenerateInsertController {
                         .build())
                 .build();
         
-        // Controller class using CommonJavaPoetBuilders
-        TypeSpec.Builder controllerBuilder = CommonJavaPoetBuilders.basicControllerClass(businessPurposeOfSQL + "Insert", "/api");
+        // Controller class defined manually to avoid deprecated helpers
+        TypeSpec.Builder controllerBuilder = TypeSpec.classBuilder(businessPurposeOfSQL + "InsertController")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(RestController.class)
+                .addAnnotation(AnnotationSpec.builder(RequestMapping.class)
+                        .addMember("path", "$S", "/api")
+                        .build());
         TypeSpec controller = controllerBuilder
                 .addAnnotation(AnnotationSpec.builder(Tag.class)
-                        .addMember("name", "$S", businessPurposeOfSQL)
-                        .addMember("description", "$S", businessPurposeOfSQL + " INSERT operations")
+                        .addMember("name", CodeGenerationConstants.STRING_PLACEHOLDER, businessPurposeOfSQL)
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_DESCRIPTION,
+                                CodeGenerationConstants.STRING_PLACEHOLDER,
+                                businessPurposeOfSQL + " INSERT operations")
                         .build())
                 .addField(FieldSpec.builder(insertDaoTypeName, daoInstanceFieldName)
                         .addModifiers(Modifier.PRIVATE, Modifier.FINAL)

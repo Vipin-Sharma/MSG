@@ -1,5 +1,7 @@
 package com.jfeatures.msg.codegen;
 
+import com.jfeatures.msg.codegen.constants.CodeGenerationConstants;
+import com.jfeatures.msg.codegen.constants.ProjectConstants;
 import com.jfeatures.msg.codegen.domain.DBColumn;
 import com.jfeatures.msg.codegen.util.JavaPackageNameBuilder;
 import com.jfeatures.msg.codegen.util.JavaPoetTypeNameBuilder;
@@ -64,8 +66,11 @@ public class GenerateController {
         predicateHavingLiterals.forEach(literal ->
                 parameterSpecs.add(ParameterSpec.builder(ClassName.bestGuess(literal.javaType()).box(),
                                 CaseUtils.toCamelCase(literal.columnName(), false))
-                                .addAnnotation(AnnotationSpec.builder(RequestParam.class).addMember("value", "$S",
-                                        CaseUtils.toCamelCase(literal.columnName(), false)).build())
+                                .addAnnotation(AnnotationSpec.builder(RequestParam.class)
+                                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_VALUE,
+                                                CodeGenerationConstants.STRING_PLACEHOLDER,
+                                                CaseUtils.toCamelCase(literal.columnName(), false))
+                                        .build())
                         .build()));
 
         CodeBlock serviceCodeBlock = CodeBlock.builder()
@@ -74,11 +79,15 @@ public class GenerateController {
 
         MethodSpec methodSpec = MethodSpec.methodBuilder("getDataFor" + businessPurposeOfSQL)
                 .addAnnotation(AnnotationSpec.builder(GetMapping.class)
-                        .addMember("value", "$S", "/"+ businessPurposeOfSQL)
-                        .addMember("produces", "$S", "application/json")
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_VALUE,
+                                CodeGenerationConstants.STRING_PLACEHOLDER, "/" + businessPurposeOfSQL)
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_PRODUCES,
+                                CodeGenerationConstants.STRING_PLACEHOLDER, ProjectConstants.APPLICATION_JSON)
                         .build())
                 .addAnnotation(AnnotationSpec.builder(Operation.class)
-                        .addMember("summary", "$S", "Get API to fetch data for " + businessPurposeOfSQL)
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_SUMMARY,
+                                CodeGenerationConstants.STRING_PLACEHOLDER,
+                                "Get API to fetch data for " + businessPurposeOfSQL)
                         .build())
                 .addParameters(parameterSpecs)
                 .addModifiers(Modifier.PUBLIC)
@@ -94,11 +103,13 @@ public class GenerateController {
                 .addMethod(constructorSpec)
                 .addAnnotation(RestController.class)
                 .addAnnotation(AnnotationSpec.builder(RequestMapping.class)
-                        .addMember("path", "$S", "/api")
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_PATH,
+                                CodeGenerationConstants.STRING_PLACEHOLDER, "/api")
                         .build())
                 .addAnnotation(AnnotationSpec.builder(Tag.class)
-                        .addMember("name", "$S", businessPurposeOfSQL)
-                        .addMember("description", "$S", businessPurposeOfSQL)
+                        .addMember("name", CodeGenerationConstants.STRING_PLACEHOLDER, businessPurposeOfSQL)
+                        .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_DESCRIPTION,
+                                CodeGenerationConstants.STRING_PLACEHOLDER, businessPurposeOfSQL)
                         .build())
                 .build();
 

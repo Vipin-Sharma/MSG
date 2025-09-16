@@ -1,6 +1,7 @@
 package com.jfeatures.msg.codegen.util;
 
 import com.jfeatures.msg.codegen.constants.CodeGenerationConstants;
+import com.jfeatures.msg.codegen.constants.ProjectConstants;
 import org.apache.commons.text.CaseUtils;
 
 /**
@@ -8,7 +9,12 @@ import org.apache.commons.text.CaseUtils;
  * Follows Clean Code principles: single responsibility for naming logic.
  */
 public final class NamingConventions {
-    
+
+    private static final String PACKAGE_SUFFIX_PARAM = "packageSuffix";
+    private static final String CLASS_SUFFIX_PARAM = "classSuffix";
+    private static final String FIELD_NAME_PARAM = "fieldName";
+    private static final String COLUMN_NAME_PARAM = "columnName";
+
     // Private constructor to prevent instantiation
     private NamingConventions() {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
@@ -21,8 +27,8 @@ public final class NamingConventions {
      * Pattern: com.jfeatures.msg.{businessName}.{packageSuffix}
      */
     public static String buildPackageName(String businessName, String packageSuffix) {
-        validateNotEmpty(businessName, "businessName");
-        validateNotEmpty(packageSuffix, "packageSuffix");
+        validateNotEmpty(businessName, ProjectConstants.BUSINESS_NAME_PARAM);
+        validateNotEmpty(packageSuffix, PACKAGE_SUFFIX_PARAM);
         
         return "com.jfeatures.msg." + businessName.toLowerCase() + "." + packageSuffix;
     }
@@ -34,8 +40,8 @@ public final class NamingConventions {
      * Pattern: {BusinessName}{ClassSuffix}
      */
     public static String buildClassName(String businessName, String classSuffix) {
-        validateNotEmpty(businessName, "businessName");
-        validateNotEmpty(classSuffix, "classSuffix");
+        validateNotEmpty(businessName, ProjectConstants.BUSINESS_NAME_PARAM);
+        validateNotEmpty(classSuffix, CLASS_SUFFIX_PARAM);
         
         // Handle empty string cases
         if (businessName.isEmpty()) {
@@ -78,7 +84,7 @@ public final class NamingConventions {
      * Creates a field name for JDBC template following naming conventions.
      */
     public static String jdbcTemplateFieldName(String businessName) {
-        validateNotEmpty(businessName, "businessName");
+        validateNotEmpty(businessName, ProjectConstants.BUSINESS_NAME_PARAM);
         return CaseUtils.toCamelCase(businessName, false) + "NamedParameterJdbcTemplate";
     }
     
@@ -86,7 +92,7 @@ public final class NamingConventions {
      * Creates a DAO field name for controllers.
      */
     public static String daoFieldName(String businessName) {
-        validateNotEmpty(businessName, "businessName");
+        validateNotEmpty(businessName, ProjectConstants.BUSINESS_NAME_PARAM);
         return CaseUtils.toCamelCase(businessName, false) + "DAO";
     }
     
@@ -104,7 +110,7 @@ public final class NamingConventions {
      * Creates getter method name from field name.
      */
     public static String getterMethodName(String fieldName) {
-        validateNotEmpty(fieldName, "fieldName");
+        validateNotEmpty(fieldName, FIELD_NAME_PARAM);
         return "get" + CaseUtils.toCamelCase(fieldName, true, '_');
     }
     
@@ -112,7 +118,7 @@ public final class NamingConventions {
      * Creates setter method name from field name.
      */
     public static String setterMethodName(String fieldName) {
-        validateNotEmpty(fieldName, "fieldName");
+        validateNotEmpty(fieldName, FIELD_NAME_PARAM);
         return "set" + CaseUtils.toCamelCase(fieldName, true, '_');
     }
     
@@ -120,8 +126,8 @@ public final class NamingConventions {
      * Creates DAO method name.
      */
     public static String daoMethodName(String operation, String businessName) {
-        validateNotEmpty(operation, "operation");
-        validateNotEmpty(businessName, "businessName");
+        validateNotEmpty(operation, ProjectConstants.OPERATION_PARAM);
+        validateNotEmpty(businessName, ProjectConstants.BUSINESS_NAME_PARAM);
         return operation.toLowerCase() + businessName;
     }
     
@@ -129,8 +135,8 @@ public final class NamingConventions {
      * Creates controller endpoint method name.
      */
     public static String controllerMethodName(String operation, String businessName) {
-        validateNotEmpty(operation, "operation");
-        validateNotEmpty(businessName, "businessName");
+        validateNotEmpty(operation, ProjectConstants.OPERATION_PARAM);
+        validateNotEmpty(businessName, ProjectConstants.BUSINESS_NAME_PARAM);
         return operation.toLowerCase() + "DataFor" + businessName;
     }
     
@@ -140,7 +146,7 @@ public final class NamingConventions {
      * Converts column name to parameter name (camelCase).
      */
     public static String parameterName(String columnName) {
-        validateNotEmpty(columnName, "columnName");
+        validateNotEmpty(columnName, COLUMN_NAME_PARAM);
         return CaseUtils.toCamelCase(columnName, false, '_');
     }
     

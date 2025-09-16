@@ -64,11 +64,13 @@ public class SqlFileResolver {
             log.info("Using SELECT SQL file: {}", ProjectConstants.DEFAULT_SELECT_SQL_FILE);
             return sql;
         } catch (RuntimeException e) {
-            throw new IllegalArgumentException("No default SQL files found. Please provide a specific SQL file or ensure at least one of the following files exists: " +
-                    ProjectConstants.DEFAULT_UPDATE_SQL_FILE + ", " + 
-                    ProjectConstants.DEFAULT_INSERT_SQL_FILE + ", " + 
-                    ProjectConstants.DEFAULT_DELETE_SQL_FILE + ", " + 
+            String availableFiles = String.join(", ",
+                    ProjectConstants.DEFAULT_UPDATE_SQL_FILE,
+                    ProjectConstants.DEFAULT_INSERT_SQL_FILE,
+                    ProjectConstants.DEFAULT_DELETE_SQL_FILE,
                     ProjectConstants.DEFAULT_SELECT_SQL_FILE);
+            throw new IllegalArgumentException("No default SQL files found. Please provide a specific SQL file or ensure at least one of the following files exists: "
+                    + availableFiles);
         }
     }
     

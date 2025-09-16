@@ -1,9 +1,11 @@
 package com.jfeatures.msg.codegen;
 
 import com.github.vertical_blank.sqlformatter.SqlFormatter;
+import com.jfeatures.msg.codegen.constants.CodeGenerationConstants;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.UpdateMetadata;
-import com.jfeatures.msg.codegen.util.CommonJavaPoetBuilders;
+import com.jfeatures.msg.codegen.util.FieldBuilders;
+import com.jfeatures.msg.codegen.util.MethodBuilders;
 import com.jfeatures.msg.codegen.util.JavaPackageNameBuilder;
 import com.jfeatures.msg.codegen.util.JavaPoetTypeNameBuilder;
 import com.squareup.javapoet.ClassName;
@@ -21,6 +23,7 @@ import java.util.Map;
 import javax.lang.model.element.Modifier;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.CaseUtils;
+import org.springframework.stereotype.Component;
 
 /**
  * Generates DAO classes for UPDATE operations using database metadata.
@@ -38,21 +41,25 @@ public class GenerateUpdateDAO {
      */
     public static JavaFile createUpdateDAO(String businessPurposeOfSQL, UpdateMetadata updateMetadata) throws Exception {
         
-        String jdbcTemplateInstanceFieldName = "namedParameterJdbcTemplate";
-        
+        String jdbcTemplateInstanceFieldName = CodeGenerationConstants.JDBC_TEMPLATE_FIELD_NAME;
+
         // Generate SQL constant using text block for better readability
         String namedParameterSql = generateNamedParameterSql(updateMetadata);
-        FieldSpec sqlConstant = CommonJavaPoetBuilders.sqlFieldWithName(
-                SqlFormatter.format(namedParameterSql), "SQL");
-        
-        // Constructor using CommonJavaPoetBuilders
-        MethodSpec constructorSpec = CommonJavaPoetBuilders.jdbcTemplateConstructor(jdbcTemplateInstanceFieldName);
+        FieldSpec sqlConstant = FieldBuilders.sqlField(
+        SqlFormatter.format(namedParameterSql), CodeGenerationConstants.SQL_FIELD_NAME);
+
+        // Constructor using shared MethodBuilders utility
+        MethodSpec constructorSpec = MethodBuilders.jdbcTemplateConstructor(jdbcTemplateInstanceFieldName);
         
         // Generate UPDATE method (single public method following clean code principles)
         MethodSpec updateMethod = createUpdateMethod(businessPurposeOfSQL, updateMetadata, jdbcTemplateInstanceFieldName);
         
-        // Create DAO class using CommonJavaPoetBuilders
-        TypeSpec.Builder daoBuilder = CommonJavaPoetBuilders.basicDAOClass(businessPurposeOfSQL + "Update", jdbcTemplateInstanceFieldName);
+        // Create DAO class definition manually to avoid deprecated helpers
+        TypeSpec.Builder daoBuilder = TypeSpec.classBuilder(businessPurposeOfSQL + "UpdateDAO")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Component.class)
+                .addField(FieldBuilders.jdbcTemplateField(jdbcTemplateInstanceFieldName))
+                .addMethod(constructorSpec);
         TypeSpec daoClass = daoBuilder
                 .addAnnotation(Slf4j.class)
                 .addField(sqlConstant)
@@ -98,10 +105,11 @@ public class GenerateUpdateDAO {
                 .addStatement("$T<String, Object> paramMap = new $T<>()", Map.class, HashMap.class)
                 .add(paramMapCode)
                 .add("\n")
-                .addStatement("log.info(\"Executing UPDATE: {}\", SQL)")
+                .addStatement("log.info(\"Executing UPDATE: {}\", $N)", CodeGenerationConstants.SQL_FIELD_NAME)
                 .addStatement("log.debug(\"Parameters: {}\", paramMap)")
                 .add("\n")
-                .addStatement("int rowsUpdated = $N.update(SQL, paramMap)", jdbcTemplateFieldName)
+                .addStatement("int rowsUpdated = $N.update($N, paramMap)",
+                        jdbcTemplateFieldName, CodeGenerationConstants.SQL_FIELD_NAME)
                 .addStatement("log.info(\"Updated {} rows for {}\", rowsUpdated, $S)", businessPurposeOfSQL)
                 .addStatement("return rowsUpdated")
                 .build();

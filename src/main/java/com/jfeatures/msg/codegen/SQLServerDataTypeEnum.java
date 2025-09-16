@@ -42,11 +42,19 @@ public enum SQLServerDataTypeEnum {
     TIMESTAMP("TIMESTAMP", java.sql.Timestamp.class, "Timestamp" ),
     TINYINT("TINYINT", Integer.class, "Int" ),
     VARCHAR("VARCHAR", String.class, "String" ),
-    
+
     // Additional SQL Server types for completeness
     UNIQUEIDENTIFIER("UNIQUEIDENTIFIER", String.class, "String"),
     VARBINARY("VARBINARY", byte[].class, "Byte[]"),
     XML("XML", String.class, "String");
+
+    // Constants for type names
+    private static final String JAVA_STRING_SIMPLE_NAME = "String";
+    private static final String JAVA_TIMESTAMP_SIMPLE_NAME = "Timestamp";
+    private static final String JAVA_BIG_DECIMAL_SIMPLE_NAME = "BigDecimal";
+    private static final String JAVA_INT_SIMPLE_NAME = "Int";
+    private static final String BYTE_ARRAY_SIMPLE_NAME = "Byte[]";
+    private static final String JDBC_DEFAULT_TYPE = "VARCHAR";
 
     private final String dbDataType;
     private final Class<?> javaClassType;
@@ -99,7 +107,7 @@ public enum SQLServerDataTypeEnum {
      * Retrieves the JDBC type string for a given SQL Server data type.
      * 
      * @param dbDataType The SQL Server data type (case-insensitive)
-     * @return The corresponding JDBC type string, or "VARCHAR" if type not found
+     * @return The corresponding JDBC type string, or the default JDBC type if none is found
      * @throws IllegalArgumentException if the dbDataType is null or empty
      */
     public static String getJdbcTypeForDBType(String dbDataType) {
@@ -108,6 +116,7 @@ public enum SQLServerDataTypeEnum {
         }
         
         SQLServerDataTypeEnum enumValue = DB_TYPE_LOOKUP.get(dbDataType.toUpperCase().trim());
-        return enumValue != null ? enumValue.jdbcType : "VARCHAR";
+        return enumValue != null ? enumValue.jdbcType : JDBC_DEFAULT_TYPE;
     }
+
 }
