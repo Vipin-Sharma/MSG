@@ -149,9 +149,7 @@ class UpdateMetadataExtractorTest {
         setupParameterMetadata(2, 1);
         
         // When & Then
-        SQLException exception = assertThrows(SQLException.class, () -> {
-            extractor.extractUpdateMetadata(sql);
-        });
+        SQLException exception = assertThrows(SQLException.class, () -> extractor.extractUpdateMetadata(sql));
         
         assertEquals("Database metadata failed", exception.getMessage());
     }

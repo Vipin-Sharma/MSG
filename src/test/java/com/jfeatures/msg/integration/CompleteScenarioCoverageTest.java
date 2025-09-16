@@ -407,43 +407,55 @@ class CompleteScenarioCoverageTest {
     @Test
     void testErrorHandlingScenarios_VariousErrors_HandledGracefully() {
         // Test invalid SQL
-        assertThrows(Exception.class, () -> {
-            microServiceGenerator.generateMicroserviceFromSql(
+        assertThrows(
+            Exception.class,
+            () -> microServiceGenerator.generateMicroserviceFromSql(
                 "INVALID SQL STATEMENT", "Test", mockDatabaseConnection
-            );
-        }, "Should handle invalid SQL gracefully");
+            ),
+            "Should handle invalid SQL gracefully"
+        );
         
         // Test null inputs
-        assertThrows(IllegalArgumentException.class, () -> {
-            microServiceGenerator.generateMicroserviceFromSql(
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> microServiceGenerator.generateMicroserviceFromSql(
                 null, "Test", mockDatabaseConnection
-            );
-        }, "Should handle null SQL");
-        
-        assertThrows(IllegalArgumentException.class, () -> {
-            microServiceGenerator.generateMicroserviceFromSql(
+            ),
+            "Should handle null SQL"
+        );
+
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> microServiceGenerator.generateMicroserviceFromSql(
                 "SELECT * FROM test", null, mockDatabaseConnection
-            );
-        }, "Should handle null business domain name");
-        
-        assertThrows(IllegalArgumentException.class, () -> {
-            microServiceGenerator.generateMicroserviceFromSql(
+            ),
+            "Should handle null business domain name"
+        );
+
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> microServiceGenerator.generateMicroserviceFromSql(
                 "SELECT * FROM test", "Test", null
-            );
-        }, "Should handle null database connection");
+            ),
+            "Should handle null database connection"
+        );
         
         // Test empty inputs
-        assertThrows(IllegalArgumentException.class, () -> {
-            microServiceGenerator.generateMicroserviceFromSql(
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> microServiceGenerator.generateMicroserviceFromSql(
                 "", "Test", mockDatabaseConnection
-            );
-        }, "Should handle empty SQL");
-        
-        assertThrows(IllegalArgumentException.class, () -> {
-            microServiceGenerator.generateMicroserviceFromSql(
+            ),
+            "Should handle empty SQL"
+        );
+
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> microServiceGenerator.generateMicroserviceFromSql(
                 "SELECT * FROM test", "", mockDatabaseConnection
-            );
-        }, "Should handle empty business domain name");
+            ),
+            "Should handle empty business domain name"
+        );
     }
     
     /**
@@ -455,9 +467,11 @@ class CompleteScenarioCoverageTest {
         // Test priority order: UPDATE -> INSERT -> DELETE -> SELECT
         
         // Test specific file resolution
-        assertThrows(RuntimeException.class, () -> {
-            sqlFileResolver.locateAndReadSqlFile("non_existent_file.sql");
-        }, "Should handle non-existent file");
+        assertThrows(
+            RuntimeException.class,
+            () -> sqlFileResolver.locateAndReadSqlFile("non_existent_file.sql"),
+            "Should handle non-existent file"
+        );
         
         // Test null file name (should try defaults and succeed if default files exist)
         String result = sqlFileResolver.locateAndReadSqlFile(null);

@@ -543,11 +543,12 @@ class ComprehensiveCRUDWorkflowTest {
         String invalidSql = "INVALID SQL STATEMENT";
         
         // When & Then - Should handle invalid SQL gracefully
-        assertThrows(Exception.class, () -> {
-            microServiceGenerator.generateMicroserviceFromSql(
+        assertThrows(
+            Exception.class,
+            () -> microServiceGenerator.generateMicroserviceFromSql(
                 invalidSql, businessDomainName, mockDatabaseConnection
-            );
-        });
+            )
+        );
     }
     
     @Test
@@ -557,22 +558,25 @@ class ComprehensiveCRUDWorkflowTest {
         String validSql = "SELECT * FROM test";
         
         // When & Then - Should handle null inputs gracefully
-        assertThrows(IllegalArgumentException.class, () -> {
-            microServiceGenerator.generateMicroserviceFromSql(
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> microServiceGenerator.generateMicroserviceFromSql(
                 null, businessDomainName, mockDatabaseConnection
-            );
-        });
-        
-        assertThrows(IllegalArgumentException.class, () -> {
-            microServiceGenerator.generateMicroserviceFromSql(
+            )
+        );
+
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> microServiceGenerator.generateMicroserviceFromSql(
                 validSql, null, mockDatabaseConnection
-            );
-        });
-        
-        assertThrows(IllegalArgumentException.class, () -> {
-            microServiceGenerator.generateMicroserviceFromSql(
+            )
+        );
+
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> microServiceGenerator.generateMicroserviceFromSql(
                 validSql, businessDomainName, null
-            );
-        });
+            )
+        );
     }
 }

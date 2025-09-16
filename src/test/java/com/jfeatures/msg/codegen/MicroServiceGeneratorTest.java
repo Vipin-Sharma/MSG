@@ -335,17 +335,14 @@ class MicroServiceGeneratorTest {
         String selectSql = "SELECT id, name FROM customers WHERE id = ?";
         
         // This test will likely fail due to database dependencies, but tests the method logic
-        assertThrows(Exception.class, () -> {
-            generator.generateMicroserviceFromSql(selectSql, "Customer", null);
-        });
+        assertThrows(Exception.class, () ->
+            generator.generateMicroserviceFromSql(selectSql, "Customer", null));
     }
 
     @Test
     void testGetSql_WithNonExistentFileName_ThrowsException() {
         // Test getSql method with nonexistent file
-        assertThrows(IllegalArgumentException.class, () -> {
-            MicroServiceGenerator.getSql("nonexistent.sql");
-        });
+        assertThrows(IllegalArgumentException.class, () -> MicroServiceGenerator.getSql("nonexistent.sql"));
     }
 
     @Test
@@ -521,9 +518,9 @@ class MicroServiceGeneratorTest {
         
         for (String sql : sqlStatements) {
             // This will likely fail due to database dependencies, but tests the method routing
-            assertThrows(Exception.class, () -> {
-                generator.generateMicroserviceFromSql(sql, businessName, null);
-            }, "Should throw exception due to database dependency for SQL: " + sql);
+            assertThrows(Exception.class, () ->
+                generator.generateMicroserviceFromSql(sql, businessName, null),
+                "Should throw exception due to database dependency for SQL: " + sql);
         }
     }
     
@@ -546,9 +543,9 @@ class MicroServiceGeneratorTest {
         
         for (String sql : invalidSqlStatements) {
             // Some might throw IllegalArgumentException, others might throw different exceptions
-            assertThrows(Exception.class, () -> {
-                generator.generateMicroserviceFromSql(sql, businessName, null);
-            }, "Should throw exception for invalid SQL: " + sql);
+            assertThrows(Exception.class, () ->
+                generator.generateMicroserviceFromSql(sql, businessName, null),
+                "Should throw exception for invalid SQL: " + sql);
         }
     }
     
