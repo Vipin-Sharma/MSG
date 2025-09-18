@@ -21,9 +21,10 @@ class GenerateControllerTest {
         JavaFile result = GenerateController.createController("Customer", predicateLiterals);
 
         // Then
-        assertThat(result).isNotNull();
-        assertThat(result.packageName).isEqualTo("com.jfeatures.msg.customer.controller");
-        assertThat(result.typeSpec.name).isEqualTo("CustomerController");
+        assertThat(result)
+            .isNotNull()
+            .returns("com.jfeatures.msg.customer.controller", javaFile -> javaFile.packageName)
+            .returns("CustomerController", javaFile -> javaFile.typeSpec.name);
         
         String generatedCode = result.toString();
         assertThat(generatedCode)
@@ -103,8 +104,9 @@ class GenerateControllerTest {
         JavaFile result = GenerateController.createController("QuarterlySalesReport", predicateLiterals);
 
         // Then
-        assertThat(result.typeSpec.name).isEqualTo("QuarterlySalesReportController");
-        assertThat(result.packageName).isEqualTo("com.jfeatures.msg.quarterlysalesreport.controller");
+        assertThat(result)
+            .returns("QuarterlySalesReportController", javaFile -> javaFile.typeSpec.name)
+            .returns("com.jfeatures.msg.quarterlysalesreport.controller", javaFile -> javaFile.packageName);
         
         String generatedCode = result.toString();
         assertThat(generatedCode)

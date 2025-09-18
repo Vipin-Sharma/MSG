@@ -186,8 +186,9 @@ class MicroServiceGeneratorTest {
         var mainMethod = clazz.getMethod("main", String[].class);
 
         // Then
-        assertThat(mainMethod).isNotNull();
-        assertThat(mainMethod.getReturnType()).isEqualTo(void.class);
+        assertThat(mainMethod)
+            .isNotNull()
+            .returns(void.class, java.lang.reflect.Method::getReturnType);
     }
 
     @Test
@@ -199,8 +200,9 @@ class MicroServiceGeneratorTest {
         var getSqlMethod = clazz.getMethod("getSql", String.class);
 
         // Then
-        assertThat(getSqlMethod).isNotNull();
-        assertThat(getSqlMethod.getReturnType()).isEqualTo(String.class);
+        assertThat(getSqlMethod)
+            .isNotNull()
+            .returns(String.class, java.lang.reflect.Method::getReturnType);
     }
 
     // New tests to improve coverage for call() and validateInputParameters() methods

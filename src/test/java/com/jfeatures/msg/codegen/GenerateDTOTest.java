@@ -26,9 +26,10 @@ class GenerateDTOTest {
         JavaFile result = GenerateDTO.dtoFromColumnMetadata(columnMetadata, "Customer");
 
         // Then
-        assertThat(result).isNotNull();
-        assertThat(result.packageName).isEqualTo("com.jfeatures.msg.customer.dto");
-        assertThat(result.typeSpec.name).isEqualTo("CustomerDTO");
+        assertThat(result)
+            .isNotNull()
+            .returns("com.jfeatures.msg.customer.dto", javaFile -> javaFile.packageName)
+            .returns("CustomerDTO", javaFile -> javaFile.typeSpec.name);
         
         String generatedCode = result.toString();
         assertThat(generatedCode)
@@ -85,8 +86,10 @@ class GenerateDTOTest {
         JavaFile result = GenerateDTO.dtoFromColumnMetadata(columnMetadata, businessPurpose);
 
         // Then
-        assertThat(result.typeSpec.name).isEqualTo(businessPurpose + "DTO");
-        assertThat(result.packageName).isEqualTo("com.jfeatures.msg." + businessPurpose.toLowerCase() + ".dto");
+        assertThat(result)
+            .returns(businessPurpose + "DTO", javaFile -> javaFile.typeSpec.name)
+            .returns("com.jfeatures.msg." + businessPurpose.toLowerCase() + ".dto",
+                javaFile -> javaFile.packageName);
     }
 
     @Test
@@ -98,8 +101,9 @@ class GenerateDTOTest {
         JavaFile result = GenerateDTO.dtoFromColumnMetadata(emptyColumnMetadata, "Empty");
 
         // Then
-        assertThat(result).isNotNull();
-        assertThat(result.typeSpec.fieldSpecs).isEmpty();
+        assertThat(result)
+            .isNotNull()
+            .returns(java.util.Collections.emptyList(), javaFile -> javaFile.typeSpec.fieldSpecs);
     }
 
     @Test
