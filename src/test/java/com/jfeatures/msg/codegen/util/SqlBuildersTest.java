@@ -78,8 +78,9 @@ class SqlBuildersTest {
         @Test
         @DisplayName("buildInsertSql should throw exception for empty columns")
         void buildInsertSql_ShouldThrowExceptionForEmptyColumns() {
+            List<ColumnMetadata> emptyColumns = new ArrayList<>();
             assertThrows(IllegalArgumentException.class, () ->
-                SqlBuilders.buildInsertSql("users", new ArrayList<>())
+                SqlBuilders.buildInsertSql("users", emptyColumns)
             );
         }
 
@@ -173,8 +174,9 @@ class SqlBuildersTest {
         @Test
         @DisplayName("buildDeleteSql should throw exception for empty whereColumns")
         void buildDeleteSql_ShouldThrowExceptionForEmptyWhereColumns() {
+            List<ColumnMetadata> emptyWhereColumns = new ArrayList<>();
             assertThrows(IllegalArgumentException.class, () ->
-                SqlBuilders.buildDeleteSql("users", new ArrayList<>())
+                SqlBuilders.buildDeleteSql("users", emptyWhereColumns)
             );
         }
     }

@@ -31,9 +31,10 @@ class GenerateDAOTest {
         JavaFile result = GenerateDAO.createDaoFromMetadata("Customer", columnMetadata, predicateLiterals, sql);
 
         // Then
-        assertThat(result).isNotNull();
-        assertThat(result.packageName).isEqualTo("com.jfeatures.msg.customer.dao");
-        assertThat(result.typeSpec.name).isEqualTo("CustomerDAO");
+        assertThat(result)
+            .isNotNull()
+            .returns("com.jfeatures.msg.customer.dao", javaFile -> javaFile.packageName)
+            .returns("CustomerDAO", javaFile -> javaFile.typeSpec.name);
         
         String generatedCode = result.toString();
         assertThat(generatedCode)
@@ -108,9 +109,10 @@ class GenerateDAOTest {
 
         // Then
         assertThat(result)
-            .isNotNull();
-        assertThat(result.typeSpec.name).isEqualTo(businessPurpose + "DAO");
-        assertThat(result.packageName).isEqualTo("com.jfeatures.msg." + businessPurpose.toLowerCase() + ".dao");
+            .isNotNull()
+            .returns(businessPurpose + "DAO", javaFile -> javaFile.typeSpec.name)
+            .returns("com.jfeatures.msg." + businessPurpose.toLowerCase() + ".dao",
+                javaFile -> javaFile.packageName);
     }
 
     @Test
@@ -138,7 +140,8 @@ class GenerateDAOTest {
             .hasMessageContaining("Select column metadata cannot be null");
 
         // Test empty column metadata
-        assertThatThrownBy(() -> GenerateDAO.createDaoFromMetadata("Test", Arrays.asList(), validPredicateLiterals, validSQL))
+        List<ColumnMetadata> emptyColumnMetadata = Arrays.asList();
+        assertThatThrownBy(() -> GenerateDAO.createDaoFromMetadata("Test", emptyColumnMetadata, validPredicateLiterals, validSQL))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("Select column metadata cannot be empty");
 
