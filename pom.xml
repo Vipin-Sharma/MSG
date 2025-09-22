@@ -70,7 +70,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-autoconfigure</artifactId>
-            <version>3.3.4</version>
+            <version>3.5.6</version>
         </dependency>
         <!-- Springdoc starter for Spring Boot 3.x (Jakarta) -->
         <dependency>
