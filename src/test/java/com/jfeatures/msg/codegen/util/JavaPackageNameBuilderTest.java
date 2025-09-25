@@ -4,22 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.stream.Stream;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 class JavaPackageNameBuilderTest {
-
-    @Test
-    void shouldBuildBasicPackageName() {
-        // When
-        String result = JavaPackageNameBuilder.buildJavaPackageName("customer", "dto");
-
-        // Then
-        assertThat(result).isEqualTo("com.jfeatures.msg.customer.dto");
-    }
 
     @ParameterizedTest
     @MethodSource("provideDomainAndTypeArguments")
@@ -39,7 +29,14 @@ class JavaPackageNameBuilderTest {
             Arguments.of("order", "service", "com.jfeatures.msg.order.service"),
             Arguments.of("product", "repository", "com.jfeatures.msg.product.repository"),
             Arguments.of("UserAccount", "dto", "com.jfeatures.msg.useraccount.dto"),
-            Arguments.of("ORDER_DETAILS", "dao", "com.jfeatures.msg.order_details.dao")
+            Arguments.of("ORDER_DETAILS", "dao", "com.jfeatures.msg.order_details.dao"),
+            Arguments.of("customer_order-details", "dto", "com.jfeatures.msg.customer_order-details.dto"),
+            Arguments.of(
+                "very_long_customer_order_details_report_summary",
+                "dto",
+                "com.jfeatures.msg.very_long_customer_order_details_report_summary.dto"
+            ),
+            Arguments.of("a", "b", "com.jfeatures.msg.a.b")
         );
     }
 
@@ -56,76 +53,27 @@ class JavaPackageNameBuilderTest {
             .endsWith(".dto");
     }
 
-    @Test
-    void shouldValidateNullDomainName() {
-        // When & Then
-        assertThatThrownBy(() -> JavaPackageNameBuilder.buildJavaPackageName(null, "dto"))
+    @ParameterizedTest
+    @MethodSource("invalidDomainNames")
+    void shouldValidateDomainName(String invalidDomain) {
+        assertThatThrownBy(() -> JavaPackageNameBuilder.buildJavaPackageName(invalidDomain, "dto"))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("SQL business domain name cannot be null or empty");
     }
 
-    @Test
-    void shouldValidateEmptyDomainName() {
-        // When & Then
-        assertThatThrownBy(() -> JavaPackageNameBuilder.buildJavaPackageName("", "dto"))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("SQL business domain name cannot be null or empty");
-
-        assertThatThrownBy(() -> JavaPackageNameBuilder.buildJavaPackageName("   ", "dto"))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("SQL business domain name cannot be null or empty");
+    private static Stream<String> invalidDomainNames() {
+        return Stream.of(null, "", "   ");
     }
 
-    @Test
-    void shouldValidateNullPackageType() {
-        // When & Then
-        assertThatThrownBy(() -> JavaPackageNameBuilder.buildJavaPackageName("customer", null))
+    @ParameterizedTest
+    @MethodSource("invalidPackageTypes")
+    void shouldValidatePackageType(String invalidPackageType) {
+        assertThatThrownBy(() -> JavaPackageNameBuilder.buildJavaPackageName("customer", invalidPackageType))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("Package type cannot be null or empty");
     }
 
-    @Test
-    void shouldValidateEmptyPackageType() {
-        // When & Then
-        assertThatThrownBy(() -> JavaPackageNameBuilder.buildJavaPackageName("customer", ""))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Package type cannot be null or empty");
-
-        assertThatThrownBy(() -> JavaPackageNameBuilder.buildJavaPackageName("customer", "   "))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Package type cannot be null or empty");
-    }
-
-    @Test
-    void shouldHandleSpecialCharactersInDomainName() {
-        // Given
-        String domainWithSpecialChars = "customer_order-details";
-
-        // When
-        String result = JavaPackageNameBuilder.buildJavaPackageName(domainWithSpecialChars, "dto");
-
-        // Then
-        assertThat(result).isEqualTo("com.jfeatures.msg.customer_order-details.dto");
-    }
-
-    @Test
-    void shouldHandleLongDomainNames() {
-        // Given
-        String longDomain = "very_long_customer_order_details_report_summary";
-
-        // When
-        String result = JavaPackageNameBuilder.buildJavaPackageName(longDomain, "dto");
-
-        // Then
-        assertThat(result).isEqualTo("com.jfeatures.msg.very_long_customer_order_details_report_summary.dto");
-    }
-
-    @Test
-    void shouldHandleSingleCharacterInputs() {
-        // When
-        String result = JavaPackageNameBuilder.buildJavaPackageName("a", "b");
-
-        // Then
-        assertThat(result).isEqualTo("com.jfeatures.msg.a.b");
+    private static Stream<String> invalidPackageTypes() {
+        return Stream.of(null, "", "   ");
     }
 }

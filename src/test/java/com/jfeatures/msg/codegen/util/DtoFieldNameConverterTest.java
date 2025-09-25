@@ -1,293 +1,88 @@
 package com.jfeatures.msg.codegen.util;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.jfeatures.msg.codegen.domain.TableColumn;
-import org.junit.jupiter.api.Test;
+import java.util.stream.Stream;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class DtoFieldNameConverterTest {
 
-    @Test
-    void testConvertToJavaCamelCase_TableColumn_WithAlias_ReturnsAlias() {
-        // Given
-        TableColumn column = new TableColumn("customer_id", "customerId", "table");
-        
-        // When
+    @ParameterizedTest(name = "Table column {0} converts to {1}")
+    @MethodSource("tableColumnConversions")
+    void testConvertToJavaCamelCase_TableColumn(TableColumn column, String expectedValue) {
         String result = DtoFieldNameConverter.convertToJavaCamelCase(column);
-        
-        // Then
-        assertEquals("customerId", result);
+
+        assertEquals(expectedValue, result);
     }
-    
-    @Test
-    void testConvertToJavaCamelCase_TableColumn_WithoutAlias_ConvertsToCamelCase() {
-        // Given
-        TableColumn column = new TableColumn("customer_name", null, "table");
-        
-        // When
-        String result = DtoFieldNameConverter.convertToJavaCamelCase(column);
-        
-        // Then - snake_case should convert to proper camelCase
-        assertEquals("customerName", result);
+
+    private static Stream<Arguments> tableColumnConversions() {
+        return Stream.of(
+            Arguments.of(new TableColumn("customer_id", "customerId", "table"), "customerId"),
+            Arguments.of(new TableColumn("customer_name", null, "table"), "customerName"),
+            Arguments.of(new TableColumn("first_name_last_name", null, "table"), "firstNameLastName"),
+            Arguments.of(new TableColumn("email", null, "table"), "email"),
+            Arguments.of(new TableColumn("customerName", null, "table"), "customername"),
+            Arguments.of(new TableColumn("customer_id", "", "table"), "")
+        );
     }
-    
-    @Test
-    void testConvertToJavaCamelCase_TableColumn_SnakeCaseName_ConvertsToCamelCase() {
-        // Given
-        TableColumn column = new TableColumn("first_name_last_name", null, "table");
-        
-        // When
-        String result = DtoFieldNameConverter.convertToJavaCamelCase(column);
-        
-        // Then
-        assertEquals("firstNameLastName", result);
+
+    @ParameterizedTest(name = "Database column {0} converts to {1}")
+    @MethodSource("databaseColumnConversions")
+    void testConvertToJavaCamelCase_String(String databaseColumnName, String expectedValue) {
+        String result = DtoFieldNameConverter.convertToJavaCamelCase(databaseColumnName);
+
+        assertEquals(expectedValue, result);
     }
-    
-    @Test
-    void testConvertToJavaCamelCase_TableColumn_SingleWord_RemainsLowercase() {
-        // Given
-        TableColumn column = new TableColumn("email", null, "table");
-        
-        // When
-        String result = DtoFieldNameConverter.convertToJavaCamelCase(column);
-        
-        // Then
-        assertEquals("email", result);
+
+    private static Stream<Arguments> databaseColumnConversions() {
+        return Stream.of(
+            Arguments.of("customer_id", "customerId"),
+            Arguments.of("date_of_birth_timestamp", "dateOfBirthTimestamp"),
+            Arguments.of("email", "email"),
+            Arguments.of("customerName", "customername"),
+            Arguments.of("customer_id_123", "customerId123"),
+            Arguments.of("_customer_id", "customerId"),
+            Arguments.of("customer_id_", "customerId"),
+            Arguments.of("customer__id___name", "customerIdName"),
+            Arguments.of("CUSTOMER_ID", "customerId"),
+            Arguments.of("Customer_ID_Name", "customerIdName"),
+            Arguments.of("___", ""),
+            Arguments.of("order_by_date", "orderByDate"),
+            Arguments.of("very_long_database_column_name_with_many_words", "veryLongDatabaseColumnNameWithManyWords")
+        );
     }
-    
-    @Test
-    void testConvertToJavaCamelCase_TableColumn_AlreadyCamelCase_RemainsUnchanged() {
-        // Given
-        TableColumn column = new TableColumn("customerName", null, "table");
-        
-        // When
-        String result = DtoFieldNameConverter.convertToJavaCamelCase(column);
-        
-        // Then
-        assertEquals("customername", result);
+
+    @ParameterizedTest(name = "Invalid database column {0} throws exception")
+    @MethodSource("invalidDatabaseColumns")
+    void testConvertToJavaCamelCase_InvalidInputs(String invalidInput) {
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> DtoFieldNameConverter.convertToJavaCamelCase(invalidInput)
+        );
+
+        assertEquals("Database column name cannot be null or empty", exception.getMessage());
     }
-    
-    @Test
-    void testConvertToJavaCamelCase_TableColumn_EmptyAlias_ConvertsToCamelCase() {
-        // Given
-        TableColumn column = new TableColumn("customer_id", "", "table");
-        
-        // When
-        String result = DtoFieldNameConverter.convertToJavaCamelCase(column);
-        
-        // Then
-        assertEquals("", result); // Empty alias is returned as-is
+
+    private static Stream<String> invalidDatabaseColumns() {
+        return Stream.of(null, "", "   ");
     }
-    
-    @Test
-    void testConvertToJavaCamelCase_TableColumn_NullColumn_ThrowsException() {
-        // Given
-        TableColumn column = null;
-        
-        // When & Then
+
+    @ParameterizedTest(name = "Null table column throws exception")
+    @MethodSource("nullTableColumns")
+    void testConvertToJavaCamelCase_NullTableColumn(TableColumn column) {
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
             () -> DtoFieldNameConverter.convertToJavaCamelCase(column)
         );
-        
+
         assertEquals("Database table column cannot be null", exception.getMessage());
     }
-    
-    @Test
-    void testConvertToJavaCamelCase_String_ValidSnakeCase_ConvertsToCamelCase() {
-        // Given
-        String databaseColumnName = "customer_id";
-        
-        // When
-        String result = DtoFieldNameConverter.convertToJavaCamelCase(databaseColumnName);
-        
-        // Then
-        assertEquals("customerId", result);
-    }
-    
-    @Test
-    void testConvertToJavaCamelCase_String_MultipleUnderscores_ConvertsToCamelCase() {
-        // Given
-        String databaseColumnName = "date_of_birth_timestamp";
-        
-        // When
-        String result = DtoFieldNameConverter.convertToJavaCamelCase(databaseColumnName);
-        
-        // Then
-        assertEquals("dateOfBirthTimestamp", result);
-    }
-    
-    @Test
-    void testConvertToJavaCamelCase_String_SingleWord_RemainsLowercase() {
-        // Given
-        String databaseColumnName = "email";
-        
-        // When
-        String result = DtoFieldNameConverter.convertToJavaCamelCase(databaseColumnName);
-        
-        // Then
-        assertEquals("email", result);
-    }
-    
-    @Test
-    void testConvertToJavaCamelCase_String_AlreadyCamelCase_RemainsUnchanged() {
-        // Given
-        String databaseColumnName = "customerName";
-        
-        // When
-        String result = DtoFieldNameConverter.convertToJavaCamelCase(databaseColumnName);
-        
-        // Then
-        assertEquals("customername", result);
-    }
-    
-    @Test
-    void testConvertToJavaCamelCase_String_WithNumbers_HandlesCorrectly() {
-        // Given
-        String databaseColumnName = "customer_id_123";
-        
-        // When
-        String result = DtoFieldNameConverter.convertToJavaCamelCase(databaseColumnName);
-        
-        // Then
-        assertEquals("customerId123", result);
-    }
-    
-    @Test
-    void testConvertToJavaCamelCase_String_LeadingUnderscore_HandlesCorrectly() {
-        // Given
-        String databaseColumnName = "_customer_id";
-        
-        // When
-        String result = DtoFieldNameConverter.convertToJavaCamelCase(databaseColumnName);
-        
-        // Then
-        assertEquals("customerId", result);
-    }
-    
-    @Test
-    void testConvertToJavaCamelCase_String_TrailingUnderscore_HandlesCorrectly() {
-        // Given
-        String databaseColumnName = "customer_id_";
-        
-        // When
-        String result = DtoFieldNameConverter.convertToJavaCamelCase(databaseColumnName);
-        
-        // Then
-        assertEquals("customerId", result);
-    }
-    
-    @Test
-    void testConvertToJavaCamelCase_String_MultipleConsecutiveUnderscores_HandlesCorrectly() {
-        // Given
-        String databaseColumnName = "customer__id___name";
-        
-        // When
-        String result = DtoFieldNameConverter.convertToJavaCamelCase(databaseColumnName);
-        
-        // Then
-        assertEquals("customerIdName", result);
-    }
-    
-    @Test
-    void testConvertToJavaCamelCase_String_AllUpperCase_ConvertsToCamelCase() {
-        // Given
-        String databaseColumnName = "CUSTOMER_ID";
-        
-        // When
-        String result = DtoFieldNameConverter.convertToJavaCamelCase(databaseColumnName);
-        
-        // Then
-        assertEquals("customerId", result);
-    }
-    
-    @Test
-    void testConvertToJavaCamelCase_String_MixedCase_ConvertsToCamelCase() {
-        // Given
-        String databaseColumnName = "Customer_ID_Name";
-        
-        // When
-        String result = DtoFieldNameConverter.convertToJavaCamelCase(databaseColumnName);
-        
-        // Then
-        assertEquals("customerIdName", result);
-    }
-    
-    @Test
-    void testConvertToJavaCamelCase_String_NullString_ThrowsException() {
-        // Given
-        String databaseColumnName = null;
-        
-        // When & Then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> DtoFieldNameConverter.convertToJavaCamelCase(databaseColumnName)
-        );
-        
-        assertEquals("Database column name cannot be null or empty", exception.getMessage());
-    }
-    
-    @Test
-    void testConvertToJavaCamelCase_String_EmptyString_ThrowsException() {
-        // Given
-        String databaseColumnName = "";
-        
-        // When & Then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> DtoFieldNameConverter.convertToJavaCamelCase(databaseColumnName)
-        );
-        
-        assertEquals("Database column name cannot be null or empty", exception.getMessage());
-    }
-    
-    @Test
-    void testConvertToJavaCamelCase_String_WhitespaceOnly_ThrowsException() {
-        // Given
-        String databaseColumnName = "   ";
-        
-        // When & Then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> DtoFieldNameConverter.convertToJavaCamelCase(databaseColumnName)
-        );
-        
-        assertEquals("Database column name cannot be null or empty", exception.getMessage());
-    }
-    
-    @Test
-    void testConvertToJavaCamelCase_String_OnlyUnderscores_HandlesCorrectly() {
-        // Given
-        String databaseColumnName = "___";
-        
-        // When
-        String result = DtoFieldNameConverter.convertToJavaCamelCase(databaseColumnName);
-        
-        // Then
-        assertEquals("", result); // All underscores result in empty string
-    }
-    
-    @Test
-    void testConvertToJavaCamelCase_String_SqlKeywords_ConvertsToCamelCase() {
-        // Given
-        String databaseColumnName = "order_by_date";
-        
-        // When
-        String result = DtoFieldNameConverter.convertToJavaCamelCase(databaseColumnName);
-        
-        // Then
-        assertEquals("orderByDate", result);
-    }
-    
-    @Test
-    void testConvertToJavaCamelCase_String_VeryLongName_HandlesCorrectly() {
-        // Given
-        String databaseColumnName = "very_long_database_column_name_with_many_words";
-        
-        // When
-        String result = DtoFieldNameConverter.convertToJavaCamelCase(databaseColumnName);
-        
-        // Then
-        assertEquals("veryLongDatabaseColumnNameWithManyWords", result);
+
+    private static Stream<TableColumn> nullTableColumns() {
+        return Stream.of((TableColumn) null);
     }
 }
