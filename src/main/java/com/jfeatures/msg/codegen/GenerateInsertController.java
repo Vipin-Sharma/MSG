@@ -19,10 +19,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.io.IOException;
 import javax.lang.model.element.Modifier;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.CaseUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,8 +33,9 @@ import org.springframework.web.bind.annotation.RestController;
  * Generates REST Controller with POST endpoints for INSERT operations.
  * Following Vipin's Principle: Single responsibility - INSERT controller generation only.
  */
-@Slf4j
 public class GenerateInsertController {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(GenerateInsertController.class);
 
     private GenerateInsertController() {
         throw new UnsupportedOperationException("Utility class");
@@ -124,7 +126,7 @@ public class GenerateInsertController {
         JavaFile javaFile = JavaFile.builder(JavaPackageNameBuilder.buildJavaPackageName(businessPurposeOfSQL, "controller"), controller)
                 .build();
         
-        log.info(javaFile.toString());
+        LOGGER.info(javaFile.toString());
         
         return javaFile;
     }
