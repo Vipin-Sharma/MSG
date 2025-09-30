@@ -207,11 +207,12 @@ public class GenerateUpdateController {
                                 "Updates an existing " + businessPurposeOfSQL.toLowerCase() + " record with the provided data")
                         .build())
                 .addAnnotation(AnnotationSpec.builder(ApiResponses.class)
-                        .addMember("value", "{\n" +
-                                "    @$T(responseCode = \"200\", description = \"Successfully updated\"),\n" +
-                                "    @$T(responseCode = \"400\", description = \"Invalid request data\"),\n" +
-                                "    @$T(responseCode = \"404\", description = \"Record not found\")\n" +
-                                "}", ApiResponse.class, ApiResponse.class, ApiResponse.class)
+                        .addMember("value", """
+                                {
+                                    @$T(responseCode = "200", description = "Successfully updated"),
+                                    @$T(responseCode = "400", description = "Invalid request data"),
+                                    @$T(responseCode = "404", description = "Record not found")
+                                }""", ApiResponse.class, ApiResponse.class, ApiResponse.class)
                         .build())
                 .addCode(methodBody)
                 .addJavadoc("Updates a $L record.\n" +

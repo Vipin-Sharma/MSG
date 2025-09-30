@@ -83,7 +83,7 @@ public class UpdateMetadataExtractor {
         for (UpdateSet updateSet : updateStatement.getUpdateSets()) {
             ExpressionList<Column> cols = updateSet.getColumns();
             if (cols == null) continue;
-            for (Column column : cols.getExpressions()) {
+            for (Column column : cols) {
                 String columnName = column.getColumnName();
                 ColumnMetadata metadata = columnTypeMap.get(columnName.toLowerCase());
                 if (metadata != null) {
@@ -179,9 +179,8 @@ public class UpdateMetadataExtractor {
             return 0;
         }
         
-        return (int) values.getExpressions()
-                .stream()
-                .filter(expr -> expr instanceof JdbcParameter)
+        return (int) values.stream()
+                .filter(JdbcParameter.class::isInstance)
                 .count();
     }
     
@@ -211,15 +210,13 @@ public class UpdateMetadataExtractor {
                 updateStatement.getWhere().accept(new ExpressionVisitorAdapter<Void>() {
                     @Override
                     protected <S> Void visitBinaryExpression(BinaryExpression expr, S context) {
-                        if (expr instanceof ComparisonOperator) {
-                            if (expr.getLeftExpression() instanceof Column column) {
-                                ColumnMetadata columnMetadata = new ColumnMetadata();
-                                columnMetadata.setColumnName(column.getColumnName());
-                                columnMetadata.setColumnTypeName("VARCHAR");
-                                columnMetadata.setColumnType(java.sql.Types.VARCHAR);
-                                columnMetadata.setIsNullable(1);
-                                whereColumns.add(columnMetadata);
-                            }
+                        if (expr instanceof ComparisonOperator && expr.getLeftExpression() instanceof Column column) {
+                            ColumnMetadata columnMetadata = new ColumnMetadata();
+                            columnMetadata.setColumnName(column.getColumnName());
+                            columnMetadata.setColumnTypeName("VARCHAR");
+                            columnMetadata.setColumnType(java.sql.Types.VARCHAR);
+                            columnMetadata.setIsNullable(1);
+                            whereColumns.add(columnMetadata);
                         }
                         return super.visitBinaryExpression(expr, context);
                     }

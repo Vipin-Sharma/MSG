@@ -200,7 +200,7 @@ public class ParameterMetadataExtractor {
         return switch (sqlType) {
             case Types.INTEGER, Types.SMALLINT, Types.TINYINT -> "Integer";
             case Types.BIGINT -> "Long";
-            case Types.VARCHAR, Types.CHAR, Types.LONGVARCHAR, Types.NVARCHAR, Types.NCHAR -> "String";
+            case Types.VARCHAR, Types.CHAR, Types.LONGVARCHAR, Types.NVARCHAR, Types.NCHAR -> DEFAULT_JAVA_TYPE;
             case Types.DECIMAL, Types.NUMERIC -> "BigDecimal";
             case Types.DOUBLE, Types.FLOAT -> "Double";
             case Types.REAL -> "Float";
@@ -219,7 +219,7 @@ public class ParameterMetadataExtractor {
             case Types.SMALLINT -> "SMALLINT";
             case Types.TINYINT -> "TINYINT";
             case Types.BIGINT -> "BIGINT";
-            case Types.VARCHAR -> "VARCHAR";
+            case Types.VARCHAR -> DEFAULT_JDBC_TYPE;
             case Types.CHAR -> "CHAR";
             case Types.LONGVARCHAR -> "LONGVARCHAR";
             case Types.NVARCHAR -> "NVARCHAR";

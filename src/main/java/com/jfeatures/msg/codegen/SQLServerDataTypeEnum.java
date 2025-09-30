@@ -48,12 +48,7 @@ public enum SQLServerDataTypeEnum {
     VARBINARY("VARBINARY", byte[].class, "Byte[]"),
     XML("XML", String.class, "String");
 
-    // Constants for type names
-    private static final String JAVA_STRING_SIMPLE_NAME = "String";
-    private static final String JAVA_TIMESTAMP_SIMPLE_NAME = "Timestamp";
-    private static final String JAVA_BIG_DECIMAL_SIMPLE_NAME = "BigDecimal";
-    private static final String JAVA_INT_SIMPLE_NAME = "Int";
-    private static final String BYTE_ARRAY_SIMPLE_NAME = "Byte[]";
+    // Constant for default JDBC type
     private static final String JDBC_DEFAULT_TYPE = "VARCHAR";
 
     private final String dbDataType;

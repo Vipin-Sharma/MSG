@@ -80,8 +80,7 @@ public class DeleteMetadataExtractor {
         }
         
         // Handle camelCase to snake_case conversion (e.g., "customerId" -> "customer_id")
-        String columnName = parameterName.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
-        return columnName;
+        return parameterName.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
     }
     
     private ColumnMetadata extractColumnMetadata(DatabaseMetaData dbMetadata, String tableName, String columnName) throws SQLException {

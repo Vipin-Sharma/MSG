@@ -282,23 +282,11 @@ class JdbcMethodSelectorTest {
     void testSelectJdbcGetterMethodForUnknownTypePrintsWarning() {
         columnMetadata.setColumnTypeName("custom_type");
         columnMetadata.setColumnName("test_column");
-        
-        // Capture stderr to verify warning is printed
-        java.io.ByteArrayOutputStream errorStream = new java.io.ByteArrayOutputStream();
-        java.io.PrintStream originalErr = System.err;
-        System.setErr(new java.io.PrintStream(errorStream));
-        
-        try {
-            String result = JdbcMethodSelector.selectJdbcGetterMethodFor(columnMetadata);
-            assertEquals("getString", result);
-            
-            String errorOutput = errorStream.toString();
-            assertTrue(errorOutput.contains("Warning: Unknown column type 'custom_type'"));
-            assertTrue(errorOutput.contains("for column 'test_column'"));
-            assertTrue(errorOutput.contains("defaulting to getString"));
-        } finally {
-            System.setErr(originalErr);
-        }
+
+        // Test that unknown type defaults to getString
+        // Note: Warning is now logged via SLF4J logger instead of System.err
+        String result = JdbcMethodSelector.selectJdbcGetterMethodFor(columnMetadata);
+        assertEquals("getString", result);
     }
 
     @Test

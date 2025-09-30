@@ -25,8 +25,6 @@ public final class ParameterBuilders {
     private static final String PARAM_NAME_PARAM = "paramName";
     private static final String REQUEST_PARAM_NAME_PARAM = "requestParamName";
     private static final String PATH_VAR_NAME_PARAM = "pathVarName";
-    private static final String DTO_COLUMNS_PARAM = "dtoColumns";
-    private static final String DTO_PARAMETER_NAME_PARAM = "dtoParameterName";
 
     private ParameterBuilders() {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");

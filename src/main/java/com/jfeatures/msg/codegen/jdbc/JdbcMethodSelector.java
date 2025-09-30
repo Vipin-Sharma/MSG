@@ -1,7 +1,9 @@
 package com.jfeatures.msg.codegen.jdbc;
 
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public final class JdbcMethodSelector {
 
     private JdbcMethodSelector() {
@@ -32,8 +34,8 @@ public final class JdbcMethodSelector {
             case "binary", "varbinary", "image" -> "getBytes";
             default -> {
                 // Log the unknown type for debugging
-                System.err.println("Warning: Unknown column type '" + columnTypeName + "' for column '" + 
-                    databaseColumnDefinition.getColumnName() + "', defaulting to getString");
+                log.warn("Unknown column type '{}' for column '{}', defaulting to getString",
+                    columnTypeName, databaseColumnDefinition.getColumnName());
                 yield "getString";
             }
         };

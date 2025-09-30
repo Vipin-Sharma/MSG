@@ -18,7 +18,7 @@ public class SqlMetadata {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public List<ColumnMetadata> getColumnMetadata(String query) throws SQLException {
+    public List<ColumnMetadata> getColumnMetadata(String query) {
         // Input validation to prevent SQL injection
         if (query == null || query.trim().isEmpty()) {
             throw new IllegalArgumentException("SQL query cannot be null or empty");

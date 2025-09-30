@@ -29,7 +29,6 @@ public final class MethodBuilders {
     private static final String REQUEST_TYPE_PARAM = "requestType";
     private static final String PARAM_NAME_PARAM = "paramName";
     private static final String DEPENDENCY_TYPE_PARAM = "dependencyType";
-    private static final String SUMMARY_PARAM = "summary";
     private static final String THIS_ASSIGNMENT_STATEMENT = "this.$N = $N";
 
     private MethodBuilders() {
