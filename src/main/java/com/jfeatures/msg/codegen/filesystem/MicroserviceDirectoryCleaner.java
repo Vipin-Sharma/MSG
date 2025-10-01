@@ -62,7 +62,7 @@ public class MicroserviceDirectoryCleaner {
                      }
                  });
         } catch (Exception e) {
-            throw new Exception("Failed to clean directory: " + directoryPath + " - " + e.getMessage(), e);
+            throw new DirectoryCleanupException("Failed to clean directory: " + directoryPath + " - " + e.getMessage(), e);
         }
     }
     

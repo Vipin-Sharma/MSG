@@ -47,7 +47,7 @@ public class InsertMetadataExtractor {
         
         // Columns are now wrapped in ExpressionList<Column> in 5.x
         ExpressionList<Column> columnExprList = insertStatement.getColumns();
-        List<Column> insertColumns = (columnExprList != null) ? columnExprList.getExpressions() : null;
+        List<Column> insertColumns = (columnExprList != null) ? columnExprList.stream().toList() : null;
         if (insertColumns == null || insertColumns.isEmpty()) {
             throw new IllegalArgumentException("INSERT statement must specify column names");
         }

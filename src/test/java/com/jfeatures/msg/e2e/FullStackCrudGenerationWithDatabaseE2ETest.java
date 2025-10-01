@@ -153,16 +153,18 @@ class FullStackCrudGenerationWithDatabaseE2ETest {
         
         try {
             // The ApiEndpointTester already waits for service to be ready internally
-            
+            assertThat(microserviceProcess).isNotNull();
+            assertThat(microserviceProcess.isAlive()).isTrue();
+
             // Test API endpoints
             apiTester.whenPostRequestSentShouldCreateCustomerThroughRestEndpointSuccessfully();
             apiTester.whenGetRequestSentShouldRetrieveCustomerDataThroughRestEndpointSuccessfully();
             apiTester.whenPutRequestSentShouldUpdateCustomerDataThroughRestEndpointSuccessfully();
             apiTester.whenDeleteRequestSentShouldRemoveCustomerThroughRestEndpointSuccessfully();
             apiTester.whenServiceStartedShouldRespondToHealthChecksIndicatingAvailability();
-            
+
             System.out.println("✅ Generated APIs integration testing completed successfully");
-            
+
         } finally {
             if (microserviceProcess != null && microserviceProcess.isAlive()) {
                 microserviceProcess.destroyForcibly();

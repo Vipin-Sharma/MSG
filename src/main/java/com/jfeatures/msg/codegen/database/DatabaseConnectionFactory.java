@@ -42,10 +42,10 @@ public class DatabaseConnectionFactory {
             
         } catch (RuntimeException runtimeEx) {
             log.error("Runtime exception while creating database connection: {}", runtimeEx.getMessage(), runtimeEx);
-            throw new RuntimeException("Failed to create database connection due to configuration error", runtimeEx);
+            throw new DatabaseConnectionException("Failed to create database connection due to configuration error", runtimeEx);
         } catch (Exception ex) {
             log.error("Unexpected exception while creating database connection: {}", ex.getMessage(), ex);
-            throw new RuntimeException("Failed to create database connection due to unexpected error", ex);
+            throw new DatabaseConnectionException("Failed to create database connection due to unexpected error", ex);
         }
     }
 }

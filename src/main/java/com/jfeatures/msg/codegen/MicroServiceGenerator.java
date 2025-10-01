@@ -78,7 +78,7 @@ public class MicroServiceGenerator implements Callable<Integer> {
         return 0;
     }
     
-    public static String getSql(String fileName) throws URISyntaxException {
+    public static String getSql(String fileName) {
         return ReadFileFromResources.readFileFromResources(fileName);
     }
     
