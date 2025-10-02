@@ -1,6 +1,7 @@
 package com.jfeatures.msg.e2e;
 
 import com.jfeatures.msg.codegen.MicroServiceGenerator;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import org.testcontainers.containers.MSSQLServerContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -12,6 +13,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
+@Slf4j
 
 /**
  * Full-stack End-to-End tests for MSG CRUD generation with real database integration.
@@ -60,9 +63,9 @@ class FullStackCrudGenerationWithDatabaseE2ETest {
         System.setProperty("spring.datasource.password", sqlServer.getPassword());
         System.setProperty("spring.datasource.driver-class-name", sqlServer.getDriverClassName());
         
-        System.out.println("🚀 Starting Full-Stack Database E2E Test Suite");
-        System.out.println("SQL Server URL: " + sqlServer.getJdbcUrl());
-        System.out.println("Test output directory: " + testOutputDir);
+        log.info("🚀 Starting Full-Stack Database E2E Test Suite");
+        log.info("SQL Server URL: " + sqlServer.getJdbcUrl());
+        log.info("Test output directory: " + testOutputDir);
     }
 
     @AfterAll
@@ -74,18 +77,18 @@ class FullStackCrudGenerationWithDatabaseE2ETest {
                         try {
                             Files.delete(path);
                         } catch (IOException e) {
-                            System.err.println("Failed to delete: " + path);
+                            log.error("Failed to delete: " + path);
                         }
                     });
         }
-        System.out.println("✅ Full-Stack Database E2E cleanup completed");
+        log.info("✅ Full-Stack Database E2E cleanup completed");
     }
 
     @Test
     @Order(1)
     @DisplayName("When database available should generate complete CRUD microservice with connectivity")
     void whenDatabaseAvailableShouldGenerateCompleteCrudMicroserviceWithConnectivity() {
-        System.out.println("📋 Testing complete CRUD generation with database...");
+        log.info("📋 Testing complete CRUD generation with database...");
         
         String[] args = {
             "--name", "Customer",
@@ -109,28 +112,28 @@ class FullStackCrudGenerationWithDatabaseE2ETest {
                 .as("Should generate database configuration")
                 .exists();
         
-        System.out.println("✅ Complete CRUD generation with database completed successfully");
+        log.info("✅ Complete CRUD generation with database completed successfully");
     }
 
     @Test
     @Order(2)
     @DisplayName("When microservice generated should create proper Java class structure with database annotations")
     void whenMicroserviceGeneratedShouldCreateProperJavaClassStructureWithDatabaseAnnotations() {
-        System.out.println("📋 Testing generated code structure with database integration...");
+        log.info("📋 Testing generated code structure with database integration...");
         
         validator.validateBasicStructure("Customer", null);
         
         // Validate that generated classes exist
         validator.validateJavaClasses("Customer");
         
-        System.out.println("✅ Generated code structure validation with database completed successfully");
+        log.info("✅ Generated code structure validation with database completed successfully");
     }
 
     @Test
     @Order(3)
     @DisplayName("When generated code compiled should produce runnable Spring Boot application")
     void whenGeneratedCodeCompiledShouldProduceRunnableSpringBootApplication() {
-        System.out.println("📋 Testing generated code compilation...");
+        log.info("📋 Testing generated code compilation...");
         
         boolean compilationResult = validator.compileGeneratedProject(testOutputDir);
         
@@ -138,7 +141,7 @@ class FullStackCrudGenerationWithDatabaseE2ETest {
                 .as("Generated code should compile without errors")
                 .isTrue();
         
-        System.out.println("✅ Generated code compilation completed successfully");
+        log.info("✅ Generated code compilation completed successfully");
     }
 
     @Test
@@ -146,7 +149,7 @@ class FullStackCrudGenerationWithDatabaseE2ETest {
     @DisplayName("When microservice started should provide working REST API endpoints")
     @Disabled("Temporarily disabled - microservice startup with Testcontainers database requires more investigation")
     void whenMicroserviceStartedShouldProvideWorkingRestApiEndpoints() throws Exception {
-        System.out.println("📋 Testing generated APIs integration...");
+        log.info("📋 Testing generated APIs integration...");
         
         // Start the generated microservice
         Process microserviceProcess = apiTester.whenProjectRootProvidedShouldStartGeneratedMicroserviceInSeparateProcess(testOutputDir);
@@ -163,7 +166,7 @@ class FullStackCrudGenerationWithDatabaseE2ETest {
             apiTester.whenDeleteRequestSentShouldRemoveCustomerThroughRestEndpointSuccessfully();
             apiTester.whenServiceStartedShouldRespondToHealthChecksIndicatingAvailability();
 
-            System.out.println("✅ Generated APIs integration testing completed successfully");
+            log.info("✅ Generated APIs integration testing completed successfully");
 
         } finally {
             if (microserviceProcess != null && microserviceProcess.isAlive()) {
@@ -176,7 +179,7 @@ class FullStackCrudGenerationWithDatabaseE2ETest {
     @Order(5)
     @DisplayName("When multiple business domains requested should generate isolated microservices")
     void whenMultipleBusinessDomainsRequestedShouldGenerateIsolatedMicroservices() {
-        System.out.println("📋 Testing multiple business domains generation...");
+        log.info("📋 Testing multiple business domains generation...");
         
         String[] businessDomains = {"Customer", "Product", "Order"};
         
@@ -205,14 +208,14 @@ class FullStackCrudGenerationWithDatabaseE2ETest {
                     .exists();
         }
         
-        System.out.println("✅ Multiple business domains generation completed successfully");
+        log.info("✅ Multiple business domains generation completed successfully");
     }
 
     @Test
     @Order(6)
     @DisplayName("When invalid database configuration provided should handle errors gracefully")
     void whenInvalidDatabaseConfigurationProvidedShouldHandleErrorsGracefully() {
-        System.out.println("📋 Testing error handling with invalid database configuration...");
+        log.info("📋 Testing error handling with invalid database configuration...");
         
         // Test with invalid database URL
         System.setProperty("spring.datasource.url", "jdbc:sqlserver://invalid-server:1433");
@@ -234,6 +237,6 @@ class FullStackCrudGenerationWithDatabaseE2ETest {
         // Restore valid database configuration
         System.setProperty("spring.datasource.url", sqlServer.getJdbcUrl());
         
-        System.out.println("✅ Error handling with invalid database configuration completed successfully");
+        log.info("✅ Error handling with invalid database configuration completed successfully");
     }
 }

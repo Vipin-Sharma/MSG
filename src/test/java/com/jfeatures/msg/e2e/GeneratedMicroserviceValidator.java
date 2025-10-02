@@ -1,6 +1,7 @@
 package com.jfeatures.msg.e2e;
 
 import com.jfeatures.msg.codegen.util.SqlStatementType;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.tools.JavaCompiler;
 import javax.tools.StandardJavaFileManager;
@@ -14,6 +15,8 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
+@Slf4j
 
 /**
  * Validates the structure and quality of generated microservices.
@@ -41,7 +44,7 @@ public class GeneratedMicroserviceValidator {
         // Validate configuration files
         validateConfigurationFiles(projectRoot);
         
-        System.out.println("✅ Complete project structure validation passed for: " + businessName);
+        log.info("✅ Complete project structure validation passed for: " + businessName);
     }
     
     /**
@@ -67,7 +70,7 @@ public class GeneratedMicroserviceValidator {
                 .exists()
                 .isDirectory();
         
-        System.out.println("✅ Maven project structure validation passed for: " + businessName);
+        log.info("✅ Maven project structure validation passed for: " + businessName);
     }
     
     /**
@@ -91,7 +94,7 @@ public class GeneratedMicroserviceValidator {
         // Validate Config classes
         validateConfigClasses(javaSourceRoot, businessName);
         
-        System.out.println("✅ Java classes validation passed for: " + businessName);
+        log.info("✅ Java classes validation passed for: " + businessName);
     }
     
     /**
@@ -107,7 +110,7 @@ public class GeneratedMicroserviceValidator {
                 .exists()
                 .isRegularFile();
         
-        System.out.println("✅ Spring Boot configuration validation passed for: " + businessName);
+        log.info("✅ Spring Boot configuration validation passed for: " + businessName);
     }
     
     /**
@@ -134,7 +137,7 @@ public class GeneratedMicroserviceValidator {
             throw new AssertionError("Failed to read controller directory: " + e.getMessage());
         }
         
-        System.out.println("✅ API endpoint mappings validation passed for: " + businessName);
+        log.info("✅ API endpoint mappings validation passed for: " + businessName);
     }
     
     /**
@@ -154,7 +157,7 @@ public class GeneratedMicroserviceValidator {
                 .as("pom.xml should be generated")
                 .exists();
         
-        System.out.println("✅ Basic structure validation passed for: " + businessName + " (" + statementType + ")");
+        log.info("✅ Basic structure validation passed for: " + businessName + " (" + statementType + ")");
     }
     
     /**
@@ -175,7 +178,7 @@ public class GeneratedMicroserviceValidator {
                 .exists()
                 .isDirectory();
         
-        System.out.println("✅ Business domain separation validation passed for: " + businessName);
+        log.info("✅ Business domain separation validation passed for: " + businessName);
     }
     
     /**
@@ -185,13 +188,13 @@ public class GeneratedMicroserviceValidator {
         try {
             JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
             if (compiler == null) {
-                System.err.println("No Java compiler available");
+                log.error("No Java compiler available");
                 return false;
             }
             
             List<String> javaFiles = findAllJavaFiles(projectRoot);
             if (javaFiles.isEmpty()) {
-                System.err.println("No Java files found to compile");
+                log.error("No Java files found to compile");
                 return false;
             }
             
@@ -214,11 +217,11 @@ public class GeneratedMicroserviceValidator {
             Boolean success = compilationTask.call();
             fileManager.close();
             
-            System.out.println(success ? "✅ Compilation successful" : "❌ Compilation failed");
+            log.info(success ? "✅ Compilation successful" : "❌ Compilation failed");
             return Boolean.TRUE.equals(success);
             
         } catch (Exception e) {
-            System.err.println("Compilation error: " + e.getMessage());
+            log.error("Compilation error: " + e.getMessage());
             e.printStackTrace();
             return false;
         }

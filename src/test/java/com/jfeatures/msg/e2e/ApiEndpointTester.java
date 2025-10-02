@@ -2,6 +2,7 @@ package com.jfeatures.msg.e2e;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -18,6 +19,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
+@Slf4j
 
 /**
  * Comprehensive REST API endpoint testing utility for generated microservices.
@@ -56,7 +59,7 @@ public class ApiEndpointTester {
      * When project root provided should start generated microservice in separate process.
      */
     public Process whenProjectRootProvidedShouldStartGeneratedMicroserviceInSeparateProcess(Path projectRoot) throws IOException, InterruptedException {
-        System.out.println("Starting microservice from: " + projectRoot);
+        log.info("Starting microservice from: " + projectRoot);
         
         // Build JVM arguments including database configuration from system properties
         StringBuilder jvmArgs = new StringBuilder("-Dserver.port=8080");
@@ -80,7 +83,7 @@ public class ApiEndpointTester {
             jvmArgs.append(" -Dspring.datasource.driver-class-name=").append(datasourceDriver);
         }
         
-        System.out.println("🔧 Starting microservice with JVM args: " + jvmArgs.toString());
+        log.info("🔧 Starting microservice with JVM args: " + jvmArgs.toString());
         
         ProcessBuilder processBuilder = new ProcessBuilder(
             "mvn", "spring-boot:run", 
@@ -97,17 +100,17 @@ public class ApiEndpointTester {
                     new InputStreamReader(process.getInputStream()))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    System.out.println("[MICROSERVICE] " + line);
+                    log.info("[MICROSERVICE] " + line);
                 }
             } catch (IOException e) {
-                System.err.println("Error reading microservice output: " + e.getMessage());
+                log.error("Error reading microservice output: " + e.getMessage());
             }
         }).start();
         
         // Wait for service to be ready (check health endpoint or similar)
         whenServiceStartingShouldWaitUntilReadyToAcceptHttpRequests();
         
-        System.out.println("✅ Microservice started successfully");
+        log.info("✅ Microservice started successfully");
         return process;
     }
     
@@ -127,14 +130,14 @@ public class ApiEndpointTester {
                 process.destroyForcibly();
             }
         }
-        System.out.println("✅ Microservice stopped");
+        log.info("✅ Microservice stopped");
     }
     
     /**
      * When POST request sent should create customer through REST endpoint successfully.
      */
     public void whenPostRequestSentShouldCreateCustomerThroughRestEndpointSuccessfully() {
-        System.out.println("Testing CREATE customer endpoint...");
+        log.info("Testing CREATE customer endpoint...");
         
         Map<String, Object> customerData = new HashMap<>();
         customerData.put("firstName", "TestFirstName");
@@ -155,10 +158,10 @@ public class ApiEndpointTester {
                     .as("CREATE endpoint should return success status")
                     .isIn(HttpStatus.CREATED, HttpStatus.OK);
             
-            System.out.println("✅ CREATE customer endpoint test passed");
+            log.info("✅ CREATE customer endpoint test passed");
             
         } catch (HttpStatusCodeException e) {
-            System.out.println("CREATE endpoint response: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
+            log.info("CREATE endpoint response: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
             // For E2E testing, we'll consider this a pass if we get a proper HTTP response
             assertThat(e.getStatusCode().is4xxClientError() || e.getStatusCode().is2xxSuccessful())
                     .as("Should get a proper HTTP response from CREATE endpoint")
@@ -170,7 +173,7 @@ public class ApiEndpointTester {
      * When GET request sent should retrieve customer data through REST endpoint successfully.
      */
     public void whenGetRequestSentShouldRetrieveCustomerDataThroughRestEndpointSuccessfully() {
-        System.out.println("Testing GET customer endpoint...");
+        log.info("Testing GET customer endpoint...");
         
         try {
             ResponseEntity<String> response = restTemplate.getForEntity(
@@ -185,10 +188,10 @@ public class ApiEndpointTester {
                 whenJsonResponseReceivedShouldValidateProperStructureAndFormat(response.getBody());
             }
             
-            System.out.println("✅ GET customer endpoint test passed");
+            log.info("✅ GET customer endpoint test passed");
             
         } catch (HttpStatusCodeException e) {
-            System.out.println("GET endpoint response: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
+            log.info("GET endpoint response: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
             // Accept various valid HTTP responses
             assertThat(e.getStatusCode().is4xxClientError() || e.getStatusCode().is2xxSuccessful())
                     .as("Should get a proper HTTP response from GET endpoint")
@@ -200,7 +203,7 @@ public class ApiEndpointTester {
      * When PUT request sent should update customer data through REST endpoint successfully.
      */
     public void whenPutRequestSentShouldUpdateCustomerDataThroughRestEndpointSuccessfully() {
-        System.out.println("Testing UPDATE customer endpoint...");
+        log.info("Testing UPDATE customer endpoint...");
         
         Map<String, Object> updateData = new HashMap<>();
         updateData.put("firstName", "UpdatedFirstName");
@@ -222,10 +225,10 @@ public class ApiEndpointTester {
                     .as("UPDATE endpoint should return success status")
                     .isIn(HttpStatus.OK, HttpStatus.NO_CONTENT);
             
-            System.out.println("✅ UPDATE customer endpoint test passed");
+            log.info("✅ UPDATE customer endpoint test passed");
             
         } catch (HttpStatusCodeException e) {
-            System.out.println("UPDATE endpoint response: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
+            log.info("UPDATE endpoint response: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
             // Accept various valid HTTP responses
             assertThat(e.getStatusCode().is4xxClientError() || e.getStatusCode().is2xxSuccessful())
                     .as("Should get a proper HTTP response from UPDATE endpoint")
@@ -237,7 +240,7 @@ public class ApiEndpointTester {
      * When DELETE request sent should remove customer through REST endpoint successfully.
      */
     public void whenDeleteRequestSentShouldRemoveCustomerThroughRestEndpointSuccessfully() {
-        System.out.println("Testing DELETE customer endpoint...");
+        log.info("Testing DELETE customer endpoint...");
         
         try {
             ResponseEntity<String> response = restTemplate.exchange(
@@ -248,10 +251,10 @@ public class ApiEndpointTester {
                     .as("DELETE endpoint should return success status")
                     .isIn(HttpStatus.NO_CONTENT, HttpStatus.OK);
             
-            System.out.println("✅ DELETE customer endpoint test passed");
+            log.info("✅ DELETE customer endpoint test passed");
             
         } catch (HttpStatusCodeException e) {
-            System.out.println("DELETE endpoint response: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
+            log.info("DELETE endpoint response: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
             // Accept various valid HTTP responses
             assertThat(e.getStatusCode().is4xxClientError() || e.getStatusCode().is2xxSuccessful())
                     .as("Should get a proper HTTP response from DELETE endpoint")
@@ -299,7 +302,7 @@ public class ApiEndpointTester {
         while (Duration.between(startTime, Instant.now()).compareTo(maxWaitTime) < 0) {
             try {
                 whenServiceStartedShouldRespondToHealthChecksIndicatingAvailability();
-                System.out.println("Service is ready after " + Duration.between(startTime, Instant.now()).toSeconds() + " seconds");
+                log.info("Service is ready after " + Duration.between(startTime, Instant.now()).toSeconds() + " seconds");
                 return;
             } catch (Exception e) {
                 // Service not ready yet, wait before next attempt
@@ -328,10 +331,10 @@ public class ApiEndpointTester {
                         .isGreaterThanOrEqualTo(0);
             }
             
-            System.out.println("✅ JSON response validation passed");
+            log.info("✅ JSON response validation passed");
             
         } catch (Exception e) {
-            System.out.println("Warning: Could not validate JSON response: " + e.getMessage());
+            log.info("Warning: Could not validate JSON response: " + e.getMessage());
             // Don't fail the test for JSON validation issues
         }
     }
