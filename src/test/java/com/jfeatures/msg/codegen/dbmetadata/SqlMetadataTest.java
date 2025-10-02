@@ -8,9 +8,13 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessException;
@@ -259,7 +263,57 @@ class SqlMetadataTest {
         assertNotNull(result);
         assertEquals(1, result.size());
     }
-    
+
+    private static Stream<Arguments> validQueryProvider() {
+        return Stream.of(
+            Arguments.of("INSERT INTO customers (customer_name) VALUES ('John')", "INSERT query"),
+            Arguments.of("UPDATE customers SET customer_name = 'Jane' WHERE customer_id = 1", "UPDATE query"),
+            Arguments.of("DELETE FROM customers WHERE customer_id = 1", "DELETE query"),
+            Arguments.of("SELECT customer_name FROM customers WHERE notes = 'test;value'", "Query with semicolon in string")
+        );
+    }
+
+    @ParameterizedTest(name = "{1} should be allowed")
+    @MethodSource("validQueryProvider")
+    void testGetColumnMetadata_ValidQueries_Allowed(String query, String description) throws SQLException {
+        setupSingleColumnResultSetMetadata();
+
+        when(jdbcTemplate.query(eq(query), any(RowMapper.class))).thenAnswer(invocation -> {
+            RowMapper<ColumnMetadata> rowMapper = invocation.getArgument(1);
+
+            when(resultSet.getMetaData()).thenReturn(resultSetMetaData);
+            rowMapper.mapRow(resultSet, 0);
+
+            return null;
+        });
+
+        List<ColumnMetadata> result = sqlMetadata.getColumnMetadata(query);
+
+        assertNotNull(result);
+    }
+
+    private static Stream<Arguments> invalidQueryProvider() {
+        return Stream.of(
+            Arguments.of("SELECT * FROM customers; DROP TABLE customers", "SQL injection with DROP"),
+            Arguments.of("SELECT * FROM customers; CREATE TABLE malicious (id INT)", "SQL injection with CREATE"),
+            Arguments.of("SELECT * FROM customers; ALTER TABLE customers DROP COLUMN email", "SQL injection with ALTER"),
+            Arguments.of("SELECT * FROM customers; EXEC sp_executesql N'DROP TABLE customers'", "SQL injection with EXEC"),
+            Arguments.of("SELECT * FROM customers; EXECUTE sp_dropuser 'user1'", "SQL injection with EXECUTE"),
+            Arguments.of("GRANT ALL PRIVILEGES ON customers TO user1", "Invalid query structure")
+        );
+    }
+
+    @ParameterizedTest(name = "{1} should throw exception")
+    @MethodSource("invalidQueryProvider")
+    void testGetColumnMetadata_InvalidQueries_ThrowsException(String query, String description) {
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> sqlMetadata.getColumnMetadata(query)
+        );
+
+        assertEquals("Invalid SQL query structure detected", exception.getMessage());
+    }
+
     @Test
     void testGetColumnMetadata_SQLException_PropagatesException() {
         // Given - use valid SQL structure that will pass validation but fail on execution
