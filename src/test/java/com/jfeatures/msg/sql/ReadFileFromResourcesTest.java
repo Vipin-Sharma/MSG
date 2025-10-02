@@ -2,9 +2,18 @@ package com.jfeatures.msg.sql;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 class ReadFileFromResourcesTest {
+
+    @AfterEach
+    void resetClassLoaderSupplier() {
+        ReadFileFromResources.setClassLoaderSupplier(null);
+    }
 
     @Test
     void testReadFileFromResourcesValidFile() {
@@ -61,6 +70,41 @@ class ReadFileFromResourcesTest {
             // If file doesn't exist, exception is expected
             assertNotNull(e);
         }
+    }
+
+    @Test
+    void testReadFileFromResourcesNullCharsetUsesDefault() {
+        String content = ReadFileFromResources.readFileFromResources("sample_parameterized_sql.sql", null);
+        assertNotNull(content);
+    }
+
+    @Test
+    void testReadFileFromResourcesIoFailureWrappedAsUncheckedIOException() {
+        ReadFileFromResources.setClassLoaderSupplier(() -> new ClassLoader(ReadFileFromResourcesTest.class.getClassLoader()) {
+            @Override
+            public InputStream getResourceAsStream(String name) {
+                if ("throwing.sql".equals(name)) {
+                    return new InputStream() {
+                        @Override
+                        public int read() throws IOException {
+                            throw new IOException("forced failure");
+                        }
+
+                        @Override
+                        public byte[] readAllBytes() throws IOException {
+                            throw new IOException("forced failure");
+                        }
+                    };
+                }
+                return super.getResourceAsStream(name);
+            }
+        });
+
+        UncheckedIOException exception = assertThrows(UncheckedIOException.class, () ->
+            ReadFileFromResources.readFileFromResources("throwing.sql")
+        );
+
+        assertTrue(exception.getMessage().contains("throwing.sql"));
     }
 
     @Test

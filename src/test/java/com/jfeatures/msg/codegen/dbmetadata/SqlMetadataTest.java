@@ -41,6 +41,24 @@ class SqlMetadataTest {
     }
     
     @Test
+    void testGetColumnMetadata_NullQuery_ThrowsException() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+            sqlMetadata.getColumnMetadata(null)
+        );
+
+        assertEquals("SQL query cannot be null or empty", exception.getMessage());
+    }
+
+    @Test
+    void testGetColumnMetadata_EmptyQuery_ThrowsException() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+            sqlMetadata.getColumnMetadata("   ")
+        );
+
+        assertEquals("SQL query cannot be null or empty", exception.getMessage());
+    }
+
+    @Test
     void testGetColumnMetadata_ValidQuery_ReturnsColumnMetadata() throws SQLException {
         // Given
         String query = "SELECT customer_id, customer_name, email FROM customers";

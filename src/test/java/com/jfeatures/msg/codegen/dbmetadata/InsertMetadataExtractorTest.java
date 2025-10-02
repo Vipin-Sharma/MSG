@@ -86,6 +86,20 @@ class InsertMetadataExtractorTest {
     }
 
     @Test
+    void shouldThrowExceptionForNullSql() {
+        assertThatThrownBy(() -> extractor.extractInsertMetadata(null))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("SQL is not an INSERT statement");
+    }
+
+    @Test
+    void shouldThrowExceptionForBlankSql() {
+        assertThatThrownBy(() -> extractor.extractInsertMetadata("   "))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("SQL is not an INSERT statement");
+    }
+
+    @Test
     void shouldThrowExceptionForInsertWithoutColumnNames() {
         // Given
         String sqlWithoutColumns = "INSERT INTO customer VALUES (?, ?, ?)";

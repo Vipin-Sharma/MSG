@@ -1,6 +1,7 @@
 package com.jfeatures.msg.codegen.filesystem;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import com.jfeatures.msg.codegen.domain.ProjectDirectoryStructure;
 import java.io.IOException;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.MockedStatic;
 
 class ProjectDirectoryBuilderTest {
 
@@ -165,5 +167,18 @@ class ProjectDirectoryBuilderTest {
         assertEquals(structure1.srcMainJava(), structure2.srcMainJava());
         assertEquals(structure1.srcTestJava(), structure2.srcTestJava());
         assertEquals(structure1.srcMainResources(), structure2.srcMainResources());
+    }
+
+    @Test
+    void testBuildDirectoryStructure_CreateDirectoriesFailure(@TempDir Path tempDir) {
+        try (MockedStatic<Files> filesMock = mockStatic(Files.class)) {
+            filesMock.when(() -> Files.createDirectories(any(Path.class))).thenThrow(new IOException("disk full"));
+
+            IOException exception = assertThrows(IOException.class, () ->
+                builder.buildDirectoryStructure(tempDir.toString())
+            );
+
+            assertTrue(exception.getMessage().contains("Failed to create directory"));
+        }
     }
 }

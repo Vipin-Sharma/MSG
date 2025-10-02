@@ -1,7 +1,10 @@
 package com.jfeatures.msg.codegen.filesystem;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
@@ -11,6 +14,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.MockedStatic;
 
 class MicroserviceDirectoryCleanerTest {
 
@@ -153,5 +157,55 @@ class MicroserviceDirectoryCleanerTest {
 
         // Should handle read-only files gracefully (may log warnings but not throw exceptions)
         assertDoesNotThrow(() -> cleaner.cleanGeneratedCodeDirectories(tempDir.toString()));
+    }
+
+    @Test
+    void testCleanDirectoryIfExistsDeletionFailure() throws Exception {
+        Path tempDir = Files.createTempDirectory("cleaner-test");
+        Path file = tempDir.resolve("file.txt");
+        Files.writeString(file, "data");
+
+        Method method = MicroserviceDirectoryCleaner.class.getDeclaredMethod("cleanDirectoryIfExists", Path.class);
+        method.setAccessible(true);
+
+        try (MockedStatic<Files> filesMock = mockStatic(Files.class)) {
+            filesMock.when(() -> Files.exists(tempDir)).thenReturn(true);
+            filesMock.when(() -> Files.walk(tempDir)).thenReturn(Stream.of(file, tempDir));
+            filesMock.when(() -> Files.delete(file)).thenThrow(new RuntimeException("failure"));
+            filesMock.when(() -> Files.delete(tempDir)).thenReturn(null);
+
+            assertDoesNotThrow(() -> method.invoke(cleaner, tempDir));
+        }
+    }
+
+    @Test
+    void testCleanDirectoryIfExistsThrowsDirectoryCleanupException() throws Exception {
+        Path tempDir = Files.createTempDirectory("cleaner-throws");
+
+        Method method = MicroserviceDirectoryCleaner.class.getDeclaredMethod("cleanDirectoryIfExists", Path.class);
+        method.setAccessible(true);
+
+        try (MockedStatic<Files> filesMock = mockStatic(Files.class)) {
+            filesMock.when(() -> Files.exists(tempDir)).thenReturn(true);
+            filesMock.when(() -> Files.walk(tempDir)).thenThrow(new RuntimeException("walk failed"));
+
+            InvocationTargetException exception = assertThrows(InvocationTargetException.class, () -> method.invoke(cleaner, tempDir));
+            assertTrue(exception.getCause() instanceof DirectoryCleanupException);
+        }
+    }
+
+    @Test
+    void testDeleteFileIfExistsFailureIsIgnored() throws Exception {
+        Path tempFile = Files.createTempFile("cleaner-file", ".txt");
+
+        Method method = MicroserviceDirectoryCleaner.class.getDeclaredMethod("deleteFileIfExists", Path.class);
+        method.setAccessible(true);
+
+        try (MockedStatic<Files> filesMock = mockStatic(Files.class)) {
+            filesMock.when(() -> Files.exists(tempFile)).thenReturn(true);
+            filesMock.when(() -> Files.delete(tempFile)).thenThrow(new RuntimeException("delete failed"));
+
+            assertDoesNotThrow(() -> method.invoke(cleaner, tempFile));
+        }
     }
 }

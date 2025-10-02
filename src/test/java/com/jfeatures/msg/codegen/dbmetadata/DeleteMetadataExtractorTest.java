@@ -93,6 +93,26 @@ class DeleteMetadataExtractorTest {
         
         assertEquals("SQL is not a DELETE statement", exception.getMessage());
     }
+
+    @Test
+    void testExtractDeleteMetadata_NullSql_ThrowsException() {
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> extractor.extractDeleteMetadata(null)
+        );
+
+        assertEquals("SQL is not a DELETE statement", exception.getMessage());
+    }
+
+    @Test
+    void testExtractDeleteMetadata_BlankSql_ThrowsException() {
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> extractor.extractDeleteMetadata("   ")
+        );
+
+        assertEquals("SQL is not a DELETE statement", exception.getMessage());
+    }
     
     @Test
     void testExtractDeleteMetadata_UnparsableSql_ThrowsJSQLParserException() {

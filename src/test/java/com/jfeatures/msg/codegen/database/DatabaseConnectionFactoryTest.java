@@ -1,11 +1,20 @@
 package com.jfeatures.msg.codegen.database;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import com.jfeatures.msg.codegen.domain.DatabaseConnection;
+import java.sql.SQLException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.mockito.MockedConstruction;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import com.jfeatures.msg.config.DataSourceConfig;
+import com.jfeatures.msg.config.JdbcTemplateConfig;
+import com.jfeatures.msg.config.NamedParameterJdbcTemplateConfig;
 
 class DatabaseConnectionFactoryTest {
 
@@ -67,6 +76,48 @@ class DatabaseConnectionFactoryTest {
             
             // Verify that the original cause is preserved
             assertNotNull(e.getCause(), "Original exception cause should be preserved");
+        }
+    }
+
+    @Test
+    void testCreateDatabaseConnection_RuntimeExceptionWrappedAsDatabaseConnectionException() {
+        try (MockedConstruction<DataSourceConfig> dataSourceConfigConstruction = mockConstruction(DataSourceConfig.class, (mock, context) -> {
+                 javax.sql.DataSource dataSource = mock(javax.sql.DataSource.class);
+                 when(mock.dataSource()).thenReturn(dataSource);
+             });
+             MockedConstruction<JdbcTemplateConfig> jdbcTemplateConstruction = mockConstruction(JdbcTemplateConfig.class, (mock, context) -> {
+                 when(mock.jdbcTemplate(any(javax.sql.DataSource.class))).thenThrow(new RuntimeException("boom"));
+             });
+             MockedConstruction<NamedParameterJdbcTemplateConfig> namedConstruction = mockConstruction(NamedParameterJdbcTemplateConfig.class)) {
+
+            DatabaseConnectionFactory factory = new DatabaseConnectionFactory();
+            DatabaseConnectionException exception = assertThrows(DatabaseConnectionException.class, factory::createDatabaseConnection);
+            assertThat(exception)
+                .hasMessage("Failed to create database connection due to configuration error")
+                .hasCauseInstanceOf(RuntimeException.class);
+        }
+    }
+
+    @Test
+    void testCreateDatabaseConnection_CheckedExceptionWrappedAsDatabaseConnectionException() {
+        javax.sql.DataSource dataSource = mock(javax.sql.DataSource.class);
+        JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
+
+        try (MockedConstruction<DataSourceConfig> dataSourceConfigConstruction = mockConstruction(DataSourceConfig.class, (mock, context) -> {
+                 when(mock.dataSource()).thenReturn(dataSource);
+             });
+             MockedConstruction<JdbcTemplateConfig> jdbcTemplateConstruction = mockConstruction(JdbcTemplateConfig.class, (mock, context) -> {
+                 when(mock.jdbcTemplate(dataSource)).thenReturn(jdbcTemplate);
+             });
+             MockedConstruction<NamedParameterJdbcTemplateConfig> namedConstruction = mockConstruction(NamedParameterJdbcTemplateConfig.class, (mock, context) -> {
+                 when(mock.namedParameterJdbcTemplate(dataSource)).thenThrow(new SQLException("failure"));
+             })) {
+
+            DatabaseConnectionFactory factory = new DatabaseConnectionFactory();
+            DatabaseConnectionException exception = assertThrows(DatabaseConnectionException.class, factory::createDatabaseConnection);
+            assertThat(exception)
+                .hasMessage("Failed to create database connection due to unexpected error")
+                .hasCauseInstanceOf(SQLException.class);
         }
     }
 

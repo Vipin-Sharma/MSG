@@ -1,10 +1,12 @@
 package com.jfeatures.msg.codegen;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.lenient;
 
 import com.jfeatures.msg.codegen.domain.DBColumn;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
 import java.util.List;
 import java.util.stream.Stream;
@@ -244,6 +246,79 @@ class ParameterMetadataExtractorTest {
         assertEquals("VARCHAR", result.get(0).jdbcType()); // Default fallback
     }
     
+    @Test
+    void testExtractParameters_SqlLongerThanLimit_ThrowsException() {
+        StringBuilder builder = new StringBuilder("SELECT * FROM big_table WHERE ");
+        while (builder.length() <= 10_050) {
+            builder.append("column = ? AND ");
+        }
+        String longSql = builder.append("1=1").toString();
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+            extractor.extractParameters(longSql)
+        );
+
+        assertEquals("SQL query too long", exception.getMessage());
+    }
+
+    @Test
+    void testExtractParameters_ParameterMetadataUnavailable_FallsBackToParsing() throws SQLException {
+        // Given
+        String sql = "UPDATE customers SET name = ? WHERE id = ?";
+
+        setupParameterMetaData(2, new int[]{Types.VARCHAR, Types.INTEGER});
+        when(preparedStatement.getParameterMetaData()).thenThrow(new SQLException("metadata not available"));
+
+        // When
+        List<DBColumn> result = extractor.extractParameters(sql);
+
+        // Then - fallback parsing should provide at least one where column entry
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals("id", result.get(0).columnName());
+        assertEquals("param2", result.get(1).columnName());
+    }
+
+    @Test
+    void testExtractParameters_WhereClauseTooLong_ThrowsException() throws Exception {
+        StringBuilder whereBuilder = new StringBuilder();
+        while (whereBuilder.length() <= 10_100) {
+            whereBuilder.append("column").append(whereBuilder.length()).append(" = ? AND ");
+        }
+        String longWhereSql = "SELECT * FROM customers WHERE " + whereBuilder.append("1=1").toString();
+
+        var method = ParameterMetadataExtractor.class.getDeclaredMethod("extractColumnNamesFromWhereClause", String.class, int.class);
+        method.setAccessible(true);
+
+        InvocationTargetException exception = assertThrows(InvocationTargetException.class, () ->
+            method.invoke(extractor, longWhereSql, 1)
+        );
+
+        assertThat(exception.getCause())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("WHERE clause too long");
+    }
+
+    @Test
+    void testExtractParameters_ExtractWhereClauseSqlTooLong_ThrowsException() throws Exception {
+        StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM customers WHERE ");
+        while (sqlBuilder.length() <= 10_050) {
+            sqlBuilder.append("column = ? OR ");
+        }
+        sqlBuilder.append("1=1");
+
+        var method = ParameterMetadataExtractor.class.getDeclaredMethod("extractWhereClause", String.class);
+        method.setAccessible(true);
+
+        InvocationTargetException exception = assertThrows(InvocationTargetException.class, () ->
+            method.invoke(extractor, sqlBuilder.toString())
+        );
+
+        assertThat(exception.getCause())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("SQL query too long");
+    }
+
     @Test
     void testExtractParameters_DatabaseConnectionFails_ThrowsSQLException() throws SQLException {
         // Given
