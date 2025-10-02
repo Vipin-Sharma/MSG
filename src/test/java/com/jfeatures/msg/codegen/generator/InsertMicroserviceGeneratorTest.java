@@ -289,14 +289,14 @@ class InsertMicroserviceGeneratorTest {
     }
     
     @Test
-    void testGenerateInsertMicroservice_DatabaseConnectionFailure_PropagatesException() throws Exception {
+    void testGenerateInsertMicroservice_DatabaseConnectionFailure_PropagatesException() {
         // Given
         String sql = "INSERT INTO customers (name) VALUES (?)";
         String businessDomainName = "Customer";
         RuntimeException dbException = new RuntimeException("Database connection failed");
-        
+
         when(databaseConnection.dataSource()).thenThrow(dbException);
-        
+
         // When & Then
         RuntimeException exception = assertThrows(
             RuntimeException.class,

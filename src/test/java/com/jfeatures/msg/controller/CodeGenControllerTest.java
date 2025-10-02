@@ -47,10 +47,13 @@ class CodeGenControllerTest {
         List<ColumnMetadata> result = controller.selectColumnMetadata();
 
         // Then
-        assertThat(result).isNotNull();
-        assertThat(result).hasSize(2);
-        assertThat(result.get(0).getColumnName()).isEqualTo("customer_id");
-        assertThat(result.get(1).getColumnName()).isEqualTo("customer_name");
+        assertThat(result)
+            .isNotNull()
+            .hasSize(2)
+            .satisfies(list -> {
+                assertThat(list.get(0).getColumnName()).isEqualTo("customer_id");
+                assertThat(list.get(1).getColumnName()).isEqualTo("customer_name");
+            });
     }
 
     @Test
@@ -92,8 +95,9 @@ class CodeGenControllerTest {
         List<ColumnMetadata> result = controller.selectColumnMetadata();
 
         // Then
-        assertThat(result).isNotNull();
-        assertThat(result).isEmpty();
+        assertThat(result)
+            .isNotNull()
+            .isEmpty();
     }
 
     private ColumnMetadata createColumnMetadata(String name, String typeName, int typeCode) {

@@ -90,9 +90,9 @@ public class GeneratedMicroserviceValidator {
 
         // Validate DTO classes
         validateDTOClasses(javaSourceRoot);
-        
+
         // Validate Config classes
-        validateConfigClasses(javaSourceRoot, businessName);
+        validateConfigClasses(businessName);
         
         log.info("✅ Java classes validation passed for: " + businessName);
     }
@@ -326,11 +326,11 @@ public class GeneratedMicroserviceValidator {
                 .isDirectory();
     }
     
-    private void validateConfigClasses(Path javaSourceRoot, String businessName) {
+    private void validateConfigClasses(String businessName) {
         // Config classes are generated in com.jfeatures.{businessName.toLowerCase()}.config package
         Path projectRoot = getProjectRoot();
         Path configDir = projectRoot.resolve("src/main/java/com/jfeatures/" + businessName.toLowerCase() + "/config");
-        
+
         assertThat(configDir)
                 .as("Config directory should exist at com.jfeatures." + businessName.toLowerCase() + ".config")
                 .exists()

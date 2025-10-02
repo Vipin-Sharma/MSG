@@ -156,11 +156,11 @@ class DeleteMicroserviceGeneratorTest {
     }
     
     @Test
-    void testGenerateDeleteMicroservice_InvalidDeleteSqlMissingFrom_ThrowsIllegalArgumentException() throws Exception {
+    void testGenerateDeleteMicroservice_InvalidDeleteSqlMissingFrom_ThrowsIllegalArgumentException() {
         // Given
         String invalidSql = "DELETE customers WHERE id = ?";
         String businessDomainName = "Customer";
-        
+
         // When & Then
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
@@ -292,25 +292,25 @@ class DeleteMicroserviceGeneratorTest {
     }
     
     @Test
-    void testGenerateDeleteMicroservice_DatabaseConnectionFailure_PropagatesException() throws Exception {
+    void testGenerateDeleteMicroservice_DatabaseConnectionFailure_PropagatesException() {
         // Given
         String sql = "DELETE FROM customers WHERE id = ?";
         String businessDomainName = "Customer";
         RuntimeException dbException = new RuntimeException("Database connection failed");
-        
+
         when(databaseConnection.dataSource()).thenThrow(dbException);
-        
+
         // When & Then
         RuntimeException exception = assertThrows(
             RuntimeException.class,
             () -> generator.generateDeleteMicroservice(sql, businessDomainName, databaseConnection)
         );
-        
+
         assertEquals("Database connection failed", exception.getMessage());
     }
-    
+
     @Test
-    void testGenerateDeleteMicroservice_TableNameExtractionWithSemicolon_HandlesCorrectly() throws Exception {
+    void testGenerateDeleteMicroservice_TableNameExtractionWithSemicolon_HandlesCorrectly() {
         // Given
         String sql = "DELETE FROM customers; ";
         String businessDomainName = "Customer";

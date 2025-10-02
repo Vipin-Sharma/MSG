@@ -285,23 +285,23 @@ class CompleteCrudGenerationE2ETest {
         
         assertThat(exitCode)
                 .as("Empty business name should be rejected with non-zero exit code")
-                .isNotEqualTo(0);
-        
+                .isNotZero();
+
         // Test with non-existent SQL file
         String[] invalidSqlArgs = {
-            "--name", "TestBusiness", 
+            "--name", "TestBusiness",
             "--destination", baseTestDir.toString(),
             "--sql-file", "nonexistent_file.sql"
         };
-        
+
         generator = new MicroServiceGenerator();
         commandLine = new CommandLine(generator);
-        
+
         exitCode = commandLine.execute(invalidSqlArgs);
-        
+
         assertThat(exitCode)
                 .as("Non-existent SQL file should be rejected with non-zero exit code")
-                .isNotEqualTo(0);
+                .isNotZero();
         
         log.info("✅ Error handling validation completed successfully");
     }
