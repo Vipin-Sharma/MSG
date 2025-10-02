@@ -291,14 +291,14 @@ class UpdateMicroserviceGeneratorTest {
     }
     
     @Test
-    void testGenerateUpdateMicroservice_DatabaseConnectionFailure_PropagatesException() throws Exception {
+    void testGenerateUpdateMicroservice_DatabaseConnectionFailure_PropagatesException() {
         // Given
         String sql = "UPDATE customers SET name = ? WHERE id = ?";
         String businessDomainName = "Customer";
         RuntimeException dbException = new RuntimeException("Database connection failed");
-        
+
         when(databaseConnection.dataSource()).thenThrow(dbException);
-        
+
         // When & Then
         RuntimeException exception = assertThrows(
             RuntimeException.class,
