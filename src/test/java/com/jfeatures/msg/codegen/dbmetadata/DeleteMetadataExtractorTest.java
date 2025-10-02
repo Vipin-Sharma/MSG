@@ -1,6 +1,7 @@
 package com.jfeatures.msg.codegen.dbmetadata;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import com.jfeatures.msg.codegen.ParameterMetadataExtractor;
@@ -335,7 +336,7 @@ class DeleteMetadataExtractorTest {
             .thenReturn(columnsResultSet);
         when(databaseMetaData.getColumns(null, null, "customers", "status"))
             .thenReturn(columnsResultSet);
-        
+
         when(columnsResultSet.next()).thenReturn(true);
         when(columnsResultSet.getString("COLUMN_NAME"))
             .thenReturn("customer_id", "status");
@@ -345,5 +346,243 @@ class DeleteMetadataExtractorTest {
             .thenReturn(Types.INTEGER, Types.VARCHAR);
         when(columnsResultSet.getInt("NULLABLE"))
             .thenReturn(0, 1);
+    }
+
+    @Test
+    void testDeleteWithComplexWhereClause_IN() throws Exception {
+        String sql = "DELETE FROM customers WHERE customer_id IN (?, ?, ?)";
+
+        setupSingleColumnMetadata("customer_id", Types.INTEGER);
+
+        // Mock PreparedStatement for parameter metadata
+        PreparedStatement ps = mock(PreparedStatement.class);
+        ParameterMetaData pmd = mock(ParameterMetaData.class);
+        when(connection.prepareStatement(sql)).thenReturn(ps);
+        when(ps.getParameterMetaData()).thenReturn(pmd);
+        when(pmd.getParameterCount()).thenReturn(3);
+
+        DeleteMetadata result = extractor.extractDeleteMetadata(sql);
+
+        assertNotNull(result);
+        assertEquals("customers", result.tableName());
+        assertNotNull(result.whereColumns());
+    }
+
+    @Test
+    void testDeleteWithComplexWhereClause_BETWEEN() throws Exception {
+        String sql = "DELETE FROM customers WHERE created_date BETWEEN ? AND ?";
+
+        setupSingleColumnMetadata("created_date", Types.TIMESTAMP);
+
+        // Mock PreparedStatement for parameter metadata
+        PreparedStatement ps = mock(PreparedStatement.class);
+        ParameterMetaData pmd = mock(ParameterMetaData.class);
+        when(connection.prepareStatement(sql)).thenReturn(ps);
+        when(ps.getParameterMetaData()).thenReturn(pmd);
+        when(pmd.getParameterCount()).thenReturn(2);
+
+        DeleteMetadata result = extractor.extractDeleteMetadata(sql);
+
+        assertNotNull(result);
+        assertEquals("customers", result.tableName());
+    }
+
+    @Test
+    void testDeleteWithComplexWhereClause_LIKE() throws Exception {
+        String sql = "DELETE FROM customers WHERE name LIKE ?";
+
+        setupSingleColumnMetadata("name", Types.VARCHAR);
+
+        // Mock PreparedStatement for parameter metadata
+        PreparedStatement ps = mock(PreparedStatement.class);
+        ParameterMetaData pmd = mock(ParameterMetaData.class);
+        when(connection.prepareStatement(sql)).thenReturn(ps);
+        when(ps.getParameterMetaData()).thenReturn(pmd);
+        when(pmd.getParameterCount()).thenReturn(1);
+
+        DeleteMetadata result = extractor.extractDeleteMetadata(sql);
+
+        assertNotNull(result);
+        assertEquals("customers", result.tableName());
+        assertEquals(1, result.whereColumns().size());
+    }
+
+    @Test
+    void testDeleteWithSubquery() throws Exception {
+        String sql = "DELETE FROM customers WHERE customer_id IN (SELECT customer_id FROM orders WHERE order_date > ?)";
+
+        setupSingleColumnMetadata("customer_id", Types.INTEGER);
+
+        // Mock PreparedStatement for parameter metadata
+        PreparedStatement ps = mock(PreparedStatement.class);
+        ParameterMetaData pmd = mock(ParameterMetaData.class);
+        when(connection.prepareStatement(sql)).thenReturn(ps);
+        when(ps.getParameterMetaData()).thenReturn(pmd);
+        when(pmd.getParameterCount()).thenReturn(1);
+
+        DeleteMetadata result = extractor.extractDeleteMetadata(sql);
+
+        assertNotNull(result);
+        assertEquals("customers", result.tableName());
+    }
+
+    @Test
+    void testDeleteWithoutWhereClause() throws Exception {
+        String sql = "DELETE FROM customers";
+
+        // Mock PreparedStatement for parameter metadata
+        PreparedStatement ps = mock(PreparedStatement.class);
+        ParameterMetaData pmd = mock(ParameterMetaData.class);
+        when(connection.prepareStatement(sql)).thenReturn(ps);
+        when(ps.getParameterMetaData()).thenReturn(pmd);
+        when(pmd.getParameterCount()).thenReturn(0);
+
+        DeleteMetadata result = extractor.extractDeleteMetadata(sql);
+
+        assertNotNull(result);
+        assertEquals("customers", result.tableName());
+        assertTrue(result.whereColumns().isEmpty());
+    }
+
+    @Test
+    void testDeleteWithNullSql() {
+        assertThrows(IllegalArgumentException.class, () ->
+            extractor.extractDeleteMetadata(null)
+        );
+    }
+
+    @Test
+    void testDeleteWithEmptySql() {
+        assertThrows(IllegalArgumentException.class, () ->
+            extractor.extractDeleteMetadata("")
+        );
+    }
+
+    @Test
+    void testDeleteWithBlankSql() {
+        assertThrows(IllegalArgumentException.class, () ->
+            extractor.extractDeleteMetadata("   ")
+        );
+    }
+
+    @Test
+    void testDeleteWithNonDeleteStatement() {
+        String sql = "SELECT * FROM customers";
+
+        assertThrows(IllegalArgumentException.class, () ->
+            extractor.extractDeleteMetadata(sql)
+        );
+    }
+
+    @Test
+    void testDeleteWithDatabaseMetadataFailure() throws SQLException {
+        String sql = "DELETE FROM customers WHERE customer_id = ?";
+
+        // Mock PreparedStatement for parameter metadata
+        PreparedStatement ps = mock(PreparedStatement.class);
+        ParameterMetaData pmd = mock(ParameterMetaData.class);
+        when(connection.prepareStatement(sql)).thenReturn(ps);
+        when(ps.getParameterMetaData()).thenReturn(pmd);
+        when(pmd.getParameterCount()).thenReturn(1);
+
+        // Use anyString() to match any column name parameter
+        // When using matchers, ALL arguments must be matchers
+        when(databaseMetaData.getColumns(isNull(), isNull(), eq("customers"), anyString()))
+            .thenThrow(new SQLException("Database metadata error"));
+
+        assertThrows(SQLException.class, () ->
+            extractor.extractDeleteMetadata(sql)
+        );
+    }
+
+    @Test
+    void testDeleteWithConnectionFailure() throws SQLException {
+        String sql = "DELETE FROM customers WHERE customer_id = ?";
+
+        when(dataSource.getConnection()).thenThrow(new SQLException("Connection failed"));
+
+        assertThrows(SQLException.class, () ->
+            extractor.extractDeleteMetadata(sql)
+        );
+    }
+
+    @Test
+    void testDeleteWithMalformedSql() {
+        String sql = "DELETE FROM customers WHERE customer_id = ?";
+
+        assertThrows(Exception.class, () ->
+            extractor.extractDeleteMetadata(sql + " AND")
+        );
+    }
+
+    @Test
+    void testDeleteWithMultipleConditions() throws Exception {
+        String sql = "DELETE FROM customers WHERE customer_id = ? AND status = ? OR region = ?";
+
+        // Mock PreparedStatement for parameter metadata
+        PreparedStatement ps = mock(PreparedStatement.class);
+        ParameterMetaData pmd = mock(ParameterMetaData.class);
+        when(connection.prepareStatement(sql)).thenReturn(ps);
+        when(ps.getParameterMetaData()).thenReturn(pmd);
+        when(pmd.getParameterCount()).thenReturn(3);
+
+        when(databaseMetaData.getColumns(null, null, "customers", "customer_id"))
+            .thenReturn(columnsResultSet);
+        when(databaseMetaData.getColumns(null, null, "customers", "status"))
+            .thenReturn(columnsResultSet);
+        when(databaseMetaData.getColumns(null, null, "customers", "region"))
+            .thenReturn(columnsResultSet);
+
+        when(columnsResultSet.next()).thenReturn(true);
+        when(columnsResultSet.getString("COLUMN_NAME"))
+            .thenReturn("customer_id", "status", "region");
+        when(columnsResultSet.getString("TYPE_NAME"))
+            .thenReturn("INT", "VARCHAR", "VARCHAR");
+        when(columnsResultSet.getInt("DATA_TYPE"))
+            .thenReturn(Types.INTEGER, Types.VARCHAR, Types.VARCHAR);
+        when(columnsResultSet.getInt("NULLABLE"))
+            .thenReturn(0, 1, 1);
+
+        DeleteMetadata result = extractor.extractDeleteMetadata(sql);
+
+        assertNotNull(result);
+        assertTrue(result.whereColumns().size() >= 1);
+    }
+
+    @Test
+    void testDeleteWithUnicodeTableName() throws Exception {
+        String sql = "DELETE FROM 顧客テーブル WHERE id = ?";
+
+        // Mock PreparedStatement for parameter metadata
+        PreparedStatement ps = mock(PreparedStatement.class);
+        ParameterMetaData pmd = mock(ParameterMetaData.class);
+        when(connection.prepareStatement(sql)).thenReturn(ps);
+        when(ps.getParameterMetaData()).thenReturn(pmd);
+        when(pmd.getParameterCount()).thenReturn(1);
+
+        when(databaseMetaData.getColumns(null, null, "顧客テーブル", "id"))
+            .thenReturn(columnsResultSet);
+        when(columnsResultSet.next()).thenReturn(true);
+        when(columnsResultSet.getString("COLUMN_NAME")).thenReturn("id");
+        when(columnsResultSet.getString("TYPE_NAME")).thenReturn("INT");
+        when(columnsResultSet.getInt("DATA_TYPE")).thenReturn(Types.INTEGER);
+        when(columnsResultSet.getInt("NULLABLE")).thenReturn(0);
+
+        DeleteMetadata result = extractor.extractDeleteMetadata(sql);
+
+        assertNotNull(result);
+        assertEquals("顧客テーブル", result.tableName());
+    }
+
+    private void setupSingleColumnMetadata(String columnName, int sqlType) throws SQLException {
+        // Use lenient() to avoid strict stubbing issues with parameter names
+        // When using matchers, ALL arguments must be matchers
+        lenient().when(databaseMetaData.getColumns(isNull(), isNull(), eq("customers"), anyString()))
+            .thenReturn(columnsResultSet);
+        lenient().when(columnsResultSet.next()).thenReturn(true);
+        lenient().when(columnsResultSet.getString("COLUMN_NAME")).thenReturn(columnName);
+        lenient().when(columnsResultSet.getString("TYPE_NAME")).thenReturn("VARCHAR");
+        lenient().when(columnsResultSet.getInt("DATA_TYPE")).thenReturn(sqlType);
+        lenient().when(columnsResultSet.getInt("NULLABLE")).thenReturn(1);
     }
 }
