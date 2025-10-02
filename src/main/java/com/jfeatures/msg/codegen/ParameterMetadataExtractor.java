@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ParameterMetadataExtractor {
 
     private static final int MAX_SQL_LENGTH = 10_000;
-    private static final Pattern COLUMN_PATTERN = Pattern.compile("(\\w+\\.\\w+|\\w+)\\s*=\\s*\\?", Pattern.CASE_INSENSITIVE);
+    private static final Pattern COLUMN_PATTERN = Pattern.compile("(\\w++(?:\\.\\w++)?+)\\s*+=\\s*+\\?", Pattern.CASE_INSENSITIVE);
     private static final Pattern WHERE_PATTERN = Pattern.compile("\\bwhere\\b", Pattern.CASE_INSENSITIVE);
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
     private static final String SQL_QUERY_TOO_LONG_MESSAGE = "SQL query too long";
