@@ -461,9 +461,9 @@ class MicroServiceGeneratorTest {
         
         // When - try invalid option
         int exitCode = cmd.execute("--invalid-option");
-        
+
         // Then
-        assertThat(exitCode).isNotEqualTo(0);
+        assertThat(exitCode).isNotZero();
         String errorOutput = errContent.toString();
         assertThat(errorOutput).contains("Unknown option");
     }
@@ -479,9 +479,9 @@ class MicroServiceGeneratorTest {
         
         // When - provide option without required value
         int exitCode = cmd.execute("-d");
-        
+
         // Then
-        assertThat(exitCode).isNotEqualTo(0);
+        assertThat(exitCode).isNotZero();
         String errorOutput = errContent.toString();
         assertThat(errorOutput).contains("Missing required parameter");
     }
