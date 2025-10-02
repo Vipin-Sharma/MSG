@@ -259,7 +259,159 @@ class SqlMetadataTest {
         assertNotNull(result);
         assertEquals(1, result.size());
     }
-    
+
+    @Test
+    void testGetColumnMetadata_InsertQuery_Allowed() throws SQLException {
+        String query = "INSERT INTO customers (customer_name) VALUES ('John')";
+
+        setupSingleColumnResultSetMetadata();
+
+        when(jdbcTemplate.query(eq(query), any(RowMapper.class))).thenAnswer(invocation -> {
+            RowMapper<ColumnMetadata> rowMapper = invocation.getArgument(1);
+
+            when(resultSet.getMetaData()).thenReturn(resultSetMetaData);
+            rowMapper.mapRow(resultSet, 0);
+
+            return null;
+        });
+
+        List<ColumnMetadata> result = sqlMetadata.getColumnMetadata(query);
+
+        assertNotNull(result);
+    }
+
+    @Test
+    void testGetColumnMetadata_UpdateQuery_Allowed() throws SQLException {
+        String query = "UPDATE customers SET customer_name = 'Jane' WHERE customer_id = 1";
+
+        setupSingleColumnResultSetMetadata();
+
+        when(jdbcTemplate.query(eq(query), any(RowMapper.class))).thenAnswer(invocation -> {
+            RowMapper<ColumnMetadata> rowMapper = invocation.getArgument(1);
+
+            when(resultSet.getMetaData()).thenReturn(resultSetMetaData);
+            rowMapper.mapRow(resultSet, 0);
+
+            return null;
+        });
+
+        List<ColumnMetadata> result = sqlMetadata.getColumnMetadata(query);
+
+        assertNotNull(result);
+    }
+
+    @Test
+    void testGetColumnMetadata_DeleteQuery_Allowed() throws SQLException {
+        String query = "DELETE FROM customers WHERE customer_id = 1";
+
+        setupSingleColumnResultSetMetadata();
+
+        when(jdbcTemplate.query(eq(query), any(RowMapper.class))).thenAnswer(invocation -> {
+            RowMapper<ColumnMetadata> rowMapper = invocation.getArgument(1);
+
+            when(resultSet.getMetaData()).thenReturn(resultSetMetaData);
+            rowMapper.mapRow(resultSet, 0);
+
+            return null;
+        });
+
+        List<ColumnMetadata> result = sqlMetadata.getColumnMetadata(query);
+
+        assertNotNull(result);
+    }
+
+    @Test
+    void testGetColumnMetadata_QueryWithSemicolonInString_Allowed() throws SQLException {
+        String query = "SELECT customer_name FROM customers WHERE notes = 'test;value'";
+
+        setupSingleColumnResultSetMetadata();
+
+        when(jdbcTemplate.query(eq(query), any(RowMapper.class))).thenAnswer(invocation -> {
+            RowMapper<ColumnMetadata> rowMapper = invocation.getArgument(1);
+
+            when(resultSet.getMetaData()).thenReturn(resultSetMetaData);
+            rowMapper.mapRow(resultSet, 0);
+
+            return null;
+        });
+
+        List<ColumnMetadata> result = sqlMetadata.getColumnMetadata(query);
+
+        assertNotNull(result);
+    }
+
+    @Test
+    void testGetColumnMetadata_SqlInjectionWithDrop_ThrowsException() {
+        String query = "SELECT * FROM customers; DROP TABLE customers";
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> sqlMetadata.getColumnMetadata(query)
+        );
+
+        assertEquals("Invalid SQL query structure detected", exception.getMessage());
+    }
+
+    @Test
+    void testGetColumnMetadata_SqlInjectionWithCreate_ThrowsException() {
+        String query = "SELECT * FROM customers; CREATE TABLE malicious (id INT)";
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> sqlMetadata.getColumnMetadata(query)
+        );
+
+        assertEquals("Invalid SQL query structure detected", exception.getMessage());
+    }
+
+    @Test
+    void testGetColumnMetadata_SqlInjectionWithAlter_ThrowsException() {
+        String query = "SELECT * FROM customers; ALTER TABLE customers DROP COLUMN email";
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> sqlMetadata.getColumnMetadata(query)
+        );
+
+        assertEquals("Invalid SQL query structure detected", exception.getMessage());
+    }
+
+    @Test
+    void testGetColumnMetadata_SqlInjectionWithExec_ThrowsException() {
+        String query = "SELECT * FROM customers; EXEC sp_executesql N'DROP TABLE customers'";
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> sqlMetadata.getColumnMetadata(query)
+        );
+
+        assertEquals("Invalid SQL query structure detected", exception.getMessage());
+    }
+
+    @Test
+    void testGetColumnMetadata_SqlInjectionWithExecute_ThrowsException() {
+        String query = "SELECT * FROM customers; EXECUTE sp_dropuser 'user1'";
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> sqlMetadata.getColumnMetadata(query)
+        );
+
+        assertEquals("Invalid SQL query structure detected", exception.getMessage());
+    }
+
+    @Test
+    void testGetColumnMetadata_InvalidQueryStructure_ThrowsException() {
+        String query = "GRANT ALL PRIVILEGES ON customers TO user1";
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> sqlMetadata.getColumnMetadata(query)
+        );
+
+        assertEquals("Invalid SQL query structure detected", exception.getMessage());
+    }
+
     @Test
     void testGetColumnMetadata_SQLException_PropagatesException() {
         // Given - use valid SQL structure that will pass validation but fail on execution
