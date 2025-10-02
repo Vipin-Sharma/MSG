@@ -6,9 +6,13 @@ import com.jfeatures.msg.codegen.domain.ProjectDirectoryStructure;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class ProjectDirectoryBuilderTest {
 
@@ -19,29 +23,20 @@ class ProjectDirectoryBuilderTest {
         builder = new ProjectDirectoryBuilder();
     }
 
-    @Test
-    void testBuildDirectoryStructure_NullPath() {
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> builder.buildDirectoryStructure(null)
+    private static Stream<Arguments> invalidPathProvider() {
+        return Stream.of(
+            Arguments.of(null, "null path"),
+            Arguments.of("", "empty path"),
+            Arguments.of("   ", "whitespace path")
         );
-        assertEquals("Base project path cannot be null or empty", exception.getMessage());
     }
 
-    @Test
-    void testBuildDirectoryStructure_EmptyPath() {
+    @ParameterizedTest(name = "{1} should throw IllegalArgumentException")
+    @MethodSource("invalidPathProvider")
+    void testBuildDirectoryStructure_InvalidPath(String path, String description) {
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> builder.buildDirectoryStructure("")
-        );
-        assertEquals("Base project path cannot be null or empty", exception.getMessage());
-    }
-
-    @Test
-    void testBuildDirectoryStructure_WhitespacePath() {
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> builder.buildDirectoryStructure("   ")
+            () -> builder.buildDirectoryStructure(path)
         );
         assertEquals("Base project path cannot be null or empty", exception.getMessage());
     }

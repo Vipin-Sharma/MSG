@@ -10,8 +10,12 @@ import java.io.IOException;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Reality-based tests for GenerateInsertController following project patterns.
@@ -149,28 +153,19 @@ class GenerateInsertControllerTest {
         assertTrue(code.contains(".insert"));  // General pattern for DAO method call
     }
 
-    @Test
-    void testCreateInsertController_WithNullBusinessName_ThrowsException() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                GenerateInsertController.createInsertController(null, validInsertMetadata)
+    private static Stream<Arguments> invalidBusinessNameProvider() {
+        return Stream.of(
+            Arguments.of("null business name", null),
+            Arguments.of("empty business name", ""),
+            Arguments.of("whitespace business name", "   ")
         );
-
-        assertEquals("Business purpose of SQL cannot be null or empty", exception.getMessage());
     }
 
-    @Test
-    void testCreateInsertController_WithEmptyBusinessName_ThrowsException() {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("invalidBusinessNameProvider")
+    void testCreateInsertController_WithInvalidBusinessName_ThrowsException(String testName, String businessName) {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                GenerateInsertController.createInsertController("", validInsertMetadata)
-        );
-
-        assertEquals("Business purpose of SQL cannot be null or empty", exception.getMessage());
-    }
-
-    @Test
-    void testCreateInsertController_WithWhitespaceBusinessName_ThrowsException() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                GenerateInsertController.createInsertController("   ", validInsertMetadata)
+                GenerateInsertController.createInsertController(businessName, validInsertMetadata)
         );
 
         assertEquals("Business purpose of SQL cannot be null or empty", exception.getMessage());

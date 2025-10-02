@@ -10,8 +10,12 @@ import java.io.IOException;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Reality-based tests for GenerateInsertDTO following project patterns.
@@ -118,31 +122,22 @@ class GenerateInsertDTOTest {
         assertFalse(code.contains("createdDate is required for user creation"));
     }
 
-    @Test
-    void testCreateInsertDTO_WithNullBusinessName_ThrowsException() {
+    private static Stream<Arguments> invalidBusinessNameProvider() {
+        return Stream.of(
+            Arguments.of("null business name", null),
+            Arguments.of("empty business name", ""),
+            Arguments.of("whitespace business name", "   ")
+        );
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("invalidBusinessNameProvider")
+    void testCreateInsertDTO_WithInvalidBusinessName_ThrowsException(String testName, String businessName) {
         // Test error conditions based on research observations
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                GenerateInsertDTO.createInsertDTO(null, validInsertMetadata)
+                GenerateInsertDTO.createInsertDTO(businessName, validInsertMetadata)
         );
-        
-        assertEquals("Business purpose of SQL cannot be null or empty", exception.getMessage());
-    }
 
-    @Test
-    void testCreateInsertDTO_WithEmptyBusinessName_ThrowsException() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                GenerateInsertDTO.createInsertDTO("", validInsertMetadata)
-        );
-        
-        assertEquals("Business purpose of SQL cannot be null or empty", exception.getMessage());
-    }
-
-    @Test
-    void testCreateInsertDTO_WithWhitespaceBusinessName_ThrowsException() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                GenerateInsertDTO.createInsertDTO("   ", validInsertMetadata)
-        );
-        
         assertEquals("Business purpose of SQL cannot be null or empty", exception.getMessage());
     }
 

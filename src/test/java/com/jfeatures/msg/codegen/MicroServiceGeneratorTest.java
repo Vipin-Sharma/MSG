@@ -12,8 +12,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.concurrent.Callable;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.MockedStatic;
 import picocli.CommandLine;
 
@@ -245,43 +249,24 @@ class MicroServiceGeneratorTest {
         }
     }
 
-    @Test
-    void testValidateInputParameters_WithNullBusinessName_ThrowsException() {
+    private static Stream<Arguments> invalidBusinessNameProvider() {
+        return Stream.of(
+            Arguments.of("null business name", null),
+            Arguments.of("empty business name", ""),
+            Arguments.of("whitespace business name", "   ")
+        );
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("invalidBusinessNameProvider")
+    void testValidateInputParameters_WithInvalidBusinessName_ThrowsException(String testName, String businessName) {
         // This test covers the validateInputParameters() method which currently has 0% coverage
         MicroServiceGenerator generator = new MicroServiceGenerator();
-        
-        // Set null business name
-        setPrivateField(generator, "businessPurposeName", null);
+
+        // Set business name
+        setPrivateField(generator, "businessPurposeName", businessName);
         setPrivateField(generator, "destinationDirectory", tempDir.toString());
-        
-        // Should throw IllegalArgumentException
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, generator::call);
 
-        assertEquals(ProjectConstants.ERROR_NULL_BUSINESS_NAME, exception.getMessage());
-    }
-
-    @Test
-    void testValidateInputParameters_WithEmptyBusinessName_ThrowsException() {
-        MicroServiceGenerator generator = new MicroServiceGenerator();
-        
-        // Set empty business name
-        setPrivateField(generator, "businessPurposeName", "");
-        setPrivateField(generator, "destinationDirectory", tempDir.toString());
-        
-        // Should throw IllegalArgumentException
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, generator::call);
-
-        assertEquals(ProjectConstants.ERROR_NULL_BUSINESS_NAME, exception.getMessage());
-    }
-
-    @Test
-    void testValidateInputParameters_WithWhitespaceBusinessName_ThrowsException() {
-        MicroServiceGenerator generator = new MicroServiceGenerator();
-        
-        // Set whitespace-only business name
-        setPrivateField(generator, "businessPurposeName", "   ");
-        setPrivateField(generator, "destinationDirectory", tempDir.toString());
-        
         // Should throw IllegalArgumentException
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, generator::call);
 

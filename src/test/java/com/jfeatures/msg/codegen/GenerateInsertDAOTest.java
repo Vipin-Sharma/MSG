@@ -9,8 +9,12 @@ import java.io.IOException;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Reality-based tests for GenerateInsertDAO based on research findings.
@@ -91,31 +95,22 @@ class GenerateInsertDAOTest {
         assertTrue(code.contains("sqlParamMap.put(\"id\""));  // Single parameter mapping
     }
 
-    @Test
-    void testCreateInsertDAO_WithNullBusinessName_ThrowsException() {
+    private static Stream<Arguments> invalidBusinessNameProvider() {
+        return Stream.of(
+            Arguments.of("null business name", null),
+            Arguments.of("empty business name", ""),
+            Arguments.of("whitespace business name", "   ")
+        );
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("invalidBusinessNameProvider")
+    void testCreateInsertDAO_WithInvalidBusinessName_ThrowsException(String testName, String businessName) {
         // Test error conditions based on research observations
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                GenerateInsertDAO.createInsertDAO(null, validMetadata)
+                GenerateInsertDAO.createInsertDAO(businessName, validMetadata)
         );
-        
-        assertEquals("Business purpose of SQL cannot be null or empty", exception.getMessage());
-    }
 
-    @Test
-    void testCreateInsertDAO_WithEmptyBusinessName_ThrowsException() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                GenerateInsertDAO.createInsertDAO("", validMetadata)
-        );
-        
-        assertEquals("Business purpose of SQL cannot be null or empty", exception.getMessage());
-    }
-
-    @Test
-    void testCreateInsertDAO_WithWhitespaceBusinessName_ThrowsException() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                GenerateInsertDAO.createInsertDAO("   ", validMetadata)
-        );
-        
         assertEquals("Business purpose of SQL cannot be null or empty", exception.getMessage());
     }
 

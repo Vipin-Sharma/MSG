@@ -4,9 +4,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class MicroserviceDirectoryCleanerTest {
 
@@ -17,29 +21,20 @@ class MicroserviceDirectoryCleanerTest {
         cleaner = new MicroserviceDirectoryCleaner();
     }
 
-    @Test
-    void testCleanGeneratedCodeDirectories_NullDestination() {
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> cleaner.cleanGeneratedCodeDirectories(null)
+    private static Stream<Arguments> invalidDestinationProvider() {
+        return Stream.of(
+            Arguments.of(null, "null destination"),
+            Arguments.of("", "empty destination"),
+            Arguments.of("   ", "whitespace destination")
         );
-        assertEquals("Destination path cannot be null or empty", exception.getMessage());
     }
 
-    @Test
-    void testCleanGeneratedCodeDirectories_EmptyDestination() {
+    @ParameterizedTest(name = "{1} should throw IllegalArgumentException")
+    @MethodSource("invalidDestinationProvider")
+    void testCleanGeneratedCodeDirectories_InvalidDestination(String destination, String description) {
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> cleaner.cleanGeneratedCodeDirectories("")
-        );
-        assertEquals("Destination path cannot be null or empty", exception.getMessage());
-    }
-
-    @Test
-    void testCleanGeneratedCodeDirectories_WhitespaceDestination() {
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> cleaner.cleanGeneratedCodeDirectories("   ")
+            () -> cleaner.cleanGeneratedCodeDirectories(destination)
         );
         assertEquals("Destination path cannot be null or empty", exception.getMessage());
     }
