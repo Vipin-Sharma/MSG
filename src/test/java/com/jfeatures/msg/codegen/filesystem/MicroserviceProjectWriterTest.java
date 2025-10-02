@@ -205,25 +205,25 @@ class MicroserviceProjectWriterTest {
         assertTrue(configContent.contains("DatabaseConfig"));
     }
 
-    @Test 
+    @Test
     void testWriteMicroserviceProject_AllStatementTypes(@TempDir Path tempDir) throws IOException {
         // Test different statement types: SELECT, INSERT, UPDATE, DELETE
         SqlStatementType[] statementTypes = {SqlStatementType.SELECT, SqlStatementType.INSERT, SqlStatementType.UPDATE, SqlStatementType.DELETE};
-        
+
         for (SqlStatementType statementType : statementTypes) {
             Path typeDir = tempDir.resolve(statementType.toString().toLowerCase());
             Files.createDirectories(typeDir);
-            
+
             // Create template files for this test
             Path resourcesDir = typeDir.resolve("test-classes");
             Files.createDirectories(resourcesDir);
             Files.write(resourcesDir.resolve("pom_file.xml"), "<!-- POM -->".getBytes());
             Files.write(resourcesDir.resolve("application_properties_file.txt"), "# Properties".getBytes());
-            
+
             // Setup mock for this statement type
             TypeSpec mockTypeSpec = TypeSpec.classBuilder("TestClass").build();
             JavaFile validJavaFile = JavaFile.builder("com.jfeatures.msg", mockTypeSpec).build();
-            
+
             when(mockMicroservice.statementType()).thenReturn(statementType);
             when(mockMicroservice.businessDomainName()).thenReturn("Test");
             when(mockMicroservice.springBootApplication()).thenReturn(validJavaFile);
@@ -236,5 +236,77 @@ class MicroserviceProjectWriterTest {
             assertDoesNotThrow(() -> writer.writeMicroserviceProject(mockMicroservice, typeDir.toString()),
                              "Should handle " + statementType + " statement type");
         }
+    }
+
+    @Test
+    void testPathSecurity_DirectoryTraversalWithForwardSlash() {
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> writer.writeMicroserviceProject(mockMicroservice, "../../../etc/passwd")
+        );
+        assertTrue(exception.getMessage().contains("directory traversal"));
+    }
+
+    @Test
+    void testPathSecurity_DirectoryTraversalWithBackslash() {
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> writer.writeMicroserviceProject(mockMicroservice, "..\\..\\..\\windows\\system32")
+        );
+        assertTrue(exception.getMessage().contains("directory traversal"));
+    }
+
+    @Test
+    void testPathSecurity_AccessToSystemDirectory_Etc() {
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> writer.writeMicroserviceProject(mockMicroservice, "/etc/myproject")
+        );
+        assertTrue(exception.getMessage().contains("system directories"));
+    }
+
+    @Test
+    void testPathSecurity_AccessToSystemDirectory_Bin() {
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> writer.writeMicroserviceProject(mockMicroservice, "/bin/myproject")
+        );
+        assertTrue(exception.getMessage().contains("system directories"));
+    }
+
+    @Test
+    void testPathSecurity_AccessToSystemDirectory_Usr() {
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> writer.writeMicroserviceProject(mockMicroservice, "/usr/myproject")
+        );
+        assertTrue(exception.getMessage().contains("system directories"));
+    }
+
+    @Test
+    void testPathSecurity_AccessToSystemDirectory_Var() {
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> writer.writeMicroserviceProject(mockMicroservice, "/var/myproject")
+        );
+        assertTrue(exception.getMessage().contains("system directories"));
+    }
+
+    @Test
+    void testPathSecurity_AccessToSystemDirectory_Sys() {
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> writer.writeMicroserviceProject(mockMicroservice, "/sys/myproject")
+        );
+        assertTrue(exception.getMessage().contains("system directories"));
+    }
+
+    @Test
+    void testPathSecurity_AccessToSystemDirectory_Proc() {
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> writer.writeMicroserviceProject(mockMicroservice, "/proc/myproject")
+        );
+        assertTrue(exception.getMessage().contains("system directories"));
     }
 }
