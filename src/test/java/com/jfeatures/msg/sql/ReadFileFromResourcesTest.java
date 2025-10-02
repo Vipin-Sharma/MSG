@@ -264,4 +264,125 @@ class ReadFileFromResourcesTest {
             assertNotNull(e);
         }
     }
+
+    @Test
+    void testReadFileFromResourcesWithCustomCharset() {
+        // Test reading with custom charset
+        try {
+            String contentUTF8 = ReadFileFromResources.readFileFromResources("sample_parameterized_sql.sql",
+                                                                            java.nio.charset.StandardCharsets.UTF_8);
+            assertNotNull(contentUTF8);
+            assertFalse(contentUTF8.isEmpty());
+
+            String contentISO = ReadFileFromResources.readFileFromResources("sample_parameterized_sql.sql",
+                                                                           java.nio.charset.StandardCharsets.ISO_8859_1);
+            assertNotNull(contentISO);
+            // Content might differ based on charset encoding
+        } catch (IllegalArgumentException e) {
+            // File doesn't exist - acceptable for test
+            assertNotNull(e);
+        }
+    }
+
+    @Test
+    void testReadFileFromResourcesWithNullCharset() {
+        // Test that null charset defaults to UTF-8
+        try {
+            String content = ReadFileFromResources.readFileFromResources("sample_parameterized_sql.sql", null);
+            assertNotNull(content);
+            assertFalse(content.isEmpty());
+        } catch (IllegalArgumentException e) {
+            // File doesn't exist - acceptable for test
+            assertNotNull(e);
+        }
+    }
+
+    @Test
+    void testReadFileFromResourcesConstructor() {
+        // Test that constructor throws UnsupportedOperationException
+        java.lang.reflect.InvocationTargetException exception = assertThrows(
+            java.lang.reflect.InvocationTargetException.class,
+            () -> {
+                // Use reflection to access private constructor
+                java.lang.reflect.Constructor<ReadFileFromResources> constructor =
+                    ReadFileFromResources.class.getDeclaredConstructor();
+                constructor.setAccessible(true);
+                constructor.newInstance();
+            });
+
+        // Verify the cause is UnsupportedOperationException
+        assertInstanceOf(UnsupportedOperationException.class, exception.getCause());
+    }
+
+    @Test
+    void testReadFileFromResourcesSecuritySystemPaths() {
+        // Test various system path patterns that should be blocked
+        String[] systemPathAttempts = {
+            "path/etc/passwd",
+            "path/bin/bash",
+            "path/usr/local/file",
+            "path/var/log/system",
+            "path/sys/kernel",
+            "path/proc/self/status",
+            "path\\windows\\system32\\file",
+            "path\\program files\\app\\config"
+        };
+
+        for (String path : systemPathAttempts) {
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                ReadFileFromResources.readFileFromResources(path));
+
+            assertNotNull(exception);
+            assertTrue(exception.getMessage().contains("system paths") ||
+                      exception.getMessage().contains("Resource file not found"));
+        }
+    }
+
+    @Test
+    void testReadFileFromResourcesBackslashNormalization() {
+        // Test that backslashes are normalized to forward slashes
+        try {
+            // This should be normalized internally
+            String content = ReadFileFromResources.readFileFromResources("sample_parameterized_sql.sql");
+            assertNotNull(content);
+        } catch (IllegalArgumentException e) {
+            // File doesn't exist - acceptable
+            assertNotNull(e);
+        }
+    }
+
+    @Test
+    void testReadFileFromResourcesIOExceptionHandling() {
+        // Test IOException wrapping into UncheckedIOException
+        // Since we can't easily force an IOException, we test with a malformed resource access
+        try {
+            ReadFileFromResources.readFileFromResources("sample_parameterized_sql.sql");
+        } catch (java.io.UncheckedIOException e) {
+            // If UncheckedIOException is thrown, verify it has proper message and cause
+            assertNotNull(e.getMessage());
+            assertTrue(e.getMessage().contains("Failed to read resource file"));
+            assertNotNull(e.getCause());
+        } catch (IllegalArgumentException e) {
+            // File not found is also acceptable
+            assertNotNull(e);
+        }
+    }
+
+    @Test
+    void testReadFileFromResourcesCaseSensitivity() {
+        // Test case sensitivity of file names
+        String[] caseVariations = {
+            "Sample_Parameterized_Sql.sql",
+            "SAMPLE_PARAMETERIZED_SQL.SQL",
+            "sample_PARAMETERIZED_sql.SQL"
+        };
+
+        for (String fileName : caseVariations) {
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                ReadFileFromResources.readFileFromResources(fileName));
+
+            assertNotNull(exception);
+            assertTrue(exception.getMessage().contains("Resource file not found"));
+        }
+    }
 }

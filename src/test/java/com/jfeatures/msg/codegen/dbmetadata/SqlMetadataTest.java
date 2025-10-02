@@ -563,4 +563,124 @@ class SqlMetadataTest {
             when(resultSetMetaData.isSigned(i)).thenReturn(true);
         }
     }
+
+    @Test
+    void testGetColumnMetadata_NullQuery_ThrowsException() {
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> sqlMetadata.getColumnMetadata(null)
+        );
+        assertEquals("SQL query cannot be null or empty", exception.getMessage());
+    }
+
+    @Test
+    void testGetColumnMetadata_EmptyQuery_ThrowsException() {
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> sqlMetadata.getColumnMetadata("")
+        );
+        assertEquals("SQL query cannot be null or empty", exception.getMessage());
+    }
+
+    @Test
+    void testGetColumnMetadata_BlankQuery_ThrowsException() {
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> sqlMetadata.getColumnMetadata("   ")
+        );
+        assertEquals("SQL query cannot be null or empty", exception.getMessage());
+    }
+
+    @Test
+    void testGetColumnMetadata_WritableColumns_HandlesCorrectly() throws SQLException {
+        String query = "SELECT id, editable_field FROM test_table";
+
+        // Setup metadata with one writable column
+        when(resultSetMetaData.getColumnCount()).thenReturn(2);
+
+        when(resultSetMetaData.getColumnName(1)).thenReturn("id");
+        when(resultSetMetaData.getColumnLabel(1)).thenReturn("id");
+        when(resultSetMetaData.getTableName(1)).thenReturn("test_table");
+        when(resultSetMetaData.getColumnType(1)).thenReturn(Types.INTEGER);
+        when(resultSetMetaData.getColumnTypeName(1)).thenReturn("INT");
+        when(resultSetMetaData.getColumnClassName(1)).thenReturn("java.lang.Integer");
+        when(resultSetMetaData.isReadOnly(1)).thenReturn(true);
+        when(resultSetMetaData.isWritable(1)).thenReturn(false);
+        when(resultSetMetaData.isDefinitelyWritable(1)).thenReturn(false);
+
+        when(resultSetMetaData.getColumnName(2)).thenReturn("editable_field");
+        when(resultSetMetaData.getColumnLabel(2)).thenReturn("editable_field");
+        when(resultSetMetaData.getTableName(2)).thenReturn("test_table");
+        when(resultSetMetaData.getColumnType(2)).thenReturn(Types.VARCHAR);
+        when(resultSetMetaData.getColumnTypeName(2)).thenReturn("VARCHAR");
+        when(resultSetMetaData.getColumnClassName(2)).thenReturn("java.lang.String");
+        when(resultSetMetaData.isReadOnly(2)).thenReturn(false);
+        when(resultSetMetaData.isWritable(2)).thenReturn(true);
+        when(resultSetMetaData.isDefinitelyWritable(2)).thenReturn(true);
+
+        // Common metadata
+        for (int i = 1; i <= 2; i++) {
+            when(resultSetMetaData.getColumnDisplaySize(i)).thenReturn(20);
+            when(resultSetMetaData.getPrecision(i)).thenReturn(20);
+            when(resultSetMetaData.getScale(i)).thenReturn(0);
+            when(resultSetMetaData.isNullable(i)).thenReturn(1);
+            when(resultSetMetaData.isAutoIncrement(i)).thenReturn(false);
+            when(resultSetMetaData.isCaseSensitive(i)).thenReturn(false);
+            when(resultSetMetaData.isCurrency(i)).thenReturn(false);
+            when(resultSetMetaData.isSigned(i)).thenReturn(true);
+        }
+
+        when(jdbcTemplate.query(eq(query), any(RowMapper.class))).thenAnswer(invocation -> {
+            RowMapper<ColumnMetadata> rowMapper = invocation.getArgument(1);
+            when(resultSet.getMetaData()).thenReturn(resultSetMetaData);
+            rowMapper.mapRow(resultSet, 0);
+            return null;
+        });
+
+        List<ColumnMetadata> result = sqlMetadata.getColumnMetadata(query);
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertFalse(result.get(0).isWritable());
+        assertTrue(result.get(1).isWritable());
+        assertTrue(result.get(1).isDefinitelyWritable());
+    }
+
+    @Test
+    void testGetColumnMetadata_CurrencyColumn_HandlesCorrectly() throws SQLException {
+        String query = "SELECT price FROM products";
+
+        when(resultSetMetaData.getColumnCount()).thenReturn(1);
+        when(resultSetMetaData.getColumnName(1)).thenReturn("price");
+        when(resultSetMetaData.getColumnLabel(1)).thenReturn("price");
+        when(resultSetMetaData.getTableName(1)).thenReturn("products");
+        when(resultSetMetaData.getColumnType(1)).thenReturn(Types.DECIMAL);
+        when(resultSetMetaData.getColumnTypeName(1)).thenReturn("MONEY");
+        when(resultSetMetaData.getColumnClassName(1)).thenReturn("java.math.BigDecimal");
+        when(resultSetMetaData.getColumnDisplaySize(1)).thenReturn(19);
+        when(resultSetMetaData.getPrecision(1)).thenReturn(19);
+        when(resultSetMetaData.getScale(1)).thenReturn(4);
+        when(resultSetMetaData.isNullable(1)).thenReturn(0);
+        when(resultSetMetaData.isAutoIncrement(1)).thenReturn(false);
+        when(resultSetMetaData.isCaseSensitive(1)).thenReturn(false);
+        when(resultSetMetaData.isReadOnly(1)).thenReturn(true);
+        when(resultSetMetaData.isWritable(1)).thenReturn(false);
+        when(resultSetMetaData.isDefinitelyWritable(1)).thenReturn(false);
+        when(resultSetMetaData.isCurrency(1)).thenReturn(true);
+        when(resultSetMetaData.isSigned(1)).thenReturn(true);
+
+        when(jdbcTemplate.query(eq(query), any(RowMapper.class))).thenAnswer(invocation -> {
+            RowMapper<ColumnMetadata> rowMapper = invocation.getArgument(1);
+            when(resultSet.getMetaData()).thenReturn(resultSetMetaData);
+            rowMapper.mapRow(resultSet, 0);
+            return null;
+        });
+
+        List<ColumnMetadata> result = sqlMetadata.getColumnMetadata(query);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertTrue(result.get(0).isCurrency());
+        assertEquals(4, result.get(0).getScale());
+    }
 }
