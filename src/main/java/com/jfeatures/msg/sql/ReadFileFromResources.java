@@ -76,21 +76,29 @@ public final class ReadFileFromResources {
     
     /**
      * Validates file name to prevent directory traversal attacks when accessing resources.
-     * 
+     *
      * @param fileName the file name to validate
      * @throws IllegalArgumentException if the file name contains directory traversal patterns
      */
     private static void validateFileNameSecurity(String fileName) {
         // Check for directory traversal patterns and absolute paths
-        if (fileName.contains("../") || fileName.contains("..\\") || 
+        if (fileName.contains("../") || fileName.contains("..\\") ||
             fileName.startsWith("./") || fileName.contains("/../") ||
             fileName.startsWith("/") || fileName.startsWith("\\")) {
             throw new IllegalArgumentException("File name contains invalid directory traversal patterns: " + fileName);
         }
-        
-        // Ensure filename doesn't contain system paths
-        if (fileName.toLowerCase().matches(".*[/\\\\](etc|bin|usr|var|sys|proc|windows|program files).*")) {
-            throw new IllegalArgumentException("Access to system paths is not allowed: " + fileName);
+
+        // Ensure filename doesn't contain system paths using string operations instead of regex
+        String lowerFileName = fileName.toLowerCase();
+        String[] systemPaths = {"etc/", "bin/", "usr/", "var/", "sys/", "proc/",
+                                "windows/", "program files/",
+                                "etc\\", "bin\\", "usr\\", "var\\", "sys\\", "proc\\",
+                                "windows\\", "program files\\"};
+
+        for (String systemPath : systemPaths) {
+            if (lowerFileName.contains("/" + systemPath) || lowerFileName.contains("\\" + systemPath)) {
+                throw new IllegalArgumentException("Access to system paths is not allowed: " + fileName);
+            }
         }
     }
 }

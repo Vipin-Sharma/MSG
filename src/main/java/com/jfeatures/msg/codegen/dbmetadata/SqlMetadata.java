@@ -90,23 +90,29 @@ public class SqlMetadata {
     /**
      * Validates SQL query structure to prevent basic SQL injection attacks.
      * Ensures the query follows expected patterns for SELECT, INSERT, UPDATE, DELETE operations.
-     * 
+     *
      * @param normalizedQuery the SQL query in uppercase and trimmed
      * @return true if the query structure is valid, false otherwise
      */
     private boolean isValidQueryStructure(String normalizedQuery) {
         // Allow standard CRUD operations and CTEs
-        if (!normalizedQuery.matches("^(WITH|SELECT|INSERT|UPDATE|DELETE)\\s+.*")) {
+        if (!normalizedQuery.startsWith("WITH ") &&
+            !normalizedQuery.startsWith("SELECT ") &&
+            !normalizedQuery.startsWith("INSERT ") &&
+            !normalizedQuery.startsWith("UPDATE ") &&
+            !normalizedQuery.startsWith("DELETE ")) {
             return false;
         }
 
         // Prevent dangerous SQL keywords and patterns (only multiple statements)
-        String[] dangerousPatterns = {
-            ";\\s*(DROP|CREATE|ALTER|EXEC|EXECUTE)\\s+"
-        };
-
-        for (String pattern : dangerousPatterns) {
-            if (normalizedQuery.matches(".*" + pattern + ".*")) {
+        // Using indexOf for better performance and to avoid ReDoS
+        if (normalizedQuery.contains(";")) {
+            String afterSemicolon = normalizedQuery.substring(normalizedQuery.indexOf(";") + 1).trim();
+            if (afterSemicolon.startsWith("DROP ") ||
+                afterSemicolon.startsWith("CREATE ") ||
+                afterSemicolon.startsWith("ALTER ") ||
+                afterSemicolon.startsWith("EXEC ") ||
+                afterSemicolon.startsWith("EXECUTE ")) {
                 return false;
             }
         }
