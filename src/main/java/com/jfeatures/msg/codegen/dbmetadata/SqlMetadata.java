@@ -5,12 +5,16 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 
 @Component
 public class SqlMetadata {
+
+    private static final Logger logger = LoggerFactory.getLogger(SqlMetadata.class);
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -72,8 +76,12 @@ public class SqlMetadata {
             }
             });
         } catch (org.springframework.dao.DataAccessException e) {
-            // Re-throw DataAccessException to maintain test compatibility
-            throw e;
+            // Log error with contextual information for debugging
+            logger.error("Failed to fetch column metadata for query: {}. Error: {}",
+                         query.substring(0, Math.min(100, query.length())), e.getMessage(), e);
+            // Re-throw with additional context to maintain test compatibility and provide debugging info
+            throw new org.springframework.dao.DataAccessException(
+                "Unable to retrieve column metadata from database for the provided SQL query", e) {};
         }
         
         return columnMetadataList;

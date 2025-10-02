@@ -96,7 +96,7 @@ class SqlMetadataTest {
     }
     
     @Test
-    void testGetColumnMetadata_EmptyResult_ReturnsEmptyList() throws SQLException {
+    void testGetColumnMetadata_EmptyResult_ReturnsEmptyList() {
         // Given
         String query = "SELECT customer_id FROM customers WHERE 1 = 0"; // Query that returns no rows
         
@@ -261,7 +261,7 @@ class SqlMetadataTest {
     }
     
     @Test
-    void testGetColumnMetadata_SQLException_PropagatesException() throws SQLException {
+    void testGetColumnMetadata_SQLException_PropagatesException() {
         // Given - use valid SQL structure that will pass validation but fail on execution
         String query = "SELECT column1 FROM non_existent_table";
         DataAccessException dataAccessException = new DataAccessException("Invalid SQL syntax") {};
@@ -275,7 +275,7 @@ class SqlMetadataTest {
             () -> sqlMetadata.getColumnMetadata(query)
         );
         
-        assertEquals("Invalid SQL syntax", exception.getMessage());
+        assertEquals("Unable to retrieve column metadata from database for the provided SQL query", exception.getMessage());
         verify(jdbcTemplate).query(eq(query), any(RowMapper.class));
     }
     

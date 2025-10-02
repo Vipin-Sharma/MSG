@@ -65,9 +65,9 @@ class ProjectConstantsTest {
         String expectedSrcTestJava = "src" + File.separator + "test" + File.separator + "java";
         String expectedSrcMainResources = "src" + File.separator + "main" + File.separator + "resources";
 
-        assertEquals(expectedSrcMainJava, ProjectConstants.SRC_MAIN_JAVA_PATH);
-        assertEquals(expectedSrcTestJava, ProjectConstants.SRC_TEST_JAVA_PATH);
-        assertEquals(expectedSrcMainResources, ProjectConstants.SRC_MAIN_RESOURCES_PATH);
+        assertEquals(ProjectConstants.SRC_MAIN_JAVA_PATH, expectedSrcMainJava);
+        assertEquals(ProjectConstants.SRC_TEST_JAVA_PATH, expectedSrcTestJava);
+        assertEquals(ProjectConstants.SRC_MAIN_RESOURCES_PATH, expectedSrcMainResources);
     }
 
     @Test
@@ -98,7 +98,7 @@ class ProjectConstantsTest {
     void testPackagePaths() {
         // Test package path components
         String expectedJfeaturesPath = "com" + File.separator + "jfeatures";
-        assertEquals(expectedJfeaturesPath, ProjectConstants.JFEATURES_PACKAGE_PATH);
+        assertEquals(ProjectConstants.JFEATURES_PACKAGE_PATH, expectedJfeaturesPath);
     }
 
     @Test

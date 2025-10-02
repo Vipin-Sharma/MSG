@@ -22,12 +22,13 @@ class BasicIntegrationTest {
 
     @Test
     void shouldHaveDefaultValues() {
-        // Given
+        // When
         MicroServiceGenerator generator = new MicroServiceGenerator();
-        
-        // Then - The generator should be created successfully with defaults
-        // We can't access private fields directly, but we know it was created
-        assertThat(generator).isNotNull();
+
+        // Then - The generator should be created successfully with defaults and implement Callable
+        assertThat(generator)
+            .isNotNull()
+            .isInstanceOf(java.util.concurrent.Callable.class);
     }
 
     @Test

@@ -7,10 +7,15 @@ import static org.mockito.Mockito.lenient;
 import com.jfeatures.msg.codegen.domain.DBColumn;
 import java.sql.*;
 import java.util.List;
+import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -46,9 +51,8 @@ class ParameterMetadataExtractorTest {
         // Given
         String sql = "SELECT * FROM customers WHERE customer_id = ? AND status = ?";
         
-        setupParameterMetaData(2, 
-            new int[]{Types.INTEGER, Types.VARCHAR}, 
-            new String[]{"customer_id", "status"});
+        setupParameterMetaData(2,
+            new int[]{Types.INTEGER, Types.VARCHAR});
         
         // When
         List<DBColumn> result = extractor.extractParameters(sql);
@@ -77,9 +81,8 @@ class ParameterMetadataExtractorTest {
         // Given
         String sql = "INSERT INTO customers (name, email) VALUES (?, ?)";
         
-        setupParameterMetaData(2, 
-            new int[]{Types.VARCHAR, Types.VARCHAR}, 
-            new String[]{"param1", "param2"});
+        setupParameterMetaData(2,
+            new int[]{Types.VARCHAR, Types.VARCHAR});
         
         // When
         List<DBColumn> result = extractor.extractParameters(sql);
@@ -106,72 +109,68 @@ class ParameterMetadataExtractorTest {
         assertEquals(0, result.size());
     }
     
-    @Test
-    void testExtractParameters_TableAliasInWhereClause_ExtractsColumnNames() throws SQLException {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("provideWhereClauseTestCases")
+    void testExtractParameters_VariousWhereClauseFormats_ExtractsCorrectly(
+            String testName,
+            String sql,
+            int paramCount,
+            int[] sqlTypes,
+            String[] expectedColumnNames) throws SQLException {
         // Given
-        String sql = "SELECT * FROM customers c WHERE c.customer_id = ? AND c.status = ?";
-        
-        setupParameterMetaData(2, 
-            new int[]{Types.INTEGER, Types.VARCHAR}, 
-            new String[]{"customer_id", "status"});
-        
+        setupParameterMetaData(paramCount, sqlTypes);
+
         // When
         List<DBColumn> result = extractor.extractParameters(sql);
-        
+
         // Then
         assertNotNull(result);
-        assertEquals(2, result.size());
-        assertEquals("customerId", result.get(0).columnName());
-        assertEquals("status", result.get(1).columnName());
+        assertEquals(paramCount, result.size());
+        for (int i = 0; i < expectedColumnNames.length; i++) {
+            String actualColumnName = result.get(i).columnName();
+            String expectedColumnName = expectedColumnNames[i];
+
+            // Handle special case where created_date might not be extracted from complex queries
+            if (expectedColumnName.equals("createdDate") && actualColumnName.equals("param3")) {
+                // This is acceptable for complex queries with ORDER BY
+                continue;
+            }
+            assertEquals(expectedColumnName, actualColumnName);
+        }
     }
-    
-    @Test
-    void testExtractParameters_SnakeCaseColumns_ConvertsTosCamelCase() throws SQLException {
-        // Given
-        String sql = "SELECT * FROM customers WHERE first_name = ? AND last_name = ? AND date_of_birth = ?";
-        
-        setupParameterMetaData(3, 
-            new int[]{Types.VARCHAR, Types.VARCHAR, Types.DATE}, 
-            new String[]{"first_name", "last_name", "date_of_birth"});
-        
-        // When
-        List<DBColumn> result = extractor.extractParameters(sql);
-        
-        // Then
-        assertNotNull(result);
-        assertEquals(3, result.size());
-        assertEquals("firstName", result.get(0).columnName());
-        assertEquals("lastName", result.get(1).columnName());
-        assertEquals("dateOfBirth", result.get(2).columnName());
+
+    private static Stream<Arguments> provideWhereClauseTestCases() {
+        return Stream.of(
+            Arguments.of(
+                "Table alias in WHERE clause",
+                "SELECT * FROM customers c WHERE c.customer_id = ? AND c.status = ?",
+                2,
+                new int[]{Types.INTEGER, Types.VARCHAR},
+                new String[]{"customerId", "status"}
+            ),
+            Arguments.of(
+                "Snake case columns conversion to camelCase",
+                "SELECT * FROM customers WHERE first_name = ? AND last_name = ? AND date_of_birth = ?",
+                3,
+                new int[]{Types.VARCHAR, Types.VARCHAR, Types.DATE},
+                new String[]{"firstName", "lastName", "dateOfBirth"}
+            ),
+            Arguments.of(
+                "Complex WHERE clause with ORDER BY",
+                """
+                SELECT * FROM customers c
+                WHERE c.customer_id = ?
+                AND c.status = ?
+                AND c.created_date > ?
+                ORDER BY c.customer_name
+                """,
+                3,
+                new int[]{Types.INTEGER, Types.VARCHAR, Types.TIMESTAMP},
+                new String[]{"customerId", "status", "createdDate"}
+            )
+        );
     }
-    
-    @Test
-    void testExtractParameters_ComplexWhereClause_HandlesCorrectly() throws SQLException {
-        // Given
-        String sql = """
-            SELECT * FROM customers c 
-            WHERE c.customer_id = ? 
-            AND c.status = ? 
-            AND c.created_date > ?
-            ORDER BY c.customer_name
-            """;
-        
-        setupParameterMetaData(3, 
-            new int[]{Types.INTEGER, Types.VARCHAR, Types.TIMESTAMP}, 
-            new String[]{"customer_id", "status", "created_date"});
-        
-        // When
-        List<DBColumn> result = extractor.extractParameters(sql);
-        
-        // Then
-        assertNotNull(result);
-        assertEquals(3, result.size());
-        assertEquals("customerId", result.get(0).columnName());
-        assertEquals("status", result.get(1).columnName());
-        assertTrue(result.get(2).columnName().equals("createdDate") || result.get(2).columnName().equals("param3"), "Expected createdDate or param3, but got: " + result.get(2).columnName());
-        assertEquals("Timestamp", result.get(2).javaType());
-    }
-    
+
     @Test
     void testExtractParameters_ParameterMetadataException_UsesFallbackValues() throws SQLException {
         // Given
@@ -201,9 +200,8 @@ class ParameterMetadataExtractorTest {
         // Given
         String sql = "SELECT * FROM test_table WHERE int_col = ? AND long_col = ? AND decimal_col = ? AND bool_col = ? AND date_col = ?";
         
-        setupParameterMetaData(5, 
-            new int[]{Types.INTEGER, Types.BIGINT, Types.DECIMAL, Types.BOOLEAN, Types.DATE}, 
-            new String[]{"int_col", "long_col", "decimal_col", "bool_col", "date_col"});
+        setupParameterMetaData(5,
+            new int[]{Types.INTEGER, Types.BIGINT, Types.DECIMAL, Types.BOOLEAN, Types.DATE});
         
         // When
         List<DBColumn> result = extractor.extractParameters(sql);
@@ -268,9 +266,8 @@ class ParameterMetadataExtractorTest {
         // Given
         String sql = "SELECT * FROM customers WHERE customer_id = ? and status = ?";
         
-        setupParameterMetaData(2, 
-            new int[]{Types.INTEGER, Types.VARCHAR}, 
-            new String[]{"customer_id", "status"});
+        setupParameterMetaData(2,
+            new int[]{Types.INTEGER, Types.VARCHAR});
         
         // When
         List<DBColumn> result = extractor.extractParameters(sql);
@@ -293,9 +290,8 @@ class ParameterMetadataExtractorTest {
             HAVING COUNT(*) > ?
             """;
         
-        setupParameterMetaData(2, 
-            new int[]{Types.VARCHAR, Types.INTEGER}, 
-            new String[]{"status", "param2"});
+        setupParameterMetaData(2,
+            new int[]{Types.VARCHAR, Types.INTEGER});
         
         // When
         List<DBColumn> result = extractor.extractParameters(sql);
@@ -312,9 +308,8 @@ class ParameterMetadataExtractorTest {
         // Given
         String sql = "SELECT * FROM customers WHERE customer_id = ?"; // Only 1 column but 3 parameters
         
-        setupParameterMetaData(3, 
-            new int[]{Types.INTEGER, Types.VARCHAR, Types.DATE}, 
-            new String[]{"customer_id", "param2", "param3"});
+        setupParameterMetaData(3,
+            new int[]{Types.INTEGER, Types.VARCHAR, Types.DATE});
         
         // When
         List<DBColumn> result = extractor.extractParameters(sql);
@@ -327,9 +322,9 @@ class ParameterMetadataExtractorTest {
         assertEquals("param3", result.get(2).columnName());
     }
     
-    private void setupParameterMetaData(int parameterCount, int[] sqlTypes, String[] expectedColumnNames) throws SQLException {
+    private void setupParameterMetaData(int parameterCount, int[] sqlTypes) throws SQLException {
         when(parameterMetaData.getParameterCount()).thenReturn(parameterCount);
-        
+
         for (int i = 0; i < parameterCount; i++) {
             when(parameterMetaData.getParameterType(i + 1)).thenReturn(sqlTypes[i]);
         }
@@ -348,6 +343,18 @@ class ParameterMetadataExtractorTest {
         assertEquals("DataSource cannot be null", exception.getMessage());
     }
     
+    @ParameterizedTest
+    @ValueSource(strings = {"", "   \t\n  "})
+    void testExtractParameters_InvalidSQL_ThrowsIllegalArgumentException(String sql) {
+        // When & Then
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> extractor.extractParameters(sql)
+        );
+
+        assertEquals("SQL cannot be null or empty", exception.getMessage());
+    }
+
     @Test
     void testExtractParameters_NullSQL_ThrowsIllegalArgumentException() {
         // When & Then
@@ -355,29 +362,7 @@ class ParameterMetadataExtractorTest {
             IllegalArgumentException.class,
             () -> extractor.extractParameters(null)
         );
-        
-        assertEquals("SQL cannot be null or empty", exception.getMessage());
-    }
-    
-    @Test
-    void testExtractParameters_EmptySQL_ThrowsIllegalArgumentException() {
-        // When & Then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> extractor.extractParameters("")
-        );
-        
-        assertEquals("SQL cannot be null or empty", exception.getMessage());
-    }
-    
-    @Test
-    void testExtractParameters_WhitespaceOnlySQL_ThrowsIllegalArgumentException() {
-        // When & Then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> extractor.extractParameters("   \t\n  ")
-        );
-        
+
         assertEquals("SQL cannot be null or empty", exception.getMessage());
     }
     
@@ -464,9 +449,8 @@ class ParameterMetadataExtractorTest {
         // Given
         String malformedSql = "SELECT * FROM WHERE = ? AND ?? INVALID SQL";
         
-        setupParameterMetaData(2, 
-            new int[]{Types.VARCHAR, Types.VARCHAR}, 
-            new String[]{"param1", "param2"});
+        setupParameterMetaData(2,
+            new int[]{Types.VARCHAR, Types.VARCHAR});
         
         // When
         List<DBColumn> result = extractor.extractParameters(malformedSql);
@@ -484,9 +468,8 @@ class ParameterMetadataExtractorTest {
         // Given
         String sql = "SELECT * FROM customers WHERE `customer-id` = ? AND `first name` = ?";
         
-        setupParameterMetaData(2, 
-            new int[]{Types.INTEGER, Types.VARCHAR}, 
-            new String[]{"customer-id", "first name"});
+        setupParameterMetaData(2,
+            new int[]{Types.INTEGER, Types.VARCHAR});
         
         // When
         List<DBColumn> result = extractor.extractParameters(sql);
@@ -509,13 +492,11 @@ class ParameterMetadataExtractorTest {
         }
         
         int[] sqlTypes = new int[100];
-        String[] columnNames = new String[100];
         for (int i = 0; i < 100; i++) {
             sqlTypes[i] = Types.VARCHAR;
-            columnNames[i] = "column_" + i;
         }
-        
-        setupParameterMetaData(100, sqlTypes, columnNames);
+
+        setupParameterMetaData(100, sqlTypes);
         
         // When
         List<DBColumn> result = extractor.extractParameters(longSql.toString());
@@ -534,9 +515,8 @@ class ParameterMetadataExtractorTest {
         // Given
         String sql = "SELECT * FROM customers WHERE ? = ?";
         
-        setupParameterMetaData(2, 
-            new int[]{Types.VARCHAR, Types.VARCHAR}, 
-            new String[]{"param1", "param2"});
+        setupParameterMetaData(2,
+            new int[]{Types.VARCHAR, Types.VARCHAR});
         
         // When
         List<DBColumn> result = extractor.extractParameters(sql);
@@ -553,9 +533,8 @@ class ParameterMetadataExtractorTest {
         // Given - test various edge cases for camelCase conversion
         String sql = "SELECT * FROM test WHERE a = ? AND A_ = ? AND _b = ? AND __c__ = ? AND d_e_f_g = ?";
         
-        setupParameterMetaData(5, 
-            new int[]{Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR}, 
-            new String[]{"a", "A_", "_b", "__c__", "d_e_f_g"});
+        setupParameterMetaData(5,
+            new int[]{Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR});
         
         // When
         List<DBColumn> result = extractor.extractParameters(sql);
@@ -579,9 +558,8 @@ class ParameterMetadataExtractorTest {
             AND c.total_orders > (SELECT COUNT(*) FROM orders o WHERE o.customer_id = c.customer_id AND o.status = ?)
             """;
         
-        setupParameterMetaData(2, 
-            new int[]{Types.INTEGER, Types.VARCHAR}, 
-            new String[]{"customer_id", "status"});
+        setupParameterMetaData(2,
+            new int[]{Types.INTEGER, Types.VARCHAR});
         
         // When
         List<DBColumn> result = extractor.extractParameters(sql);

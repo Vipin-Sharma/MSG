@@ -2,15 +2,12 @@ package com.jfeatures.msg.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.jfeatures.msg.codegen.MicroServiceGenerator;
 import com.jfeatures.msg.codegen.util.SqlStatementDetector;
 import com.jfeatures.msg.codegen.util.SqlStatementType;
 import net.sf.jsqlparser.JSQLParserException;
-import java.nio.file.Path;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 /**
  * End-to-End integration tests for SQL statement detection and CRUD API generation.
@@ -33,13 +30,10 @@ import org.junit.jupiter.api.io.TempDir;
 @DisplayName("SQL Statement Detection and CRUD Generation End-to-End Integration Tests")
 class SqlStatementDetectionAndCrudGenerationE2ETest {
 
-    @TempDir
-    Path tempDir;
-
     @Test
     @DisplayName("When SELECT SQL provided should detect statement type and validate structure correctly")
     void whenSelectSqlProvidedShouldDetectStatementTypeAndValidateStructureCorrectly() throws JSQLParserException {
-        System.out.println("📋 Testing SELECT SQL detection and validation...");
+        log.info("📋 Testing SELECT SQL detection and validation...");
         
         // Given - SELECT SQL for customer data retrieval with parameters
         String selectSQL = "SELECT customer_id, customer_name, email FROM customers WHERE status = ? AND region = ?";
@@ -60,13 +54,13 @@ class SqlStatementDetectionAndCrudGenerationE2ETest {
                 .contains("WHERE")
                 .contains("customers");
                 
-        System.out.println("✅ SELECT SQL detection completed successfully");
+        log.info("✅ SELECT SQL detection completed successfully");
     }
 
     @Test
     @DisplayName("When INSERT SQL provided should detect statement type and validate parameter structure")
     void whenInsertSqlProvidedShouldDetectStatementTypeAndValidateParameterStructure() throws JSQLParserException {
-        System.out.println("📋 Testing INSERT SQL detection and validation...");
+        log.info("📋 Testing INSERT SQL detection and validation...");
         
         // Given - INSERT SQL for customer creation with parameters
         String insertSQL = "INSERT INTO customers (customer_name, email, status, region) VALUES (?, ?, ?, ?)";
@@ -86,13 +80,13 @@ class SqlStatementDetectionAndCrudGenerationE2ETest {
                 .contains("VALUES")
                 .contains("customers");
                 
-        System.out.println("✅ INSERT SQL detection completed successfully");
+        log.info("✅ INSERT SQL detection completed successfully");
     }
 
     @Test
     @DisplayName("When UPDATE SQL provided should detect statement type and validate SET clause structure")
     void whenUpdateSqlProvidedShouldDetectStatementTypeAndValidateSetClauseStructure() throws JSQLParserException {
-        System.out.println("📋 Testing UPDATE SQL detection and validation...");
+        log.info("📋 Testing UPDATE SQL detection and validation...");
         
         // Given - UPDATE SQL for customer modification with parameters
         String updateSQL = "UPDATE customers SET customer_name = ?, email = ? WHERE customer_id = ? AND status = ?";
@@ -113,13 +107,13 @@ class SqlStatementDetectionAndCrudGenerationE2ETest {
                 .contains("WHERE")
                 .contains("customers");
                 
-        System.out.println("✅ UPDATE SQL detection completed successfully");
+        log.info("✅ UPDATE SQL detection completed successfully");
     }
 
     @Test
     @DisplayName("When DELETE SQL provided should detect statement type and validate WHERE clause structure")
     void whenDeleteSqlProvidedShouldDetectStatementTypeAndValidateWhereClauseStructure() throws JSQLParserException {
-        System.out.println("📋 Testing DELETE SQL detection and validation...");
+        log.info("📋 Testing DELETE SQL detection and validation...");
         
         // Given - DELETE SQL for customer removal with safety parameters
         String deleteSQL = "DELETE FROM customers WHERE customer_id = ? AND status = ?";
@@ -139,13 +133,13 @@ class SqlStatementDetectionAndCrudGenerationE2ETest {
                 .contains("WHERE")
                 .contains("customers");
                 
-        System.out.println("✅ DELETE SQL detection completed successfully");
+        log.info("✅ DELETE SQL detection completed successfully");
     }
 
     @Test
     @DisplayName("When complex SELECT with JOIN provided should detect type and handle complex structure")
     void whenComplexSelectWithJoinProvidedShouldDetectTypeAndHandleComplexStructure() throws JSQLParserException {
-        System.out.println("📋 Testing complex SELECT SQL with JOIN detection...");
+        log.info("📋 Testing complex SELECT SQL with JOIN detection...");
         
         // Given - Complex SELECT with JOIN for comprehensive data retrieval
         String complexSelectSQL = """
@@ -172,13 +166,13 @@ class SqlStatementDetectionAndCrudGenerationE2ETest {
                 .contains("customers c")
                 .contains("addresses a");
                 
-        System.out.println("✅ Complex SELECT SQL detection completed successfully");
+        log.info("✅ Complex SELECT SQL detection completed successfully");
     }
 
     @Test
     @DisplayName("When UPDATE with subquery provided should detect type and handle advanced structure")
     void whenUpdateWithSubqueryProvidedShouldDetectTypeAndHandleAdvancedStructure() throws JSQLParserException {
-        System.out.println("📋 Testing UPDATE SQL with subquery detection...");
+        log.info("📋 Testing UPDATE SQL with subquery detection...");
         
         // Given - UPDATE with subquery for advanced modification
         String updateWithSubquerySQL = """
@@ -204,13 +198,13 @@ class SqlStatementDetectionAndCrudGenerationE2ETest {
                 .contains("IN")
                 .contains("SELECT");
                 
-        System.out.println("✅ UPDATE with subquery SQL detection completed successfully");
+        log.info("✅ UPDATE with subquery SQL detection completed successfully");
     }
 
     @Test
     @DisplayName("When malformed SQL provided should handle errors gracefully without crashing")
     void whenMalformedSqlProvidedShouldHandleErrorsGracefullyWithoutCrashing() {
-        System.out.println("📋 Testing malformed SQL error handling...");
+        log.info("📋 Testing malformed SQL error handling...");
         
         // Given - Malformed SQL statements
         String[] malformedSQLs = {
@@ -241,13 +235,13 @@ class SqlStatementDetectionAndCrudGenerationE2ETest {
             }
         }
         
-        System.out.println("✅ Malformed SQL error handling completed successfully");
+        log.info("✅ Malformed SQL error handling completed successfully");
     }
 
     @Test
     @DisplayName("When all SQL types processed sequentially should maintain detection accuracy")
     void whenAllSqlTypesProcessedSequentiallyShouldMaintainDetectionAccuracy() throws JSQLParserException {
-        System.out.println("📋 Testing sequential SQL type detection accuracy...");
+        log.info("📋 Testing sequential SQL type detection accuracy...");
         
         // Given - Array of different SQL statement types
         String[] sqlStatements = {
@@ -273,6 +267,6 @@ class SqlStatementDetectionAndCrudGenerationE2ETest {
                     .isEqualTo(expectedTypes[i]);
         }
         
-        System.out.println("✅ Sequential SQL type detection accuracy completed successfully");
+        log.info("✅ Sequential SQL type detection accuracy completed successfully");
     }
 }

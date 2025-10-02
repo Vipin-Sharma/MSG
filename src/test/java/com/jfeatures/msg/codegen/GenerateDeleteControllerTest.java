@@ -12,6 +12,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Reality-based tests for GenerateDeleteController following project patterns.
@@ -184,28 +186,20 @@ class GenerateDeleteControllerTest {
         assertEquals("com.jfeatures.msg.orderdetail.controller", orderDetailFile.packageName);
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"", "   "})
+    void testCreateDeleteController_WithInvalidBusinessName_ThrowsException(String businessName) {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                GenerateDeleteController.createDeleteController(businessName, validDeleteMetadata)
+        );
+
+        assertEquals("Business purpose of SQL cannot be null or empty", exception.getMessage());
+    }
+
     @Test
     void testCreateDeleteController_WithNullBusinessName_ThrowsException() {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
                 GenerateDeleteController.createDeleteController(null, validDeleteMetadata)
-        );
-
-        assertEquals("Business purpose of SQL cannot be null or empty", exception.getMessage());
-    }
-
-    @Test
-    void testCreateDeleteController_WithEmptyBusinessName_ThrowsException() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                GenerateDeleteController.createDeleteController("", validDeleteMetadata)
-        );
-
-        assertEquals("Business purpose of SQL cannot be null or empty", exception.getMessage());
-    }
-
-    @Test
-    void testCreateDeleteController_WithWhitespaceBusinessName_ThrowsException() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                GenerateDeleteController.createDeleteController("   ", validDeleteMetadata)
         );
 
         assertEquals("Business purpose of SQL cannot be null or empty", exception.getMessage());

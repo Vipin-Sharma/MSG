@@ -12,6 +12,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Reality-based tests for GenerateDeleteDAO following project patterns.
@@ -126,6 +128,16 @@ class GenerateDeleteDAOTest {
         assertTrue(code.contains("sqlParamMap.put(\"is_active\", is_active)") || code.contains("sqlParamMap.put(\"isActive\", isActive)"));
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"", "   "})
+    void testCreateDeleteDAO_WithInvalidBusinessName_ThrowsException(String businessName) {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                GenerateDeleteDAO.createDeleteDAO(businessName, validDeleteMetadata)
+        );
+
+        assertEquals("Business purpose of SQL cannot be null or empty", exception.getMessage());
+    }
+
     @Test
     void testCreateDeleteDAO_WithNullBusinessName_ThrowsException() {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
@@ -136,16 +148,8 @@ class GenerateDeleteDAOTest {
     }
 
     @Test
-    void testCreateDeleteDAO_WithEmptyBusinessName_ThrowsException() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                GenerateDeleteDAO.createDeleteDAO("", validDeleteMetadata)
-        );
-
-        assertEquals("Business purpose of SQL cannot be null or empty", exception.getMessage());
-    }
-
-    @Test
-    void testCreateDeleteDAO_WithWhitespaceBusinessName_ThrowsException() {
+    void testCreateDeleteDAO_WithWhitespaceBusinessName_Placeholder() {
+        // Placeholder test to maintain structure
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
                 GenerateDeleteDAO.createDeleteDAO("   ", validDeleteMetadata)
         );

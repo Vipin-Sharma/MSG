@@ -5,8 +5,6 @@ import static com.jfeatures.msg.codegen.MicroServiceGenerator.getSql;
 import com.jfeatures.msg.codegen.constants.ProjectConstants;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.SqlMetadata;
-import java.net.URISyntaxException;
-import java.sql.SQLException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,12 +27,16 @@ public class CodeGenController {
             value = "/hello",
             produces = ProjectConstants.APPLICATION_JSON
     )
-    public List<ColumnMetadata> selectColumnMetadata() throws URISyntaxException, SQLException {
-        String sql = getSql("sample_plain_sql_without_parameters.sql");
-
-        List<ColumnMetadata> sqlColumnTypes = sqlMetadata.getColumnMetadata(sql);
-        sqlColumnTypes.forEach(type -> log.info("{}", type));
-        return sqlColumnTypes;
+    public List<ColumnMetadata> selectColumnMetadata() {
+        try {
+            String sql = getSql("sample_plain_sql_without_parameters.sql");
+            List<ColumnMetadata> sqlColumnTypes = sqlMetadata.getColumnMetadata(sql);
+            sqlColumnTypes.forEach(type -> log.info("{}", type));
+            return sqlColumnTypes;
+        } catch (IllegalArgumentException | org.springframework.dao.DataAccessException e) {
+            log.error("Error getting column metadata", e);
+            throw new IllegalStateException("Failed to get column metadata", e);
+        }
     }
 
 }

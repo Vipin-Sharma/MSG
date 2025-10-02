@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class SQLServerDataTypeEnumTest {
 
@@ -42,29 +44,21 @@ class SQLServerDataTypeEnumTest {
     
     // ========== COMPREHENSIVE COVERAGE TESTS ==========
     
+    @ParameterizedTest
+    @ValueSource(strings = {"", "   \t\n  "})
+    void getClassForType_WithInvalidInput_ThrowsIllegalArgumentException(String input) {
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> SQLServerDataTypeEnum.getClassForType(input)
+        );
+        assertEquals("Database type cannot be null or empty", exception.getMessage());
+    }
+
     @Test
     void getClassForType_WithNullInput_ThrowsIllegalArgumentException() {
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
             () -> SQLServerDataTypeEnum.getClassForType(null)
-        );
-        assertEquals("Database type cannot be null or empty", exception.getMessage());
-    }
-    
-    @Test
-    void getClassForType_WithEmptyInput_ThrowsIllegalArgumentException() {
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> SQLServerDataTypeEnum.getClassForType("")
-        );
-        assertEquals("Database type cannot be null or empty", exception.getMessage());
-    }
-    
-    @Test
-    void getClassForType_WithWhitespaceInput_ThrowsIllegalArgumentException() {
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> SQLServerDataTypeEnum.getClassForType("   \t\n  ")
         );
         assertEquals("Database type cannot be null or empty", exception.getMessage());
     }
@@ -88,63 +82,70 @@ class SQLServerDataTypeEnumTest {
     }
     
     @Test
-    void getClassForType_AllEnumValues_ReturnCorrectClasses() {
-        // Test all enum values to ensure complete coverage
+    void getClassForType_NumericTypes_ReturnCorrectClasses() {
+        // Test numeric types
         assertThat(SQLServerDataTypeEnum.getClassForType("BIGINT")).isEqualTo(Long.class);
-        assertThat(SQLServerDataTypeEnum.getClassForType("BINARY")).isEqualTo(byte[].class);
+        assertThat(SQLServerDataTypeEnum.getClassForType("INT")).isEqualTo(Integer.class);
+        assertThat(SQLServerDataTypeEnum.getClassForType("SMALLINT")).isEqualTo(Integer.class);
+        assertThat(SQLServerDataTypeEnum.getClassForType("TINYINT")).isEqualTo(Integer.class);
+        assertThat(SQLServerDataTypeEnum.getClassForType("DECIMAL")).isEqualTo(BigDecimal.class);
+        assertThat(SQLServerDataTypeEnum.getClassForType("NUMERIC")).isEqualTo(BigDecimal.class);
+        assertThat(SQLServerDataTypeEnum.getClassForType("MONEY")).isEqualTo(BigDecimal.class);
+        assertThat(SQLServerDataTypeEnum.getClassForType("SMALLMONEY")).isEqualTo(BigDecimal.class);
+        assertThat(SQLServerDataTypeEnum.getClassForType("FLOAT")).isEqualTo(Double.class);
+        assertThat(SQLServerDataTypeEnum.getClassForType("REAL")).isEqualTo(Float.class);
         assertThat(SQLServerDataTypeEnum.getClassForType("BIT")).isEqualTo(Boolean.class);
+    }
+
+    @Test
+    void getClassForType_StringTypes_ReturnCorrectClasses() {
+        // Test string types
         assertThat(SQLServerDataTypeEnum.getClassForType("CHAR")).isEqualTo(String.class);
+        assertThat(SQLServerDataTypeEnum.getClassForType("VARCHAR")).isEqualTo(String.class);
+        assertThat(SQLServerDataTypeEnum.getClassForType("NCHAR")).isEqualTo(String.class);
+        assertThat(SQLServerDataTypeEnum.getClassForType("NVARCHAR")).isEqualTo(String.class);
+        assertThat(SQLServerDataTypeEnum.getClassForType("TEXT")).isEqualTo(String.class);
+        assertThat(SQLServerDataTypeEnum.getClassForType("NTEXT")).isEqualTo(String.class);
+        assertThat(SQLServerDataTypeEnum.getClassForType("XML")).isEqualTo(String.class);
+        assertThat(SQLServerDataTypeEnum.getClassForType("UNIQUEIDENTIFIER")).isEqualTo(String.class);
+    }
+
+    @Test
+    void getClassForType_DateTimeTypes_ReturnCorrectClasses() {
+        // Test date/time types
         assertThat(SQLServerDataTypeEnum.getClassForType("DATE")).isEqualTo(java.sql.Date.class);
+        assertThat(SQLServerDataTypeEnum.getClassForType("TIME")).isEqualTo(java.sql.Time.class);
         assertThat(SQLServerDataTypeEnum.getClassForType("DATETIME")).isEqualTo(java.sql.Timestamp.class);
         assertThat(SQLServerDataTypeEnum.getClassForType("DATETIME2")).isEqualTo(java.sql.Timestamp.class);
-        assertThat(SQLServerDataTypeEnum.getClassForType("DECIMAL")).isEqualTo(BigDecimal.class);
-        assertThat(SQLServerDataTypeEnum.getClassForType("INT")).isEqualTo(Integer.class);
-        assertThat(SQLServerDataTypeEnum.getClassForType("FLOAT")).isEqualTo(Double.class);
-        assertThat(SQLServerDataTypeEnum.getClassForType("IMAGE")).isEqualTo(byte[].class);
-        assertThat(SQLServerDataTypeEnum.getClassForType("MONEY")).isEqualTo(BigDecimal.class);
-        assertThat(SQLServerDataTypeEnum.getClassForType("NCHAR")).isEqualTo(String.class);
-        assertThat(SQLServerDataTypeEnum.getClassForType("NTEXT")).isEqualTo(String.class);
-        assertThat(SQLServerDataTypeEnum.getClassForType("NUMERIC")).isEqualTo(BigDecimal.class);
-        assertThat(SQLServerDataTypeEnum.getClassForType("NVARCHAR")).isEqualTo(String.class);
-        assertThat(SQLServerDataTypeEnum.getClassForType("REAL")).isEqualTo(Float.class);
         assertThat(SQLServerDataTypeEnum.getClassForType("SMALLDATETIME")).isEqualTo(java.sql.Timestamp.class);
-        assertThat(SQLServerDataTypeEnum.getClassForType("SMALLINT")).isEqualTo(Integer.class);
-        assertThat(SQLServerDataTypeEnum.getClassForType("SMALLMONEY")).isEqualTo(BigDecimal.class);
-        assertThat(SQLServerDataTypeEnum.getClassForType("TEXT")).isEqualTo(String.class);
-        assertThat(SQLServerDataTypeEnum.getClassForType("TIME")).isEqualTo(java.sql.Time.class);
         assertThat(SQLServerDataTypeEnum.getClassForType("TIMESTAMP")).isEqualTo(java.sql.Timestamp.class);
-        assertThat(SQLServerDataTypeEnum.getClassForType("TINYINT")).isEqualTo(Integer.class);
-        assertThat(SQLServerDataTypeEnum.getClassForType("VARCHAR")).isEqualTo(String.class);
-        assertThat(SQLServerDataTypeEnum.getClassForType("UNIQUEIDENTIFIER")).isEqualTo(String.class);
+    }
+
+    @Test
+    void getClassForType_BinaryTypes_ReturnCorrectClasses() {
+        // Test binary types
+        assertThat(SQLServerDataTypeEnum.getClassForType("BINARY")).isEqualTo(byte[].class);
         assertThat(SQLServerDataTypeEnum.getClassForType("VARBINARY")).isEqualTo(byte[].class);
-        assertThat(SQLServerDataTypeEnum.getClassForType("XML")).isEqualTo(String.class);
+        assertThat(SQLServerDataTypeEnum.getClassForType("IMAGE")).isEqualTo(byte[].class);
     }
     
     // ========== JDBC TYPE TESTS ==========
     
+    @ParameterizedTest
+    @ValueSource(strings = {"", "   \t\n  "})
+    void getJdbcTypeForDBType_WithInvalidInput_ThrowsIllegalArgumentException(String input) {
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> SQLServerDataTypeEnum.getJdbcTypeForDBType(input)
+        );
+        assertEquals("Database type cannot be null or empty", exception.getMessage());
+    }
+
     @Test
     void getJdbcTypeForDBType_WithNullInput_ThrowsIllegalArgumentException() {
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
             () -> SQLServerDataTypeEnum.getJdbcTypeForDBType(null)
-        );
-        assertEquals("Database type cannot be null or empty", exception.getMessage());
-    }
-    
-    @Test
-    void getJdbcTypeForDBType_WithEmptyInput_ThrowsIllegalArgumentException() {
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> SQLServerDataTypeEnum.getJdbcTypeForDBType("")
-        );
-        assertEquals("Database type cannot be null or empty", exception.getMessage());
-    }
-    
-    @Test
-    void getJdbcTypeForDBType_WithWhitespaceInput_ThrowsIllegalArgumentException() {
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> SQLServerDataTypeEnum.getJdbcTypeForDBType("   \t\n  ")
         );
         assertEquals("Database type cannot be null or empty", exception.getMessage());
     }

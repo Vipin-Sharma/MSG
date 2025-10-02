@@ -99,7 +99,7 @@ class ApplicationTest {
     @Test
     void testApplicationCanBeInstantiated() {
         // Test that the Application class can be instantiated (even though it's typically not needed)
-        assertDoesNotThrow(() -> new Application());
+        assertDoesNotThrow(Application::new);
     }
 
     @Test

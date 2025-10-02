@@ -1,6 +1,7 @@
 package com.jfeatures.msg.e2e;
 
 import com.jfeatures.msg.codegen.MicroServiceGenerator;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import picocli.CommandLine;
 
@@ -9,6 +10,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
+@Slf4j
 
 /**
  * Comprehensive End-to-End tests for MSG CRUD API generation without Docker dependencies.
@@ -38,8 +41,8 @@ class CompleteCrudGenerationE2ETest {
     @BeforeAll
     static void setupTestEnvironment() throws IOException {
         baseTestDir = Files.createTempDirectory("msg-complete-crud-e2e");
-        System.out.println("🚀 Starting Complete CRUD Generation E2E Test Suite");
-        System.out.println("Test base directory: " + baseTestDir);
+        log.info("🚀 Starting Complete CRUD Generation E2E Test Suite");
+        log.info("Test base directory: " + baseTestDir);
     }
 
     @AfterAll
@@ -51,18 +54,18 @@ class CompleteCrudGenerationE2ETest {
                         try {
                             Files.delete(path);
                         } catch (IOException e) {
-                            System.err.println("Failed to delete: " + path);
+                            log.error("Failed to delete: " + path);
                         }
                     });
         }
-        System.out.println("✅ Complete CRUD Generation E2E cleanup completed");
+        log.info("✅ Complete CRUD Generation E2E cleanup completed");
     }
 
     @Test
     @Order(1)
     @DisplayName("When SELECT SQL provided should generate complete Spring Boot microservice with GET endpoints")
     void whenSelectSqlProvidedShouldGenerateCompleteSpringBootMicroserviceWithGetEndpoints() throws IOException {
-        System.out.println("📋 Testing SELECT CRUD API generation...");
+        log.info("📋 Testing SELECT CRUD API generation...");
         
         Path selectDir = Files.createTempDirectory(baseTestDir, "select-crud-");
         
@@ -79,7 +82,7 @@ class CompleteCrudGenerationE2ETest {
         
         assertThat(exitCode)
                 .as("SELECT generation should complete successfully")
-                .isEqualTo(0);
+                .isZero();
         
         // Validate Maven project structure
         assertThat(selectDir.resolve("pom.xml"))
@@ -97,14 +100,14 @@ class CompleteCrudGenerationE2ETest {
                 .exists()
                 .isDirectory();
         
-        System.out.println("✅ SELECT CRUD API generation completed successfully");
+        log.info("✅ SELECT CRUD API generation completed successfully");
     }
 
     @Test
     @Order(2)
     @DisplayName("When INSERT SQL provided should generate Spring Boot microservice with POST endpoints and DTOs")  
     void whenInsertSqlProvidedShouldGenerateSpringBootMicroserviceWithPostEndpointsAndDtos() throws IOException {
-        System.out.println("📋 Testing INSERT CRUD API generation...");
+        log.info("📋 Testing INSERT CRUD API generation...");
         
         Path insertDir = Files.createTempDirectory(baseTestDir, "insert-crud-");
         
@@ -121,20 +124,20 @@ class CompleteCrudGenerationE2ETest {
         
         assertThat(exitCode)
                 .as("INSERT generation should complete successfully")
-                .isEqualTo(0);
+                .isZero();
         
         assertThat(insertDir.resolve("pom.xml"))
                 .as("INSERT project should generate valid Maven structure")
                 .exists();
         
-        System.out.println("✅ INSERT CRUD API generation completed successfully");
+        log.info("✅ INSERT CRUD API generation completed successfully");
     }
 
     @Test
     @Order(3)
     @DisplayName("When UPDATE SQL provided should generate Spring Boot microservice with PUT endpoints and validation")
     void whenUpdateSqlProvidedShouldGenerateSpringBootMicroserviceWithPutEndpointsAndValidation() throws IOException {
-        System.out.println("📋 Testing UPDATE CRUD API generation...");
+        log.info("📋 Testing UPDATE CRUD API generation...");
         
         Path updateDir = Files.createTempDirectory(baseTestDir, "update-crud-");
         
@@ -151,20 +154,20 @@ class CompleteCrudGenerationE2ETest {
         
         assertThat(exitCode)
                 .as("UPDATE generation should complete successfully")
-                .isEqualTo(0);
+                .isZero();
         
         assertThat(updateDir.resolve("pom.xml"))
                 .as("UPDATE project should generate valid Maven structure")
                 .exists();
         
-        System.out.println("✅ UPDATE CRUD API generation completed successfully");
+        log.info("✅ UPDATE CRUD API generation completed successfully");
     }
 
     @Test
     @Order(4)
     @DisplayName("When DELETE SQL provided should generate Spring Boot microservice with DELETE endpoints and safety checks")
     void whenDeleteSqlProvidedShouldGenerateSpringBootMicroserviceWithDeleteEndpointsAndSafetyChecks() throws IOException {
-        System.out.println("📋 Testing DELETE CRUD API generation...");
+        log.info("📋 Testing DELETE CRUD API generation...");
         
         Path deleteDir = Files.createTempDirectory(baseTestDir, "delete-crud-");
         
@@ -181,20 +184,20 @@ class CompleteCrudGenerationE2ETest {
         
         assertThat(exitCode)
                 .as("DELETE generation should complete successfully")
-                .isEqualTo(0);
+                .isZero();
         
         assertThat(deleteDir.resolve("pom.xml"))
                 .as("DELETE project should generate valid Maven structure")
                 .exists();
         
-        System.out.println("✅ DELETE CRUD API generation completed successfully");
+        log.info("✅ DELETE CRUD API generation completed successfully");
     }
 
     @Test
     @Order(5)
     @DisplayName("When any SQL provided should generate all required Java classes with proper structure")
     void whenAnySqlProvidedShouldGenerateAllRequiredJavaClassesWithProperStructure() throws IOException {
-        System.out.println("📋 Testing generated Java classes structure...");
+        log.info("📋 Testing generated Java classes structure...");
         
         Path testDir = Files.createTempDirectory(baseTestDir, "java-classes-validation-");
         
@@ -208,7 +211,7 @@ class CompleteCrudGenerationE2ETest {
         CommandLine commandLine = new CommandLine(generator);
         int exitCode = commandLine.execute(args);
         
-        assertThat(exitCode).isEqualTo(0);
+        assertThat(exitCode).isZero();
         
         Path javaRoot = testDir.resolve("src/main/java");
         
@@ -232,14 +235,14 @@ class CompleteCrudGenerationE2ETest {
                 .as("Should generate Data Transfer Object class")
                 .isTrue();
         
-        System.out.println("✅ Java classes structure validation completed successfully");
+        log.info("✅ Java classes structure validation completed successfully");
     }
 
     @Test
     @Order(6)
     @DisplayName("When generation completes should create valid Spring Boot configuration files")
     void whenGenerationCompletesShouldCreateValidSpringBootConfigurationFiles() throws IOException {
-        System.out.println("📋 Testing Spring Boot configuration files...");
+        log.info("📋 Testing Spring Boot configuration files...");
         
         Path configTestDir = Files.createTempDirectory(baseTestDir, "config-validation-");
         
@@ -253,21 +256,21 @@ class CompleteCrudGenerationE2ETest {
         CommandLine commandLine = new CommandLine(generator);
         int exitCode = commandLine.execute(args);
         
-        assertThat(exitCode).isEqualTo(0);
+        assertThat(exitCode).isZero();
         
         assertThat(configTestDir.resolve("src/main/resources/application.properties"))
                 .as("Should generate application.properties configuration file")
                 .exists()
                 .isRegularFile();
         
-        System.out.println("✅ Spring Boot configuration validation completed successfully");
+        log.info("✅ Spring Boot configuration validation completed successfully");
     }
 
     @Test
     @Order(7)
     @DisplayName("When invalid inputs provided should handle errors gracefully without crashing")
     void whenInvalidInputsProvidedShouldHandleErrorsGracefullyWithoutCrashing() {
-        System.out.println("📋 Testing error handling and edge cases...");
+        log.info("📋 Testing error handling and edge cases...");
         
         // Test with empty business name
         String[] invalidNameArgs = {
@@ -300,14 +303,14 @@ class CompleteCrudGenerationE2ETest {
                 .as("Non-existent SQL file should be rejected with non-zero exit code")
                 .isNotEqualTo(0);
         
-        System.out.println("✅ Error handling validation completed successfully");
+        log.info("✅ Error handling validation completed successfully");
     }
 
     @Test
     @Order(8)
     @DisplayName("When multiple CRUD operations requested should generate separate valid microservices for each")
     void whenMultipleCrudOperationsRequestedShouldGenerateSeparateValidMicroservicesForEach() throws IOException {
-        System.out.println("📋 Testing comprehensive generation workflow...");
+        log.info("📋 Testing comprehensive generation workflow...");
         
         String[] sqlFiles = {"customer_select.sql", "customer_insert.sql", "customer_update.sql", "customer_delete.sql"};
         String[] operations = {"Select", "Insert", "Update", "Delete"};
@@ -327,13 +330,13 @@ class CompleteCrudGenerationE2ETest {
             
             assertThat(exitCode)
                     .as(operations[i] + " workflow generation should complete successfully")
-                    .isEqualTo(0);
+                    .isZero();
             
             assertThat(operationDir.resolve("pom.xml"))
                     .as(operations[i] + " should generate valid Maven project structure")
                     .exists();
         }
         
-        System.out.println("✅ Comprehensive generation workflow validation completed successfully");
+        log.info("✅ Comprehensive generation workflow validation completed successfully");
     }
 }

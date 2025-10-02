@@ -332,7 +332,7 @@ class NamingConventionsTest {
         assertThat(NamingConventions.setterMethodName("")).isEqualTo("set");
         assertThat(NamingConventions.daoMethodName("", "Customer")).isEqualTo("Customer");
         assertThat(NamingConventions.controllerMethodName("get", "")).isEqualTo("getDataFor");
-        assertThat(NamingConventions.parameterName("")).isEqualTo("");
+        assertThat(NamingConventions.parameterName("")).isEmpty();
     }
 
     @Test
@@ -340,7 +340,7 @@ class NamingConventionsTest {
         // Test whitespace strings in methods - CaseUtils will transform whitespace
         assertThat(NamingConventions.getterMethodName("   ")).isEqualTo("get");
         assertThat(NamingConventions.setterMethodName("   ")).isEqualTo("set");
-        assertThat(NamingConventions.parameterName("   ")).isEqualTo("");
+        assertThat(NamingConventions.parameterName("   ")).isEmpty();
     }
 
     // ============================= CONSTRUCTOR TESTS =================================

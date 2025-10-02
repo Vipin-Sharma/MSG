@@ -165,7 +165,7 @@ class CompleteScenarioCoverageTest {
             assertEquals(businessDomainName, result.businessDomainName(), "Should use correct business domain name");
             
             // Verify all components are generated
-            validateGeneratedComponents(result, "CustomerAddress", "GET");
+            validateGeneratedComponents(result, "CustomerAddress");
             
             // Verify SELECT-specific content
             String dtoContent = result.dtoFile().toString();
@@ -240,7 +240,7 @@ class CompleteScenarioCoverageTest {
         assertEquals(SqlStatementType.INSERT, result.statementType(), "Should detect INSERT statement");
         
         // Verify INSERT-specific components
-        validateGeneratedComponents(result, "Product", "POST");
+        validateGeneratedComponents(result, "Product");
         
         String controllerContent = result.controllerFile().toString();
         assertTrue(controllerContent.contains("@PostMapping"), "Should have POST mapping");
@@ -302,7 +302,7 @@ class CompleteScenarioCoverageTest {
         assertEquals(SqlStatementType.UPDATE, result.statementType(), "Should detect UPDATE statement");
         
         // Verify UPDATE-specific components
-        validateGeneratedComponents(result, "CustomerUpdate", "PUT");
+        validateGeneratedComponents(result, "CustomerUpdate");
         
         String controllerContent = result.controllerFile().toString();
         assertTrue(controllerContent.contains("@PutMapping"), "Should have PUT mapping");
@@ -349,7 +349,7 @@ class CompleteScenarioCoverageTest {
         assertEquals(SqlStatementType.DELETE, result.statementType(), "Should detect DELETE statement");
         
         // Verify DELETE-specific components
-        validateGeneratedComponents(result, "OrderItem", "DELETE");
+        validateGeneratedComponents(result, "OrderItem");
         
         String controllerContent = result.controllerFile().toString();
         assertTrue(controllerContent.contains("@DeleteMapping"), "Should have DELETE mapping");
@@ -453,7 +453,7 @@ class CompleteScenarioCoverageTest {
      * Tests edge cases for SQL file resolution
      */
     @Test 
-    void testSqlFileResolution_DefaultFallbackBehavior_WorksCorrectly() throws Exception {
+    void testSqlFileResolution_DefaultFallbackBehavior_WorksCorrectly() {
         // This test would require actual file system setup or mocking
         // Test priority order: UPDATE -> INSERT -> DELETE -> SELECT
         
@@ -547,7 +547,7 @@ class CompleteScenarioCoverageTest {
         }
     }
     
-    private void validateGeneratedComponents(GeneratedMicroservice result, String expectedDomainName, String expectedHttpMethod) {
+    private void validateGeneratedComponents(GeneratedMicroservice result, String expectedDomainName) {
         // Validate Spring Boot Application
         assertNotNull(result.springBootApplication(), "Spring Boot application should be generated");
         String springBootContent = result.springBootApplication().toString();

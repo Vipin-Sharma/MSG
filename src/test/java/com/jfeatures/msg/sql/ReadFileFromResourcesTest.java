@@ -13,7 +13,6 @@ class ReadFileFromResourcesTest {
         
         assertNotNull(content);
         assertFalse(content.isEmpty());
-        assertTrue(content.length() > 0);
     }
 
     @Test
