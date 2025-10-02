@@ -18,16 +18,18 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import javax.lang.model.element.Modifier;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.CaseUtils;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Generates DAO classes for DELETE operations.
  * Following Vipin's Principle: Single responsibility - DELETE DAO generation only.
  */
-@Slf4j
 public class GenerateDeleteDAO {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(GenerateDeleteDAO.class);
 
     private GenerateDeleteDAO() {
         throw new UnsupportedOperationException("Utility class");
@@ -89,7 +91,7 @@ public class GenerateDeleteDAO {
         JavaFile javaFile = JavaFile.builder(JavaPackageNameBuilder.buildJavaPackageName(businessPurposeOfSQL, "dao"), dao)
                 .build();
         
-        log.info(javaFile.toString());
+        LOGGER.info(javaFile.toString());
         
         return javaFile;
     }
