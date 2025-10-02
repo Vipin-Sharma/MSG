@@ -305,8 +305,8 @@ public class ApiEndpointTester {
                 log.info("Service is ready after " + Duration.between(startTime, Instant.now()).toSeconds() + " seconds");
                 return;
             } catch (Exception e) {
-                // Service not ready yet, wait before next attempt
-                Thread.sleep(pollInterval.toMillis());
+                // Service not ready yet, wait before next attempt using TimeUnit for better semantics
+                TimeUnit.MILLISECONDS.sleep(pollInterval.toMillis());
             }
         }
 

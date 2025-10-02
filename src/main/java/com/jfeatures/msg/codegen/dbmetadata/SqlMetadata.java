@@ -76,9 +76,12 @@ public class SqlMetadata {
             }
             });
         } catch (org.springframework.dao.DataAccessException e) {
-            // Log error for debugging and re-throw to maintain test compatibility
-            logger.error("DataAccessException occurred while fetching column metadata: {}", e.getMessage(), e);
-            throw e;
+            // Log error with contextual information for debugging
+            logger.error("Failed to fetch column metadata for query: {}. Error: {}",
+                         query.substring(0, Math.min(100, query.length())), e.getMessage(), e);
+            // Re-throw with additional context to maintain test compatibility and provide debugging info
+            throw new org.springframework.dao.DataAccessException(
+                "Unable to retrieve column metadata from database for the provided SQL query", e) {};
         }
         
         return columnMetadataList;

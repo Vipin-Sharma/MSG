@@ -275,7 +275,7 @@ class SqlMetadataTest {
             () -> sqlMetadata.getColumnMetadata(query)
         );
         
-        assertEquals("Invalid SQL syntax", exception.getMessage());
+        assertEquals("Unable to retrieve column metadata from database for the provided SQL query", exception.getMessage());
         verify(jdbcTemplate).query(eq(query), any(RowMapper.class));
     }
     
