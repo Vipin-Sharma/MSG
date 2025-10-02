@@ -30,7 +30,7 @@ public class GeneratedMicroserviceValidator {
      * Validates the complete project structure for a business domain.
      */
     public void validateCompleteProjectStructure(String businessName) {
-        Path projectRoot = getProjectRoot(businessName);
+        Path projectRoot = getProjectRoot();
         
         // Validate Maven structure
         validateMavenProjectStructure(businessName);
@@ -48,7 +48,7 @@ public class GeneratedMicroserviceValidator {
      * Validates Maven project structure (pom.xml, directory layout).
      */
     public void validateMavenProjectStructure(String businessName) {
-        Path projectRoot = getProjectRoot(businessName);
+        Path projectRoot = getProjectRoot();
         
         // Check pom.xml exists
         assertThat(projectRoot.resolve("pom.xml"))
@@ -78,15 +78,15 @@ public class GeneratedMicroserviceValidator {
         
         // Validate Application class
         validateApplicationClass(javaSourceRoot);
-        
+
         // Validate Controller classes
-        validateControllerClasses(javaSourceRoot, businessName);
-        
+        validateControllerClasses(javaSourceRoot);
+
         // Validate DAO classes
-        validateDAOClasses(javaSourceRoot, businessName);
-        
-        // Validate DTO classes  
-        validateDTOClasses(javaSourceRoot, businessName);
+        validateDAOClasses(javaSourceRoot);
+
+        // Validate DTO classes
+        validateDTOClasses(javaSourceRoot);
         
         // Validate Config classes
         validateConfigClasses(javaSourceRoot, businessName);
@@ -98,7 +98,7 @@ public class GeneratedMicroserviceValidator {
      * Validates Spring Boot configuration files.
      */
     public void validateSpringBootConfiguration(String businessName) {
-        Path projectRoot = getProjectRoot(businessName);
+        Path projectRoot = getProjectRoot();
         Path resourcesDir = projectRoot.resolve("src/main/resources");
         
         // Check application.properties exists
@@ -141,7 +141,7 @@ public class GeneratedMicroserviceValidator {
      * Validates basic structure for a specific SQL statement type.
      */
     public void validateBasicStructure(String businessName, SqlStatementType statementType) {
-        Path projectRoot = getProjectRoot(businessName);
+        Path projectRoot = getProjectRoot();
         
         // Basic existence check
         assertThat(projectRoot)
@@ -161,7 +161,7 @@ public class GeneratedMicroserviceValidator {
      * Validates that different business domains are properly separated.
      */
     public void validateBusinessDomainSeparation(String businessName) {
-        Path projectRoot = getProjectRoot(businessName);
+        Path projectRoot = getProjectRoot();
         
         assertThat(projectRoot)
                 .as("Each business domain should have its own directory")
@@ -226,13 +226,13 @@ public class GeneratedMicroserviceValidator {
     
     // Helper methods
     
-    private Path getProjectRoot(String businessName) {
+    private Path getProjectRoot() {
         // The generator creates a flat structure directly in the destination, not in subdirectories
         return baseOutputDir;
     }
     
     private Path getJavaSourceRoot(String businessName) {
-        return getProjectRoot(businessName).resolve("src/main/java/com/jfeatures/msg/" + businessName.toLowerCase());
+        return getProjectRoot().resolve("src/main/java/com/jfeatures/msg/" + businessName.toLowerCase());
     }
     
     private void validateJavaSourceStructure(Path projectRoot) {
@@ -284,19 +284,19 @@ public class GeneratedMicroserviceValidator {
         }
     }
     
-    private void validateControllerClasses(Path javaSourceRoot, String businessName) {
+    private void validateControllerClasses(Path javaSourceRoot) {
         Path controllerDir = javaSourceRoot.resolve("controller");
-        
+
         assertThat(controllerDir)
                 .as("Controller directory should exist")
                 .exists()
                 .isDirectory();
-        
+
         try (Stream<Path> controllers = Files.list(controllerDir)) {
             long controllerCount = controllers
                     .filter(path -> path.toString().endsWith("Controller.java"))
                     .count();
-            
+
             assertThat(controllerCount)
                     .as("Should have at least one controller")
                     .isGreaterThan(0);
@@ -305,18 +305,18 @@ public class GeneratedMicroserviceValidator {
         }
     }
     
-    private void validateDAOClasses(Path javaSourceRoot, String businessName) {
+    private void validateDAOClasses(Path javaSourceRoot) {
         Path daoDir = javaSourceRoot.resolve("dao");
-        
+
         assertThat(daoDir)
                 .as("DAO directory should exist")
                 .exists()
                 .isDirectory();
     }
     
-    private void validateDTOClasses(Path javaSourceRoot, String businessName) {
+    private void validateDTOClasses(Path javaSourceRoot) {
         Path dtoDir = javaSourceRoot.resolve("dto");
-        
+
         assertThat(dtoDir)
                 .as("DTO directory should exist")
                 .exists()
@@ -325,7 +325,7 @@ public class GeneratedMicroserviceValidator {
     
     private void validateConfigClasses(Path javaSourceRoot, String businessName) {
         // Config classes are generated in com.jfeatures.{businessName.toLowerCase()}.config package
-        Path projectRoot = getProjectRoot(businessName);
+        Path projectRoot = getProjectRoot();
         Path configDir = projectRoot.resolve("src/main/java/com/jfeatures/" + businessName.toLowerCase() + "/config");
         
         assertThat(configDir)

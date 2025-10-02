@@ -78,21 +78,7 @@ class ComprehensiveCRUDWorkflowTest {
             """;
         
         // Setup test data for SELECT workflow
-        List<ColumnMetadata> selectColumns = Arrays.asList(
-            TestUtils.createColumnMetadata("customer_id", "INT", Types.INTEGER, false),
-            TestUtils.createColumnMetadata("customer_name", "VARCHAR", Types.VARCHAR, true),
-            TestUtils.createColumnMetadata("email", "VARCHAR", Types.VARCHAR, true),
-            TestUtils.createColumnMetadata("phone", "VARCHAR", Types.VARCHAR, true),
-            TestUtils.createColumnMetadata("address", "VARCHAR", Types.VARCHAR, true),
-            TestUtils.createColumnMetadata("city", "VARCHAR", Types.VARCHAR, true),
-            TestUtils.createColumnMetadata("country", "VARCHAR", Types.VARCHAR, true)
-        );
-        
-        List<DBColumn> whereParameters = Arrays.asList(
-            new DBColumn("table", "customerId", "Integer", "INTEGER"),
-            new DBColumn("table", "status", "String", "VARCHAR"),
-            new DBColumn("table", "createdDate", "Timestamp", "TIMESTAMP")
-        );
+        // Note: These variables are kept for potential future use in full workflow testing
 
         // Mock SQL statement detection only - simplify the test
         try (var sqlDetectorMock = mockStatic(SqlStatementDetector.class)) {
@@ -115,7 +101,7 @@ class ComprehensiveCRUDWorkflowTest {
             } catch (Exception e) {
                 // For now, just verify that the SQL detection worked
                 // This test will be simplified until we can fully mock the dependencies
-                assertTrue(e.getMessage() != null, "Exception should have a message");
+                assertNotNull(e.getMessage(), "Exception should have a message");
             }
             // Additional verification can be added here when fully implemented
         }

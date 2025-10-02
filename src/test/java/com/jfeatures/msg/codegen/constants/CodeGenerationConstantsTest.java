@@ -72,10 +72,10 @@ class CodeGenerationConstantsTest {
         assertFalse(CodeGenerationConstants.SETTER_METHOD_PREFIX.isEmpty());
         
         // Verify prefixes are lowercase (Java convention)
-        assertEquals(CodeGenerationConstants.DAO_METHOD_PREFIX.toLowerCase(), 
-                    CodeGenerationConstants.DAO_METHOD_PREFIX);
-        assertEquals(CodeGenerationConstants.SETTER_METHOD_PREFIX.toLowerCase(), 
-                    CodeGenerationConstants.SETTER_METHOD_PREFIX);
+        assertEquals(CodeGenerationConstants.DAO_METHOD_PREFIX,
+                    CodeGenerationConstants.DAO_METHOD_PREFIX.toLowerCase());
+        assertEquals(CodeGenerationConstants.SETTER_METHOD_PREFIX,
+                    CodeGenerationConstants.SETTER_METHOD_PREFIX.toLowerCase());
     }
 
     @Test
@@ -100,7 +100,7 @@ class CodeGenerationConstantsTest {
         assertTrue(Character.isLowerCase(CodeGenerationConstants.RESULT_LIST_NAME.charAt(0)));
         
         // SQL field name should be uppercase (constant convention)
-        assertTrue(CodeGenerationConstants.SQL_FIELD_NAME.equals(CodeGenerationConstants.SQL_FIELD_NAME.toUpperCase()));
+        assertEquals(CodeGenerationConstants.SQL_FIELD_NAME, CodeGenerationConstants.SQL_FIELD_NAME.toUpperCase());
         
         // Builder name should be PascalCase
         assertTrue(Character.isUpperCase(CodeGenerationConstants.BUILDER_VARIABLE_NAME.charAt(0)));

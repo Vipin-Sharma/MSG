@@ -2,15 +2,12 @@ package com.jfeatures.msg.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.jfeatures.msg.codegen.MicroServiceGenerator;
 import com.jfeatures.msg.codegen.util.SqlStatementDetector;
 import com.jfeatures.msg.codegen.util.SqlStatementType;
 import net.sf.jsqlparser.JSQLParserException;
-import java.nio.file.Path;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 /**
  * End-to-End integration tests for SQL statement detection and CRUD API generation.
@@ -32,9 +29,6 @@ import org.junit.jupiter.api.io.TempDir;
 @Slf4j
 @DisplayName("SQL Statement Detection and CRUD Generation End-to-End Integration Tests")
 class SqlStatementDetectionAndCrudGenerationE2ETest {
-
-    @TempDir
-    Path tempDir;
 
     @Test
     @DisplayName("When SELECT SQL provided should detect statement type and validate structure correctly")

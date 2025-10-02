@@ -127,7 +127,7 @@ class MicroserviceProjectWriterTest {
         assertNotNull(exception.getMessage());
         // The exception message could be from the IO failure or from the directory builder
         // As long as it's an IOException, it's expected behavior
-        assertTrue(exception.getMessage().length() > 0);
+        assertFalse(exception.getMessage().isEmpty());
     }
 
     @Test

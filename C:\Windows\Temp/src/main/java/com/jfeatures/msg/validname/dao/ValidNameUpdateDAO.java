@@ -27,6 +27,9 @@ public class ValidNameUpdateDAO {
 
   private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
+  /**
+   * Constructor with dependency injection for JDBC template.\n@param namedParameterJdbcTemplate the named parameter JDBC template
+   */
   public ValidNameUpdateDAO(NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
     this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
   }

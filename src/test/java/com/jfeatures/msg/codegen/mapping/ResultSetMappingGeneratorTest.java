@@ -241,12 +241,12 @@ class ResultSetMappingGeneratorTest {
     void testColumnNameConversions() {
         // Test various column name formats
         ColumnMetadata[] testColumns = {
-            createColumn("simple", "simple"),
-            createColumn("snake_case", "snakeCase"),
-            createColumn("UPPER_CASE", "UPPERCASE"),
-            createColumn("mixed_Case_Name", "mixedCaseName"),
-            createColumn("with_numbers_123", "withNumbers123"),
-            createColumn("single", "single")
+            createColumn("simple"),
+            createColumn("snake_case"),
+            createColumn("UPPER_CASE"),
+            createColumn("mixed_Case_Name"),
+            createColumn("with_numbers_123"),
+            createColumn("single")
         };
         
         for (ColumnMetadata column : testColumns) {
@@ -331,7 +331,7 @@ class ResultSetMappingGeneratorTest {
         assertTrue(result.contains("SimpleDTO"));
     }
 
-    private ColumnMetadata createColumn(String columnName, String expectedFieldName) {
+    private ColumnMetadata createColumn(String columnName) {
         ColumnMetadata column = new ColumnMetadata();
         column.setColumnName(columnName);
         column.setColumnTypeName("VARCHAR");

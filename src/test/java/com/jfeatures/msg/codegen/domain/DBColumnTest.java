@@ -38,6 +38,6 @@ class DBColumnTest {
         
         // Then - should be equal (records implement equals/hashCode)
         assertThat(column1).isEqualTo(column2);
-        assertThat(column1.hashCode()).isEqualTo(column2.hashCode());
+        assertThat(column1).hasSameHashCodeAs(column2);
     }
 }

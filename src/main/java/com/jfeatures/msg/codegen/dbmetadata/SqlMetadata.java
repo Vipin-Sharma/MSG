@@ -72,7 +72,8 @@ public class SqlMetadata {
             }
             });
         } catch (org.springframework.dao.DataAccessException e) {
-            // Re-throw DataAccessException to maintain test compatibility
+            // Log error for debugging and re-throw to maintain test compatibility
+            System.err.println("DataAccessException occurred while fetching column metadata: " + e.getMessage());
             throw e;
         }
         

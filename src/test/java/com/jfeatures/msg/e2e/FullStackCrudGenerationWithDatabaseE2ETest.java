@@ -99,7 +99,7 @@ class FullStackCrudGenerationWithDatabaseE2ETest {
         
         assertThat(exitCode)
                 .as("CRUD generation with database should complete successfully")
-                .isEqualTo(0);
+                .isZero();
         
         assertThat(testOutputDir.resolve("pom.xml"))
                 .as("Should generate Maven project with database dependencies")
@@ -194,7 +194,7 @@ class FullStackCrudGenerationWithDatabaseE2ETest {
             
             assertThat(exitCode)
                     .as(domain + " microservice should generate successfully")
-                    .isEqualTo(0);
+                    .isZero();
         }
         
         // Validate domain separation

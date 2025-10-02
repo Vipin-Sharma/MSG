@@ -176,7 +176,7 @@ class JdbcTemplateConfigTest {
                   "Config class should be public");
         
         // Should have public no-arg constructor (default constructor is fine)
-        assertDoesNotThrow(() -> new JdbcTemplateConfig(),
+        assertDoesNotThrow(JdbcTemplateConfig::new,
                           "Should be able to instantiate config class");
     }
 

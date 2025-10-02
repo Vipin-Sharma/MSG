@@ -37,7 +37,7 @@ class MicroServiceGeneratorTest {
         int exitCode = cmd.execute("--help");
 
         // Then
-        assertThat(exitCode).isEqualTo(0);
+        assertThat(exitCode).isZero();
         String output = outContent.toString() + errContent.toString();
         assertThat(output)
             .contains("Creates a microservice application")
@@ -61,7 +61,7 @@ class MicroServiceGeneratorTest {
         int exitCode = cmd.execute("--version");
 
         // Then
-        assertThat(exitCode).isEqualTo(0);
+        assertThat(exitCode).isZero();
         String output = outContent.toString() + errContent.toString();
         assertThat(output).contains("MSG 1.0");
     }
@@ -442,7 +442,7 @@ class MicroServiceGeneratorTest {
             
             IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> generator.call(),
+                generator::call,
                 "Business name '" + invalidName + "' should be invalid"
             );
             

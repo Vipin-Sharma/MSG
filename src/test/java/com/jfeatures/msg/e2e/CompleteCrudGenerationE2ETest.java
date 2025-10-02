@@ -79,7 +79,7 @@ class CompleteCrudGenerationE2ETest {
         
         assertThat(exitCode)
                 .as("SELECT generation should complete successfully")
-                .isEqualTo(0);
+                .isZero();
         
         // Validate Maven project structure
         assertThat(selectDir.resolve("pom.xml"))
@@ -121,7 +121,7 @@ class CompleteCrudGenerationE2ETest {
         
         assertThat(exitCode)
                 .as("INSERT generation should complete successfully")
-                .isEqualTo(0);
+                .isZero();
         
         assertThat(insertDir.resolve("pom.xml"))
                 .as("INSERT project should generate valid Maven structure")
@@ -151,7 +151,7 @@ class CompleteCrudGenerationE2ETest {
         
         assertThat(exitCode)
                 .as("UPDATE generation should complete successfully")
-                .isEqualTo(0);
+                .isZero();
         
         assertThat(updateDir.resolve("pom.xml"))
                 .as("UPDATE project should generate valid Maven structure")
@@ -181,7 +181,7 @@ class CompleteCrudGenerationE2ETest {
         
         assertThat(exitCode)
                 .as("DELETE generation should complete successfully")
-                .isEqualTo(0);
+                .isZero();
         
         assertThat(deleteDir.resolve("pom.xml"))
                 .as("DELETE project should generate valid Maven structure")
@@ -208,7 +208,7 @@ class CompleteCrudGenerationE2ETest {
         CommandLine commandLine = new CommandLine(generator);
         int exitCode = commandLine.execute(args);
         
-        assertThat(exitCode).isEqualTo(0);
+        assertThat(exitCode).isZero();
         
         Path javaRoot = testDir.resolve("src/main/java");
         
@@ -253,7 +253,7 @@ class CompleteCrudGenerationE2ETest {
         CommandLine commandLine = new CommandLine(generator);
         int exitCode = commandLine.execute(args);
         
-        assertThat(exitCode).isEqualTo(0);
+        assertThat(exitCode).isZero();
         
         assertThat(configTestDir.resolve("src/main/resources/application.properties"))
                 .as("Should generate application.properties configuration file")
@@ -327,7 +327,7 @@ class CompleteCrudGenerationE2ETest {
             
             assertThat(exitCode)
                     .as(operations[i] + " workflow generation should complete successfully")
-                    .isEqualTo(0);
+                    .isZero();
             
             assertThat(operationDir.resolve("pom.xml"))
                     .as(operations[i] + " should generate valid Maven project structure")

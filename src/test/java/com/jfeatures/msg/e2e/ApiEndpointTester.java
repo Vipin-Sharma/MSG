@@ -295,7 +295,7 @@ public class ApiEndpointTester {
         Duration maxWaitTime = Duration.ofSeconds(30);
         Duration pollInterval = Duration.ofSeconds(1);
         Instant startTime = Instant.now();
-        
+
         while (Duration.between(startTime, Instant.now()).compareTo(maxWaitTime) < 0) {
             try {
                 whenServiceStartedShouldRespondToHealthChecksIndicatingAvailability();
@@ -303,10 +303,10 @@ public class ApiEndpointTester {
                 return;
             } catch (Exception e) {
                 // Service not ready yet, wait before next attempt
-                TimeUnit.MILLISECONDS.sleep(pollInterval.toMillis());
+                Thread.sleep(pollInterval.toMillis());
             }
         }
-        
+
         throw new RuntimeException("Service did not start within " + maxWaitTime.toSeconds() + " seconds");
     }
     
