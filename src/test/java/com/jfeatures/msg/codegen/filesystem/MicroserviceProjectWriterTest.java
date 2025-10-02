@@ -10,9 +10,13 @@ import com.squareup.javapoet.TypeSpec;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -43,29 +47,20 @@ class MicroserviceProjectWriterTest {
         assertEquals("Generated microservice cannot be null", exception.getMessage());
     }
 
-    @Test
-    void testWriteMicroserviceProject_NullDestination() {
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> writer.writeMicroserviceProject(mockMicroservice, null)
+    private static Stream<Arguments> invalidDestinationProvider() {
+        return Stream.of(
+            Arguments.of("null destination", null),
+            Arguments.of("empty destination", ""),
+            Arguments.of("whitespace destination", "   ")
         );
-        assertEquals("Destination path cannot be null or empty", exception.getMessage());
     }
 
-    @Test
-    void testWriteMicroserviceProject_EmptyDestination() {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("invalidDestinationProvider")
+    void testWriteMicroserviceProject_InvalidDestination(String testName, String destination) {
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> writer.writeMicroserviceProject(mockMicroservice, "")
-        );
-        assertEquals("Destination path cannot be null or empty", exception.getMessage());
-    }
-
-    @Test
-    void testWriteMicroserviceProject_WhitespaceDestination() {
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> writer.writeMicroserviceProject(mockMicroservice, "   ")
+            () -> writer.writeMicroserviceProject(mockMicroservice, destination)
         );
         assertEquals("Destination path cannot be null or empty", exception.getMessage());
     }
