@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 class GenerateDatabaseConfigTest {
 
     @Test
-    void shouldGenerateValidDatabaseConfig() throws Exception {
+    void shouldGenerateValidDatabaseConfig() {
         // When
         String result = GenerateDatabaseConfig.createDatabaseConfig("Customer");
 
@@ -27,7 +27,7 @@ class GenerateDatabaseConfigTest {
     }
 
     @Test
-    void shouldContainSqlServerConfiguration() throws Exception {
+    void shouldContainSqlServerConfiguration() {
         // When
         String result = GenerateDatabaseConfig.createDatabaseConfig("Customer");
 

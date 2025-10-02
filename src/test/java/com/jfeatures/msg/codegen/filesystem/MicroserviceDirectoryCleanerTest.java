@@ -45,7 +45,7 @@ class MicroserviceDirectoryCleanerTest {
     }
 
     @Test
-    void testCleanGeneratedCodeDirectories_NonExistentDirectory(@TempDir Path tempDir) throws Exception {
+    void testCleanGeneratedCodeDirectories_NonExistentDirectory(@TempDir Path tempDir) {
         Path nonExistentPath = tempDir.resolve("non-existent");
         
         // Should not throw exception for non-existent directory
@@ -53,7 +53,7 @@ class MicroserviceDirectoryCleanerTest {
     }
 
     @Test
-    void testCleanGeneratedCodeDirectories_EmptyDirectory(@TempDir Path tempDir) throws Exception {
+    void testCleanGeneratedCodeDirectories_EmptyDirectory(@TempDir Path tempDir) {
         // Should handle empty directory without issues
         assertDoesNotThrow(() -> cleaner.cleanGeneratedCodeDirectories(tempDir.toString()));
     }

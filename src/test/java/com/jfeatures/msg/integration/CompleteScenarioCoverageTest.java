@@ -453,7 +453,7 @@ class CompleteScenarioCoverageTest {
      * Tests edge cases for SQL file resolution
      */
     @Test 
-    void testSqlFileResolution_DefaultFallbackBehavior_WorksCorrectly() throws Exception {
+    void testSqlFileResolution_DefaultFallbackBehavior_WorksCorrectly() {
         // This test would require actual file system setup or mocking
         // Test priority order: UPDATE -> INSERT -> DELETE -> SELECT
         

@@ -331,7 +331,7 @@ class MicroServiceGeneratorTest {
     }
 
     @Test
-    void testGenerateMicroserviceByType_WithSelectStatement_ReturnsCorrectType() throws Exception {
+    void testGenerateMicroserviceByType_WithSelectStatement_ReturnsCorrectType() {
         // Test the generateMicroserviceByType method indirectly through generateMicroserviceFromSql
         MicroServiceGenerator generator = new MicroServiceGenerator();
         String selectSql = "SELECT id, name FROM customers WHERE id = ?";
@@ -506,7 +506,7 @@ class MicroServiceGeneratorTest {
     }
     
     @Test
-    void testGenerateMicroserviceByType_WithAllSqlTypes_HandlesCorrectly() throws Exception {
+    void testGenerateMicroserviceByType_WithAllSqlTypes_HandlesCorrectly() {
         MicroServiceGenerator generator = new MicroServiceGenerator();
         String businessName = "TestService";
         
@@ -527,7 +527,7 @@ class MicroServiceGeneratorTest {
     }
     
     @Test
-    void testGenerateMicroserviceByType_WithInvalidSqlType_ThrowsException() throws Exception {
+    void testGenerateMicroserviceByType_WithInvalidSqlType_ThrowsException() {
         MicroServiceGenerator generator = new MicroServiceGenerator();
         String businessName = "TestService";
         
