@@ -175,7 +175,6 @@ class MethodBuildersTest {
         // Given
         String path = testCase == 1 ? null : "/api/customers";
         String summary = testCase == 1 ? "Retrieve all customers" : (testCase == 2 ? null : "");
-        int expectedAnnotations = (testCase == 1 || testCase == 2 || testCase == 3) ? (summary == null || summary.isEmpty() ? 1 : 2) : 2;
 
         // When
         MethodSpec.Builder methodBuilder = MethodBuilders.getEndpointMethod(

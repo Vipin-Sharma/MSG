@@ -37,7 +37,8 @@ class DBColumnTest {
         DBColumn column2 = new DBColumn("customer", "id", "Integer", "INTEGER");
         
         // Then - should be equal (records implement equals/hashCode)
-        assertThat(column1).isEqualTo(column2);
-        assertThat(column1).hasSameHashCodeAs(column2);
+        assertThat(column1)
+            .isEqualTo(column2)
+            .hasSameHashCodeAs(column2);
     }
 }

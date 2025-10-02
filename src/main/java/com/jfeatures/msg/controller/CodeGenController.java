@@ -33,9 +33,9 @@ public class CodeGenController {
             List<ColumnMetadata> sqlColumnTypes = sqlMetadata.getColumnMetadata(sql);
             sqlColumnTypes.forEach(type -> log.info("{}", type));
             return sqlColumnTypes;
-        } catch (Exception e) {
+        } catch (IllegalArgumentException | org.springframework.dao.DataAccessException e) {
             log.error("Error getting column metadata", e);
-            throw new RuntimeException("Failed to get column metadata", e);
+            throw new IllegalStateException("Failed to get column metadata", e);
         }
     }
 

@@ -5,12 +5,16 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 
 @Component
 public class SqlMetadata {
+
+    private static final Logger logger = LoggerFactory.getLogger(SqlMetadata.class);
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -73,7 +77,7 @@ public class SqlMetadata {
             });
         } catch (org.springframework.dao.DataAccessException e) {
             // Log error for debugging and re-throw to maintain test compatibility
-            System.err.println("DataAccessException occurred while fetching column metadata: " + e.getMessage());
+            logger.error("DataAccessException occurred while fetching column metadata: {}", e.getMessage(), e);
             throw e;
         }
         
