@@ -5,21 +5,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.jfeatures.msg.codegen.util.JavaPackageNameBuilder;
 import org.junit.jupiter.api.Test;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-/**
- * Exception path tests for GenerateDatabaseConfig to achieve 100% coverage.
- * Tests error handling scenarios including missing templates and IO exceptions.
- */
 class GenerateDatabaseConfigExceptionTest {
 
-    /**
-     * Test helper class that simulates template file not found scenario.
-     * This allows us to test the null inputStream branch.
-     */
     static class GenerateDatabaseConfigWithMissingTemplate {
         private static final String TEMPLATE_PATH = "/templates/NonExistentTemplate.java.template";
 
@@ -42,9 +33,6 @@ class GenerateDatabaseConfigExceptionTest {
         }
     }
 
-    /**
-     * Test helper class that simulates IOException during template reading.
-     */
     static class GenerateDatabaseConfigWithIOException {
 
         static class FailingInputStream extends InputStream {
@@ -55,7 +43,7 @@ class GenerateDatabaseConfigExceptionTest {
 
             @Override
             public byte[] readAllBytes() throws IOException {
-                throw new IOException("Simulated IO failure during readAllBytes");
+                throw new IOException("Simulated readAllBytes failure");
             }
         }
 
@@ -80,7 +68,6 @@ class GenerateDatabaseConfigExceptionTest {
 
     @Test
     void testCreateDatabaseConfig_WithMissingTemplate_ThrowsIllegalStateException() {
-        // Test the null inputStream branch (line 22-23)
         IllegalStateException exception = assertThrows(
             IllegalStateException.class,
             () -> GenerateDatabaseConfigWithMissingTemplate.createDatabaseConfig("Customer")
@@ -93,7 +80,6 @@ class GenerateDatabaseConfigExceptionTest {
 
     @Test
     void testCreateDatabaseConfig_WithIOException_ThrowsIllegalStateException() {
-        // Test the IOException catch block (line 33-34)
         IllegalStateException exception = assertThrows(
             IllegalStateException.class,
             () -> GenerateDatabaseConfigWithIOException.createDatabaseConfigWithIOException("Customer")
@@ -107,7 +93,6 @@ class GenerateDatabaseConfigExceptionTest {
 
     @Test
     void testCreateDatabaseConfig_ExceptionMessageContainsTemplatePath() {
-        // Verify exception messages are informative
         IllegalStateException missingFileException = assertThrows(
             IllegalStateException.class,
             () -> GenerateDatabaseConfigWithMissingTemplate.createDatabaseConfig("Product")
@@ -119,7 +104,6 @@ class GenerateDatabaseConfigExceptionTest {
 
     @Test
     void testCreateDatabaseConfig_IOExceptionPreservesOriginalCause() {
-        // Verify IOException is properly wrapped and original cause is preserved
         IllegalStateException exception = assertThrows(
             IllegalStateException.class,
             () -> GenerateDatabaseConfigWithIOException.createDatabaseConfigWithIOException("Order")
@@ -127,23 +111,20 @@ class GenerateDatabaseConfigExceptionTest {
 
         assertNotNull(exception.getCause());
         assertTrue(exception.getCause() instanceof IOException);
-        assertTrue(exception.getCause().getMessage().contains("Simulated IO failure"));
+        assertTrue(exception.getCause().getMessage().contains("readAllBytes"));
     }
 
     @Test
     void testCreateDatabaseConfig_MultipleExceptionScenarios() {
-        // Test multiple business names to ensure exception handling is consistent
         String[] businessNames = {"Customer", "Product", "Order", "Service"};
 
         for (String businessName : businessNames) {
-            // Test missing template scenario
             IllegalStateException missingException = assertThrows(
                 IllegalStateException.class,
                 () -> GenerateDatabaseConfigWithMissingTemplate.createDatabaseConfig(businessName)
             );
             assertTrue(missingException.getMessage().contains("Template file not found"));
 
-            // Test IOException scenario
             IllegalStateException ioException = assertThrows(
                 IllegalStateException.class,
                 () -> GenerateDatabaseConfigWithIOException.createDatabaseConfigWithIOException(businessName)
