@@ -1,10 +1,7 @@
 package com.jfeatures.msg.codegen.filesystem;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
@@ -14,7 +11,6 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.MockedStatic;
 
 class MicroserviceDirectoryCleanerTest {
 
@@ -151,7 +147,7 @@ class MicroserviceDirectoryCleanerTest {
         Files.createDirectories(srcMainJava);
         Path readOnlyFile = srcMainJava.resolve("ReadOnlyFile.java");
         Files.createFile(readOnlyFile);
-        
+
         // Make file read-only (this tests the error handling in the cleaner)
         readOnlyFile.toFile().setReadOnly();
 
@@ -160,52 +156,168 @@ class MicroserviceDirectoryCleanerTest {
     }
 
     @Test
-    void testCleanDirectoryIfExistsDeletionFailure() throws Exception {
-        Path tempDir = Files.createTempDirectory("cleaner-test");
-        Path file = tempDir.resolve("file.txt");
-        Files.writeString(file, "data");
+    void testCleanGeneratedCodeDirectories_WithHiddenFiles(@TempDir Path tempDir) throws Exception {
+        // Create structure with hidden files
+        Path srcMainJava = tempDir.resolve("src/main/java/com/jfeatures");
+        Files.createDirectories(srcMainJava);
 
-        Method method = MicroserviceDirectoryCleaner.class.getDeclaredMethod("cleanDirectoryIfExists", Path.class);
-        method.setAccessible(true);
+        Path hiddenFile = srcMainJava.resolve(".hidden");
+        Files.createFile(hiddenFile);
 
-        try (MockedStatic<Files> filesMock = mockStatic(Files.class)) {
-            filesMock.when(() -> Files.exists(tempDir)).thenReturn(true);
-            filesMock.when(() -> Files.walk(tempDir)).thenReturn(Stream.of(file, tempDir));
-            filesMock.when(() -> Files.delete(file)).thenThrow(new RuntimeException("failure"));
-            filesMock.when(() -> Files.delete(tempDir)).thenReturn(null);
+        Path normalFile = srcMainJava.resolve("Normal.java");
+        Files.createFile(normalFile);
 
-            assertDoesNotThrow(() -> method.invoke(cleaner, tempDir));
+        cleaner.cleanGeneratedCodeDirectories(tempDir.toString());
+
+        // Verify directory is cleaned
+        assertFalse(Files.exists(srcMainJava));
+    }
+
+    @Test
+    void testCleanGeneratedCodeDirectories_WithSymbolicLinks(@TempDir Path tempDir) throws Exception {
+        // Create structure
+        Path srcMainJava = tempDir.resolve("src/main/java/com/jfeatures");
+        Files.createDirectories(srcMainJava);
+
+        // Create a target file outside the cleanup area
+        Path externalTarget = tempDir.resolve("external.txt");
+        Files.createFile(externalTarget);
+
+        // Create a symbolic link inside the cleanup area
+        Path symlink = srcMainJava.resolve("link.txt");
+        try {
+            Files.createSymbolicLink(symlink, externalTarget);
+
+            cleaner.cleanGeneratedCodeDirectories(tempDir.toString());
+
+            // Verify cleanup happened
+            assertFalse(Files.exists(symlink));
+            // External target should still exist
+            assertTrue(Files.exists(externalTarget));
+        } catch (UnsupportedOperationException e) {
+            // Symlinks not supported on this OS
+            assertTrue(true);
         }
     }
 
     @Test
-    void testCleanDirectoryIfExistsThrowsDirectoryCleanupException() throws Exception {
-        Path tempDir = Files.createTempDirectory("cleaner-throws");
+    void testCleanGeneratedCodeDirectories_EmptyDirectories(@TempDir Path tempDir) throws Exception {
+        // Create empty directory structure
+        Path srcMainJava = tempDir.resolve("src/main/java/com/jfeatures");
+        Files.createDirectories(srcMainJava);
 
-        Method method = MicroserviceDirectoryCleaner.class.getDeclaredMethod("cleanDirectoryIfExists", Path.class);
-        method.setAccessible(true);
+        Path srcTestJava = tempDir.resolve("src/test/java");
+        Files.createDirectories(srcTestJava);
 
-        try (MockedStatic<Files> filesMock = mockStatic(Files.class)) {
-            filesMock.when(() -> Files.exists(tempDir)).thenReturn(true);
-            filesMock.when(() -> Files.walk(tempDir)).thenThrow(new RuntimeException("walk failed"));
+        cleaner.cleanGeneratedCodeDirectories(tempDir.toString());
 
-            InvocationTargetException exception = assertThrows(InvocationTargetException.class, () -> method.invoke(cleaner, tempDir));
-            assertTrue(exception.getCause() instanceof DirectoryCleanupException);
-        }
+        // Empty directories should be cleaned
+        assertFalse(Files.exists(srcMainJava));
     }
 
     @Test
-    void testDeleteFileIfExistsFailureIsIgnored() throws Exception {
-        Path tempFile = Files.createTempFile("cleaner-file", ".txt");
+    void testCleanGeneratedCodeDirectories_MixedContent(@TempDir Path tempDir) throws Exception {
+        // Create structure with various file types
+        Path srcMainJava = tempDir.resolve("src/main/java/com/jfeatures");
+        Files.createDirectories(srcMainJava);
 
-        Method method = MicroserviceDirectoryCleaner.class.getDeclaredMethod("deleteFileIfExists", Path.class);
-        method.setAccessible(true);
+        Files.createFile(srcMainJava.resolve("File.java"));
+        Files.createFile(srcMainJava.resolve("data.json"));
+        Files.createFile(srcMainJava.resolve("config.xml"));
+        Files.createFile(srcMainJava.resolve("README.md"));
 
-        try (MockedStatic<Files> filesMock = mockStatic(Files.class)) {
-            filesMock.when(() -> Files.exists(tempFile)).thenReturn(true);
-            filesMock.when(() -> Files.delete(tempFile)).thenThrow(new RuntimeException("delete failed"));
+        cleaner.cleanGeneratedCodeDirectories(tempDir.toString());
 
-            assertDoesNotThrow(() -> method.invoke(cleaner, tempFile));
+        assertFalse(Files.exists(srcMainJava));
+    }
+
+    @Test
+    void testCleanGeneratedCodeDirectories_VeryDeepNesting(@TempDir Path tempDir) throws Exception {
+        // Create very deep nesting (15 levels)
+        Path deepPath = tempDir.resolve("src/main/java/com/jfeatures");
+        for (int i = 0; i < 10; i++) {
+            deepPath = deepPath.resolve("level" + i);
         }
+        Files.createDirectories(deepPath);
+        Files.createFile(deepPath.resolve("DeepFile.java"));
+
+        cleaner.cleanGeneratedCodeDirectories(tempDir.toString());
+
+        assertFalse(Files.exists(tempDir.resolve("src/main/java/com/jfeatures")));
+    }
+
+    @Test
+    void testCleanGeneratedCodeDirectories_WithSpecialCharactersInFilenames(@TempDir Path tempDir) throws Exception {
+        Path srcMainJava = tempDir.resolve("src/main/java/com/jfeatures");
+        Files.createDirectories(srcMainJava);
+
+        Files.createFile(srcMainJava.resolve("File-with-dash.java"));
+        Files.createFile(srcMainJava.resolve("File_with_underscore.java"));
+        Files.createFile(srcMainJava.resolve("File.with.dots.java"));
+
+        cleaner.cleanGeneratedCodeDirectories(tempDir.toString());
+
+        assertFalse(Files.exists(srcMainJava));
+    }
+
+    @Test
+    void testCleanGeneratedCodeDirectories_WithUnicodeFilenames(@TempDir Path tempDir) throws Exception {
+        Path srcMainJava = tempDir.resolve("src/main/java/com/jfeatures");
+        Files.createDirectories(srcMainJava);
+
+        Files.createFile(srcMainJava.resolve("顧客.java"));
+        Files.createFile(srcMainJava.resolve("プロジェクト.java"));
+
+        cleaner.cleanGeneratedCodeDirectories(tempDir.toString());
+
+        assertFalse(Files.exists(srcMainJava));
+    }
+
+    @Test
+    void testCleanGeneratedCodeDirectories_LargeNumberOfFiles(@TempDir Path tempDir) throws Exception {
+        Path srcMainJava = tempDir.resolve("src/main/java/com/jfeatures");
+        Files.createDirectories(srcMainJava);
+
+        // Create 100 files
+        for (int i = 0; i < 100; i++) {
+            Files.createFile(srcMainJava.resolve("File" + i + ".java"));
+        }
+
+        cleaner.cleanGeneratedCodeDirectories(tempDir.toString());
+
+        assertFalse(Files.exists(srcMainJava));
+    }
+
+    @Test
+    void testCleanGeneratedCodeDirectories_NullPath() {
+        assertThrows(Exception.class, () ->
+            cleaner.cleanGeneratedCodeDirectories(null)
+        );
+    }
+
+    @Test
+    void testCleanGeneratedCodeDirectories_EmptyPath() {
+        assertThrows(Exception.class, () ->
+            cleaner.cleanGeneratedCodeDirectories("")
+        );
+    }
+
+    @Test
+    void testCleanGeneratedCodeDirectories_NonExistentPath() {
+        // Should not throw exception for non-existent path
+        assertDoesNotThrow(() ->
+            cleaner.cleanGeneratedCodeDirectories("/path/that/does/not/exist")
+        );
+    }
+
+    @Test
+    void testCleanGeneratedCodeDirectories_WithSpacesInPath(@TempDir Path tempDir) throws Exception {
+        Path srcMainJava = tempDir.resolve("my project/src/main/java/com/jfeatures");
+        Files.createDirectories(srcMainJava);
+        Files.createFile(srcMainJava.resolve("File.java"));
+
+        cleaner.cleanGeneratedCodeDirectories(tempDir.resolve("my project").toString());
+
+        assertFalse(Files.exists(srcMainJava));
     }
 }

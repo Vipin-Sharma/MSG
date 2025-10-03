@@ -1,25 +1,38 @@
 package com.jfeatures.msg.codegen.filesystem;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * Tests for {@link DirectoryCleanupException}.
+ */
 class DirectoryCleanupExceptionTest {
 
     @Test
-    void constructorsPreserveMessage() {
-        DirectoryCleanupException exception = new DirectoryCleanupException("cleanup failed");
-        assertThat(exception)
-            .hasMessage("cleanup failed")
-            .hasNoCause();
+    void shouldCreateExceptionWithMessage() {
+        // given
+        String message = "Cleanup failed";
+
+        // when
+        DirectoryCleanupException exception = new DirectoryCleanupException(message);
+
+        // then
+        assertThat(exception.getMessage()).isEqualTo(message);
+        assertThat(exception.getCause()).isNull();
     }
 
     @Test
-    void constructorsPreserveCause() {
-        Throwable cause = new RuntimeException("io");
-        DirectoryCleanupException exception = new DirectoryCleanupException("cleanup failed", cause);
-        assertThat(exception)
-            .hasMessage("cleanup failed")
-            .hasCause(cause);
+    void shouldCreateExceptionWithMessageAndCause() {
+        // given
+        String message = "Cleanup failed";
+        Throwable cause = new RuntimeException("Root cause");
+
+        // when
+        DirectoryCleanupException exception = new DirectoryCleanupException(message, cause);
+
+        // then
+        assertThat(exception.getMessage()).isEqualTo(message);
+        assertThat(exception.getCause()).isEqualTo(cause);
     }
 }

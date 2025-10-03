@@ -1,25 +1,38 @@
 package com.jfeatures.msg.codegen.database;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * Tests for {@link DatabaseConnectionException}.
+ */
 class DatabaseConnectionExceptionTest {
 
     @Test
-    void constructorsPreserveMessage() {
-        DatabaseConnectionException exception = new DatabaseConnectionException("failure");
-        assertThat(exception)
-            .hasMessage("failure")
-            .hasNoCause();
+    void shouldCreateExceptionWithMessage() {
+        // given
+        String message = "Connection failed";
+
+        // when
+        DatabaseConnectionException exception = new DatabaseConnectionException(message);
+
+        // then
+        assertThat(exception.getMessage()).isEqualTo(message);
+        assertThat(exception.getCause()).isNull();
     }
 
     @Test
-    void constructorsPreserveCause() {
-        Throwable cause = new IllegalStateException("root");
-        DatabaseConnectionException exception = new DatabaseConnectionException("failure", cause);
-        assertThat(exception)
-            .hasMessage("failure")
-            .hasCause(cause);
+    void shouldCreateExceptionWithMessageAndCause() {
+        // given
+        String message = "Connection failed";
+        Throwable cause = new RuntimeException("Root cause");
+
+        // when
+        DatabaseConnectionException exception = new DatabaseConnectionException(message, cause);
+
+        // then
+        assertThat(exception.getMessage()).isEqualTo(message);
+        assertThat(exception.getCause()).isEqualTo(cause);
     }
 }
