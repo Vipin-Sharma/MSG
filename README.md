@@ -3,7 +3,7 @@
 ## Code Quality & Metrics
 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Vipin-Sharma_MSG&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Vipin-Sharma_MSG)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=Vipin-Sharma_MSG&metric=coverage)](https://sonarcloud.io/component_measures/metric/coverage/list?id=Vipin-Sharma_MSG)
+[![Coverage](https://img.shields.io/sonar/coverage/Vipin-Sharma_MSG?server=https%3A%2F%2Fsonarcloud.io&style=flat&logo=sonarcloud)](https://sonarcloud.io/component_measures/metric/coverage/list?id=Vipin-Sharma_MSG)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=Vipin-Sharma_MSG&metric=sqale_rating)](https://sonarcloud.io/component_measures/metric/sqale_rating/list?id=Vipin-Sharma_MSG)
 [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=Vipin-Sharma_MSG&metric=reliability_rating)](https://sonarcloud.io/component_measures/metric/reliability_rating/list?id=Vipin-Sharma_MSG)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=Vipin-Sharma_MSG&metric=security_rating)](https://sonarcloud.io/component_measures/metric/security_rating/list?id=Vipin-Sharma_MSG)
