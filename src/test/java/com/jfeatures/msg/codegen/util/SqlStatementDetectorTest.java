@@ -59,4 +59,22 @@ class SqlStatementDetectorTest {
         assertThat(SqlStatementDetector.detectStatementType("DROP TABLE customer"))
             .isEqualTo(SqlStatementType.UNKNOWN);
     }
+
+    @Test
+    void shouldFallbackToUpdateWhenParsingFails() throws Exception {
+        assertThat(SqlStatementDetector.detectStatementType("UPDATE broken set"))
+            .isEqualTo(SqlStatementType.UPDATE);
+    }
+
+    @Test
+    void shouldFallbackToInsertWhenParsingFails() throws Exception {
+        assertThat(SqlStatementDetector.detectStatementType("INSERT broken values"))
+            .isEqualTo(SqlStatementType.INSERT);
+    }
+
+    @Test
+    void shouldFallbackToDeleteWhenParsingFails() throws Exception {
+        assertThat(SqlStatementDetector.detectStatementType("DELETE broken"))
+            .isEqualTo(SqlStatementType.DELETE);
+    }
 }
