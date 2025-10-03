@@ -3,4 +3,6 @@
 # Generated test output
 test_output/
 output/
-"C:\Windows\Temp/"
+# Windows temp files
+C:\\Windows\\Temp/
+**/C:\\Windows\\Temp/**
