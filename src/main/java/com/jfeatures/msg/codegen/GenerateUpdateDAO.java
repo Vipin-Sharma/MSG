@@ -24,12 +24,15 @@ import javax.lang.model.element.Modifier;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.CaseUtils;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Generates DAO classes for UPDATE operations using database metadata.
  */
-@Slf4j
 public class GenerateUpdateDAO {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(GenerateUpdateDAO.class);
 
     private GenerateUpdateDAO() {
         throw new UnsupportedOperationException("Utility class");
@@ -69,7 +72,7 @@ public class GenerateUpdateDAO {
         JavaFile javaFile = JavaFile.builder(JavaPackageNameBuilder.buildJavaPackageName(businessPurposeOfSQL, "dao"), daoClass)
                 .build();
 
-        log.info(javaFile.toString());
+        LOGGER.info(javaFile.toString());
         return javaFile;
     }
     

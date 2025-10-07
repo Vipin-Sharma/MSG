@@ -21,16 +21,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.lang.model.element.Modifier;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.CaseUtils;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Generates DAO classes for INSERT operations.
  * Following Vipin's Principle: Single responsibility - INSERT DAO generation only.
  */
-@Slf4j
 public class GenerateInsertDAO {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(GenerateInsertDAO.class);
 
     private GenerateInsertDAO() {
         throw new UnsupportedOperationException("Utility class");
@@ -85,7 +87,7 @@ public class GenerateInsertDAO {
         JavaFile javaFile = JavaFile.builder(JavaPackageNameBuilder.buildJavaPackageName(businessPurposeOfSQL, "dao"), dao)
                 .build();
         
-        log.info(javaFile.toString());
+        LOGGER.info(javaFile.toString());
         
         return javaFile;
     }
