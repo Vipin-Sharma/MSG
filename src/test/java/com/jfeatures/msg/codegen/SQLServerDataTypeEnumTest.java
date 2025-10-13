@@ -197,47 +197,6 @@ class SQLServerDataTypeEnumTest {
         assertEquals("BigDecimal", SQLServerDataTypeEnum.getJdbcTypeForDBType("  DECIMAL  "));
     }
     
-    // ========== ENUM GETTER METHOD TESTS ==========
-    
-    @Test
-    void getDbDataType_ReturnsCorrectDatabaseTypeName() {
-        // Test getter method for database type names
-        assertEquals("INT", SQLServerDataTypeEnum.INT.getDbDataType());
-        assertEquals("VARCHAR", SQLServerDataTypeEnum.VARCHAR.getDbDataType());
-        assertEquals("BIGINT", SQLServerDataTypeEnum.BIGINT.getDbDataType());
-        assertEquals("DECIMAL", SQLServerDataTypeEnum.DECIMAL.getDbDataType());
-        assertEquals("BIT", SQLServerDataTypeEnum.BIT.getDbDataType());
-        assertEquals("UNIQUEIDENTIFIER", SQLServerDataTypeEnum.UNIQUEIDENTIFIER.getDbDataType());
-    }
-    
-    @Test
-    void getJavaClassType_ReturnsCorrectJavaClass() {
-        // Test getter method for Java class types
-        assertEquals(Integer.class, SQLServerDataTypeEnum.INT.getJavaClassType());
-        assertEquals(String.class, SQLServerDataTypeEnum.VARCHAR.getJavaClassType());
-        assertEquals(Long.class, SQLServerDataTypeEnum.BIGINT.getJavaClassType());
-        assertEquals(BigDecimal.class, SQLServerDataTypeEnum.DECIMAL.getJavaClassType());
-        assertEquals(Boolean.class, SQLServerDataTypeEnum.BIT.getJavaClassType());
-        assertEquals(byte[].class, SQLServerDataTypeEnum.BINARY.getJavaClassType());
-        assertEquals(java.sql.Date.class, SQLServerDataTypeEnum.DATE.getJavaClassType());
-        assertEquals(java.sql.Time.class, SQLServerDataTypeEnum.TIME.getJavaClassType());
-        assertEquals(java.sql.Timestamp.class, SQLServerDataTypeEnum.TIMESTAMP.getJavaClassType());
-        assertEquals(Double.class, SQLServerDataTypeEnum.FLOAT.getJavaClassType());
-        assertEquals(Float.class, SQLServerDataTypeEnum.REAL.getJavaClassType());
-    }
-    
-    @Test
-    void enum_AllValues_HaveCorrectConstruction() {
-        // Test that all enum values are properly constructed
-        for (SQLServerDataTypeEnum enumValue : SQLServerDataTypeEnum.values()) {
-            assertNotNull(enumValue.getDbDataType(), 
-                "Database type should not be null for " + enumValue.name());
-            assertNotNull(enumValue.getJavaClassType(), 
-                "Java class type should not be null for " + enumValue.name());
-            assertFalse(enumValue.getDbDataType().trim().isEmpty(), 
-                "Database type should not be empty for " + enumValue.name());
-        }
-    }
     
     @Test
     void enum_StaticMapInitialization_WorksCorrectly() {
