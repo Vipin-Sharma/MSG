@@ -206,29 +206,6 @@ com.jfeatures.msg.codegen/
 - **JUnit 5**: Testing framework
 - **SQL Server JDBC**: Database connectivity
 
-## JSQLParser 5.x Notes
-
-We use JSQLParser primarily to identify statement types and to extract light structure (tables, columns, update sets). Version 5.x introduces a few API changes compared to 4.x that are reflected in our code:
-
-- Insert columns
-  - 4.x: `insert.getColumns()` returned `List<Column>`
-  - 5.x: `insert.getColumns()` returns `ExpressionList<Column>`
-  - Access pattern used in code: `ExpressionList<Column> cols = insert.getColumns(); List<Column> list = (cols != null) ? cols.getExpressions() : List.of();`
-
-- Update sets (SET clause)
-  - `update.getUpdateSets()` still returns `List<UpdateSet>`
-  - 5.x: `UpdateSet.getColumns()` returns `ExpressionList<Column>` and `UpdateSet.getValues()` returns `ExpressionList<Expression>`
-  - Iterate with `for (Column c : updateSet.getColumns().getExpressions()) { ... }`
-  - Count JDBC parameters in SET using: `for (Expression e : updateSet.getValues().getExpressions()) if (e instanceof JdbcParameter) { ... }`
-
-- Visitor generics
-  - `ExpressionVisitorAdapter` in 5.x is generic. Our fallback WHERE-clause parsing uses `new ExpressionVisitorAdapter<Void>() { ... }` and overrides the generic `visitBinaryExpression` accordingly.
-
-- Statement type detection
-  - We continue to use `CCJSqlParserUtil.parse(sql)` and `instanceof Select/Insert/Update/Delete` where needed. A keyword-based fallback remains in `SqlStatementDetector` for robustness when parsing fails.
-
-If you touch metadata extractors, keep them aligned with these patterns to remain compatible with JSQLParser 5.x.
-
 ## Development Environment Setup
 
 ### Prerequisites
