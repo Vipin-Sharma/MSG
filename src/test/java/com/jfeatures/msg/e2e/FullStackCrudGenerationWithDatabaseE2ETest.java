@@ -55,7 +55,7 @@ class FullStackCrudGenerationWithDatabaseE2ETest {
     static void setupDatabaseTestEnvironment() throws IOException {
         testOutputDir = Files.createTempDirectory("msg-fullstack-e2e");
         validator = new GeneratedMicroserviceValidator(testOutputDir);
-        apiTester = new ApiEndpointTester();
+        apiTester = new ApiEndpointTester("Customer");
         
         // Configure database connection for generated microservices
         System.setProperty("spring.datasource.url", sqlServer.getJdbcUrl());
@@ -147,7 +147,6 @@ class FullStackCrudGenerationWithDatabaseE2ETest {
     @Test
     @Order(4)
     @DisplayName("When microservice started should provide working REST API endpoints")
-    @Disabled("Temporarily disabled - microservice startup with Testcontainers database requires more investigation")
     void whenMicroserviceStartedShouldProvideWorkingRestApiEndpoints() throws Exception {
         log.info("📋 Testing generated APIs integration...");
         
@@ -169,9 +168,7 @@ class FullStackCrudGenerationWithDatabaseE2ETest {
             log.info("✅ Generated APIs integration testing completed successfully");
 
         } finally {
-            if (microserviceProcess != null && microserviceProcess.isAlive()) {
-                microserviceProcess.destroyForcibly();
-            }
+            apiTester.whenProcessRunningShouldStopMicroserviceGracefully(microserviceProcess);
         }
     }
 

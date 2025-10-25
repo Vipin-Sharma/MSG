@@ -284,6 +284,7 @@
                 <skip.unit.tests>false</skip.unit.tests>
                 <skip.integration.tests>false</skip.integration.tests>
                 <maven.test.includes>**/*E2E*Test.java,**/*EndToEnd*Test.java</maven.test.includes>
+                <jacoco.skip>true</jacoco.skip>
             </properties>
             <build>
                 <plugins>

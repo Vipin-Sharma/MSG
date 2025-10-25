@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.RestClientException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -48,11 +50,22 @@ public class ApiEndpointTester {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final String baseUrl;
+    private final String businessName;
+    private final String resourcePathLower;
+    private final String resourcePathExact;
     
-    public ApiEndpointTester() {
-        this.restTemplate = new RestTemplate();
-        this.objectMapper = new ObjectMapper();
+    public ApiEndpointTester(String businessName) {
+        this.businessName = businessName;
+        this.resourcePathLower = businessName.toLowerCase();
+        this.resourcePathExact = businessName;
         this.baseUrl = "http://localhost:8080/api";
+        
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout((int) Duration.ofSeconds(5).toMillis());
+        requestFactory.setReadTimeout((int) Duration.ofSeconds(5).toMillis());
+        
+        this.restTemplate = new RestTemplate(requestFactory);
+        this.objectMapper = new ObjectMapper();
     }
     
     /**
@@ -142,7 +155,7 @@ public class ApiEndpointTester {
         Map<String, Object> customerData = new HashMap<>();
         customerData.put("firstName", "TestFirstName");
         customerData.put("lastName", "TestLastName");
-        customerData.put("email", "test.customer@example.com");
+        customerData.put("email", "test.customer+e2e@example.com");
         customerData.put("addressId", 1);
         customerData.put("active", "Y");
         
@@ -150,22 +163,22 @@ public class ApiEndpointTester {
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(customerData, headers);
         
+        String endpoint = mutationEndpointUrl();
         try {
-            ResponseEntity<String> response = restTemplate.postForEntity(
-                baseUrl + "/customer", request, String.class);
+            ResponseEntity<String> response = restTemplate.postForEntity(endpoint, request, String.class);
             
             assertThat(response.getStatusCode())
-                    .as("CREATE endpoint should return success status")
-                    .isIn(HttpStatus.CREATED, HttpStatus.OK);
+                    .as("CREATE endpoint should return HTTP 201")
+                    .isEqualTo(HttpStatus.CREATED);
+            assertThat(response.getBody())
+                    .as("CREATE endpoint should confirm resource creation")
+                    .contains("created successfully");
             
             log.info("✅ CREATE customer endpoint test passed");
             
         } catch (HttpStatusCodeException e) {
-            log.info("CREATE endpoint response: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
-            // For E2E testing, we'll consider this a pass if we get a proper HTTP response
-            assertThat(e.getStatusCode().is4xxClientError() || e.getStatusCode().is2xxSuccessful())
-                    .as("Should get a proper HTTP response from CREATE endpoint")
-                    .isTrue();
+            throw new AssertionError("CREATE endpoint responded with " + e.getStatusCode()
+                    + " and body: " + e.getResponseBodyAsString(), e);
         }
     }
     
@@ -175,27 +188,38 @@ public class ApiEndpointTester {
     public void whenGetRequestSentShouldRetrieveCustomerDataThroughRestEndpointSuccessfully() {
         log.info("Testing GET customer endpoint...");
         
+        String endpoint = getEndpointUrl() + "?active=Y&customerId=1";
         try {
-            ResponseEntity<String> response = restTemplate.getForEntity(
-                baseUrl + "/customer?active=Y&customerId=1", String.class);
+            ResponseEntity<String> response = restTemplate.getForEntity(endpoint, String.class);
             
             assertThat(response.getStatusCode())
                     .as("GET endpoint should return success status")
-                    .isIn(HttpStatus.OK, HttpStatus.NOT_FOUND);
+                    .isEqualTo(HttpStatus.OK);
+            assertThat(response.getBody())
+                    .as("GET endpoint should return customer payload")
+                    .isNotNull();
             
-            if (response.getStatusCode() == HttpStatus.OK) {
-                // Validate JSON response structure if data exists
-                whenJsonResponseReceivedShouldValidateProperStructureAndFormat(response.getBody());
-            }
+            JsonNode payload = whenJsonResponseReceivedShouldValidateProperStructureAndFormat(response.getBody());
+            assertThat(payload.isArray())
+                    .as("GET response should be an array")
+                    .isTrue();
+            assertThat(payload)
+                    .as("GET response should include at least one customer record")
+                    .isNotEmpty();
+            
+            JsonNode firstCustomer = payload.get(0);
+            assertThat(firstCustomer.hasNonNull("customerId"))
+                    .as("Customer record should include customerId")
+                    .isTrue();
+            assertThat(firstCustomer.hasNonNull("firstName"))
+                    .as("Customer record should include firstName")
+                    .isTrue();
             
             log.info("✅ GET customer endpoint test passed");
             
         } catch (HttpStatusCodeException e) {
-            log.info("GET endpoint response: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
-            // Accept various valid HTTP responses
-            assertThat(e.getStatusCode().is4xxClientError() || e.getStatusCode().is2xxSuccessful())
-                    .as("Should get a proper HTTP response from GET endpoint")
-                    .isTrue();
+            throw new AssertionError("GET endpoint responded with " + e.getStatusCode()
+                    + " and body: " + e.getResponseBodyAsString(), e);
         }
     }
     
@@ -219,20 +243,20 @@ public class ApiEndpointTester {
         
         try {
             ResponseEntity<String> response = restTemplate.exchange(
-                baseUrl + "/customer", HttpMethod.PUT, request, String.class);
+                    mutationEndpointUrl(), HttpMethod.PUT, request, String.class);
             
             assertThat(response.getStatusCode())
-                    .as("UPDATE endpoint should return success status")
-                    .isIn(HttpStatus.OK, HttpStatus.NO_CONTENT);
+                    .as("UPDATE endpoint should confirm modification with HTTP 200")
+                    .isEqualTo(HttpStatus.OK);
+            assertThat(response.getBody())
+                    .as("UPDATE endpoint should return empty body")
+                    .isNull();
             
             log.info("✅ UPDATE customer endpoint test passed");
             
         } catch (HttpStatusCodeException e) {
-            log.info("UPDATE endpoint response: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
-            // Accept various valid HTTP responses
-            assertThat(e.getStatusCode().is4xxClientError() || e.getStatusCode().is2xxSuccessful())
-                    .as("Should get a proper HTTP response from UPDATE endpoint")
-                    .isTrue();
+            throw new AssertionError("UPDATE endpoint responded with " + e.getStatusCode()
+                    + " and body: " + e.getResponseBodyAsString(), e);
         }
     }
     
@@ -242,23 +266,23 @@ public class ApiEndpointTester {
     public void whenDeleteRequestSentShouldRemoveCustomerThroughRestEndpointSuccessfully() {
         log.info("Testing DELETE customer endpoint...");
         
+        String endpoint = mutationEndpointUrl() + "?customerId=1&active=Y";
         try {
             ResponseEntity<String> response = restTemplate.exchange(
-                baseUrl + "/customer?customerId=1&active=Y", 
-                HttpMethod.DELETE, null, String.class);
+                endpoint, HttpMethod.DELETE, HttpEntity.EMPTY, String.class);
             
             assertThat(response.getStatusCode())
-                    .as("DELETE endpoint should return success status")
-                    .isIn(HttpStatus.NO_CONTENT, HttpStatus.OK);
+                    .as("DELETE endpoint should return HTTP 204")
+                    .isEqualTo(HttpStatus.NO_CONTENT);
+            assertThat(response.getBody())
+                    .as("DELETE endpoint should confirm deletion")
+                    .contains("deleted successfully");
             
             log.info("✅ DELETE customer endpoint test passed");
             
         } catch (HttpStatusCodeException e) {
-            log.info("DELETE endpoint response: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
-            // Accept various valid HTTP responses
-            assertThat(e.getStatusCode().is4xxClientError() || e.getStatusCode().is2xxSuccessful())
-                    .as("Should get a proper HTTP response from DELETE endpoint")
-                    .isTrue();
+            throw new AssertionError("DELETE endpoint responded with " + e.getStatusCode()
+                    + " and body: " + e.getResponseBodyAsString(), e);
         }
     }
     
@@ -273,6 +297,9 @@ public class ApiEndpointTester {
             assertThat(response.getStatusCode())
                     .as("Health endpoint should be accessible")
                     .isEqualTo(HttpStatus.OK);
+            assertThat(response.getBody())
+                    .as("Health endpoint should report status UP")
+                    .contains("\"status\":\"UP\"");
                     
         } catch (Exception e) {
             // Health endpoint might not be available, try root endpoint
@@ -280,9 +307,8 @@ public class ApiEndpointTester {
                 ResponseEntity<String> rootResponse = restTemplate.getForEntity(
                     "http://localhost:8080/", String.class);
                     
-                assertThat(rootResponse.getStatusCode().is2xxSuccessful() || 
-                          rootResponse.getStatusCode().is4xxClientError())
-                        .as("Service should be responding")
+                assertThat(rootResponse.getStatusCode().is2xxSuccessful())
+                        .as("Service root endpoint should respond with 2xx")
                         .isTrue();
                         
             } catch (Exception rootException) {
@@ -294,7 +320,7 @@ public class ApiEndpointTester {
     /**
      * When service starting should wait until ready to accept HTTP requests.
      */
-    private void whenServiceStartingShouldWaitUntilReadyToAcceptHttpRequests() throws InterruptedException {
+    private void whenServiceStartingShouldWaitUntilReadyToAcceptHttpRequests() {
         Duration maxWaitTime = Duration.ofSeconds(30);
         Duration pollInterval = Duration.ofSeconds(1);
         Instant startTime = Instant.now();
@@ -304,9 +330,13 @@ public class ApiEndpointTester {
                 whenServiceStartedShouldRespondToHealthChecksIndicatingAvailability();
                 log.info("Service is ready after " + Duration.between(startTime, Instant.now()).toSeconds() + " seconds");
                 return;
-            } catch (Exception e) {
-                // Service not ready yet, wait before next attempt using TimeUnit for better semantics
-                TimeUnit.MILLISECONDS.sleep(pollInterval.toMillis());
+            } catch (AssertionError | RestClientException e) {
+                try {
+                    TimeUnit.MILLISECONDS.sleep(pollInterval.toMillis());
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("Service startup wait interrupted", ie);
+                }
             }
         }
 
@@ -316,7 +346,7 @@ public class ApiEndpointTester {
     /**
      * When JSON response received should validate proper structure and format.
      */
-    private void whenJsonResponseReceivedShouldValidateProperStructureAndFormat(String jsonResponse) {
+    private JsonNode whenJsonResponseReceivedShouldValidateProperStructureAndFormat(String jsonResponse) {
         try {
             JsonNode jsonNode = objectMapper.readTree(jsonResponse);
             
@@ -332,10 +362,18 @@ public class ApiEndpointTester {
             }
             
             log.info("✅ JSON response validation passed");
+            return jsonNode;
             
         } catch (Exception e) {
-            log.info("Warning: Could not validate JSON response: " + e.getMessage());
-            // Don't fail the test for JSON validation issues
+            throw new AssertionError("Invalid JSON response: " + e.getMessage(), e);
         }
+    }
+    
+    private String getEndpointUrl() {
+        return baseUrl + "/" + resourcePathExact;
+    }
+    
+    private String mutationEndpointUrl() {
+        return baseUrl + "/" + resourcePathLower;
     }
 }
