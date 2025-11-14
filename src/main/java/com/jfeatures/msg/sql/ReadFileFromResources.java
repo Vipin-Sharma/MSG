@@ -11,6 +11,8 @@ import java.nio.charset.StandardCharsets;
  */
 public final class ReadFileFromResources {
 
+    private static java.util.function.Supplier<ClassLoader> classLoaderSupplier = ReadFileFromResources.class::getClassLoader;
+
     private ReadFileFromResources() {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
     }
@@ -53,7 +55,7 @@ public final class ReadFileFromResources {
         // Normalize path separators for cross-platform compatibility
         String normalizedFileName = fileName.replace('\\', '/');
         
-        try (var inputStream = ReadFileFromResources.class.getClassLoader().getResourceAsStream(normalizedFileName)) {
+        try (var inputStream = classLoaderSupplier.get().getResourceAsStream(normalizedFileName)) {
             // Critical fix: Check for null before calling readAllBytes()
             if (inputStream == null) {
                 throw new IllegalArgumentException(
@@ -100,5 +102,9 @@ public final class ReadFileFromResources {
                 throw new IllegalArgumentException("Access to system paths is not allowed: " + fileName);
             }
         }
+    }
+
+    static void setClassLoaderSupplier(java.util.function.Supplier<ClassLoader> supplier) {
+        classLoaderSupplier = supplier != null ? supplier : ReadFileFromResources.class::getClassLoader;
     }
 }

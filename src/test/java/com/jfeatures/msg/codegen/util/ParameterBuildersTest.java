@@ -2,7 +2,9 @@ package com.jfeatures.msg.codegen.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mockStatic;
 
+import com.jfeatures.msg.codegen.SQLServerDataTypeEnum;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.domain.DBColumn;
 import com.squareup.javapoet.ClassName;
@@ -14,6 +16,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.MockedStatic;
 
 /**
  * Comprehensive tests for ParameterBuilders utility class to achieve 90%+ coverage.
@@ -547,6 +550,21 @@ class ParameterBuildersTest {
         // Then - Should be boxed to Integer, not primitive int
         assertThat(parameters).hasSize(1);
         assertParameter(parameters.get(0), "countValue", ClassName.get(Integer.class));
+    }
+
+    @Test
+    void shouldBoxPrimitiveTypesReturnedFromTypeLookup() {
+        ColumnMetadata column = createColumnMetadata("primitive_flag", "bit");
+
+        try (MockedStatic<SQLServerDataTypeEnum> mocked = mockStatic(SQLServerDataTypeEnum.class)) {
+            mocked.when(() -> SQLServerDataTypeEnum.getClassForType("bit")).thenReturn(boolean.class);
+
+            List<ColumnMetadata> columns = List.of(column);
+            List<ParameterSpec> parameters = ParameterBuilders.fromColumnMetadata(columns, false);
+
+            assertThat(parameters).hasSize(1);
+            assertParameter(parameters.get(0), "primitiveFlag", ClassName.get(Boolean.class));
+        }
     }
 
     private static void assertParameter(

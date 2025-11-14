@@ -233,6 +233,16 @@ class FieldBuildersTest {
     }
 
     @Test
+    void shouldUseAliasForPublicDtoField() {
+        ColumnMetadata metadata = createColumnMetadata("customer_id", "bigint", false);
+        metadata.setColumnAlias("id_alias");
+
+        FieldSpec field = FieldBuilders.publicDtoField(metadata);
+
+        assertThat(field.name).isEqualTo("id_alias");
+    }
+
+    @Test
     void shouldThrowExceptionForNullColumnMetadataInDtoField() {
         assertThrows(IllegalArgumentException.class, 
             () -> FieldBuilders.dtoField(null));

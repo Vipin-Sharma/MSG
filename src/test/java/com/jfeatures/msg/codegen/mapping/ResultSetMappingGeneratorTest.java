@@ -6,6 +6,7 @@ import com.jfeatures.msg.codegen.constants.CodeGenerationConstants;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
+import java.lang.reflect.Method;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -329,6 +330,15 @@ class ResultSetMappingGeneratorTest {
         
         assertNotNull(result);
         assertTrue(result.contains("SimpleDTO"));
+    }
+
+    @Test
+    void capitalizeHandlesNullAndEmptyValues() throws Exception {
+        Method method = ResultSetMappingGenerator.class.getDeclaredMethod("capitalize", String.class);
+        method.setAccessible(true);
+
+        assertNull(method.invoke(null, (String) null));
+        assertEquals("", method.invoke(null, ""));
     }
 
     private ColumnMetadata createColumn(String columnName) {
