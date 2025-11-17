@@ -17,38 +17,57 @@ import java.util.stream.Collectors;
  */
 public enum SQLServerDataTypeEnum {
 
-    BIGINT("BIGINT", Long.class, "Long" ),
-    BINARY("BINARY", byte[].class, "Byte[]" ),
-    BIT("BIT", Boolean.class, "Boolean"),
-    CHAR("CHAR", String.class, "String" ),
-    DATE("DATE", java.sql.Date.class, "Date"),
-    DATETIME("DATETIME", java.sql.Timestamp.class, "Timestamp" ),
-    DATETIME2("DATETIME2", java.sql.Timestamp.class, "Timestamp" ),
-    DECIMAL("DECIMAL", java.math.BigDecimal.class, "BigDecimal" ),
-    INT("INT", Integer.class, "Int" ),
-    FLOAT("FLOAT", Double.class, "Double" ),
-    IMAGE("IMAGE", byte[].class, "Byte[]" ),
-    MONEY("MONEY", java.math.BigDecimal.class, "BigDecimal" ),
-    NCHAR("NCHAR", String.class, "String" ),
-    NTEXT("NTEXT", String.class, "String" ),
-    NUMERIC("NUMERIC", java.math.BigDecimal.class, "BigDecimal" ),
-    NVARCHAR("NVARCHAR", String.class, "String"),
-    REAL("REAL", Float.class, "Float" ),
-    SMALLDATETIME("SMALLDATETIME", java.sql.Timestamp.class, "Timestamp" ),
-    SMALLINT("SMALLINT", Integer.class, "Int" ),
-    SMALLMONEY("SMALLMONEY", java.math.BigDecimal.class, "BigDecimal" ),
-    TEXT("TEXT", String.class, "String" ),
-    TIME("TIME", java.sql.Time.class, "Time" ),
-    TIMESTAMP("TIMESTAMP", java.sql.Timestamp.class, "Timestamp" ),
-    TINYINT("TINYINT", Integer.class, "Int" ),
-    VARCHAR("VARCHAR", String.class, "String" ),
+    BIGINT("BIGINT", Long.class, JdbcType.LONG),
+    BINARY("BINARY", byte[].class, JdbcType.BYTE_ARRAY),
+    BIT("BIT", Boolean.class, JdbcType.BOOLEAN),
+    CHAR("CHAR", String.class, JdbcType.STRING),
+    DATE("DATE", java.sql.Date.class, JdbcType.DATE),
+    DATETIME("DATETIME", java.sql.Timestamp.class, JdbcType.TIMESTAMP),
+    DATETIME2("DATETIME2", java.sql.Timestamp.class, JdbcType.TIMESTAMP),
+    DECIMAL("DECIMAL", java.math.BigDecimal.class, JdbcType.BIG_DECIMAL),
+    INT("INT", Integer.class, JdbcType.INT),
+    FLOAT("FLOAT", Double.class, JdbcType.DOUBLE),
+    IMAGE("IMAGE", byte[].class, JdbcType.BYTE_ARRAY),
+    MONEY("MONEY", java.math.BigDecimal.class, JdbcType.BIG_DECIMAL),
+    NCHAR("NCHAR", String.class, JdbcType.STRING),
+    NTEXT("NTEXT", String.class, JdbcType.STRING),
+    NUMERIC("NUMERIC", java.math.BigDecimal.class, JdbcType.BIG_DECIMAL),
+    NVARCHAR("NVARCHAR", String.class, JdbcType.STRING),
+    REAL("REAL", Float.class, JdbcType.FLOAT),
+    SMALLDATETIME("SMALLDATETIME", java.sql.Timestamp.class, JdbcType.TIMESTAMP),
+    SMALLINT("SMALLINT", Integer.class, JdbcType.INT),
+    SMALLMONEY("SMALLMONEY", java.math.BigDecimal.class, JdbcType.BIG_DECIMAL),
+    TEXT("TEXT", String.class, JdbcType.STRING),
+    TIME("TIME", java.sql.Time.class, JdbcType.TIME),
+    TIMESTAMP("TIMESTAMP", java.sql.Timestamp.class, JdbcType.TIMESTAMP),
+    TINYINT("TINYINT", Integer.class, JdbcType.INT),
+    VARCHAR("VARCHAR", String.class, JdbcType.STRING),
 
     // Additional SQL Server types for completeness
-    UNIQUEIDENTIFIER("UNIQUEIDENTIFIER", String.class, "String"),
-    VARBINARY("VARBINARY", byte[].class, "Byte[]"),
-    XML("XML", String.class, "String");
+    UNIQUEIDENTIFIER("UNIQUEIDENTIFIER", String.class, JdbcType.STRING),
+    VARBINARY("VARBINARY", byte[].class, JdbcType.BYTE_ARRAY),
+    XML("XML", String.class, JdbcType.STRING);
 
-    // Constant for default JDBC type
+    /**
+     * JDBC type constants to avoid string duplication
+     */
+    private static final class JdbcType {
+        static final String STRING = "String";
+        static final String BYTE_ARRAY = "Byte[]";
+        static final String TIMESTAMP = "Timestamp";
+        static final String BIG_DECIMAL = "BigDecimal";
+        static final String BOOLEAN = "Boolean";
+        static final String DATE = "Date";
+        static final String TIME = "Time";
+        static final String INT = "Int";
+        static final String LONG = "Long";
+        static final String DOUBLE = "Double";
+        static final String FLOAT = "Float";
+
+        private JdbcType() {}
+    }
+
+    // Constant for default JDBC type (matches VARCHAR)
     private static final String JDBC_DEFAULT_TYPE = "VARCHAR";
 
     private final String dbDataType;

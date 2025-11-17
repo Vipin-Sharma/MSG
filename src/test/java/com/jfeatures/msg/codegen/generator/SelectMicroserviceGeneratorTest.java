@@ -209,12 +209,12 @@ class SelectMicroserviceGeneratorTest {
     }
     
     @Test
-    void testGenerateSelectMicroservice_SqlException_PropagatesException() throws Exception {
+    void testGenerateSelectMicroservice_SqlException_PropagatesException() {
         // Given
         String sql = "SELECT * FROM customers WHERE id = ?";
         String businessDomainName = "Customer";
         SQLException sqlException = new SQLException("Database connection failed");
-        
+
         try (var sqlMetadataMockedConstruction = mockConstruction(SqlMetadata.class, (mock, context) -> {
                  try {
                      when(mock.getColumnMetadata(sql)).thenReturn(mockColumnMetadata);
@@ -228,19 +228,19 @@ class SelectMicroserviceGeneratorTest {
              var extractorMockedConstruction = mockConstruction(ParameterMetadataExtractor.class, (mock, context) -> {
                  when(mock.extractParameters(sql)).thenThrow(sqlException);
              })) {
-            
+
             // When & Then
             SQLException exception = assertThrows(
                 SQLException.class,
                 () -> generator.generateSelectMicroservice(sql, businessDomainName, databaseConnection)
             );
-            
+
             assertEquals("Database connection failed", exception.getMessage());
         }
     }
-    
+
     @Test
-    void testGenerateSelectMicroservice_MetadataExtractionFailure_PropagatesException() throws Exception {
+    void testGenerateSelectMicroservice_MetadataExtractionFailure_PropagatesException() {
         // Given
         String sql = "SELECT * FROM customers";
         String businessDomainName = "Customer";
