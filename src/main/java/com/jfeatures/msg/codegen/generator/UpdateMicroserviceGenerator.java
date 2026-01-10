@@ -1,5 +1,6 @@
 package com.jfeatures.msg.codegen.generator;
 
+import com.jfeatures.msg.codegen.GenerateAuthenticationUtil;
 import com.jfeatures.msg.codegen.GenerateDatabaseConfig;
 import com.jfeatures.msg.codegen.GenerateSpringBootApp;
 import com.jfeatures.msg.codegen.GenerateUpdateController;
@@ -61,9 +62,16 @@ public class UpdateMicroserviceGenerator {
         
         // Generate DAO for UPDATE operations
         JavaFile daoFile = GenerateUpdateDAO.createUpdateDAO(businessDomainName, updateMetadata);
-        
+
+        // Generate AuthenticationUtil if there are audit fields
+        JavaFile authUtilFile = null;
+        if (!updateMetadata.auditFields().isEmpty()) {
+            log.info("Generating AuthenticationUtil for audit field support");
+            authUtilFile = GenerateAuthenticationUtil.createAuthenticationUtil(businessDomainName);
+        }
+
         log.info("Successfully generated UPDATE microservice components for: {}", businessDomainName);
-        
+
         return new GeneratedMicroservice(
             businessDomainName,
             springBootApplication,
@@ -71,7 +79,8 @@ public class UpdateMicroserviceGenerator {
             controllerFile,
             daoFile,
             databaseConfigContent,
-            SqlStatementType.UPDATE
+            SqlStatementType.UPDATE,
+            authUtilFile
         );
     }
     

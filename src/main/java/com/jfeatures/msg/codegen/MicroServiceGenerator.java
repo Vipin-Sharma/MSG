@@ -45,7 +45,10 @@ public class MicroServiceGenerator implements Callable<Integer> {
     public Integer call() throws Exception {
         // Validate input parameters
         validateInputParameters();
-        
+
+        // Validate audit configuration at startup
+        com.jfeatures.msg.codegen.audit.AuditConfigurationValidator.validateConfiguration();
+
         log.info("Starting microservice generation for business domain: {}", businessPurposeName);
         log.info("Target directory: {}", destinationDirectory);
         

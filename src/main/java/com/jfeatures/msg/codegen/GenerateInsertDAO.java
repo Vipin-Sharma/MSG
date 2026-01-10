@@ -1,6 +1,8 @@
 package com.jfeatures.msg.codegen;
 
 import com.github.vertical_blank.sqlformatter.SqlFormatter;
+import com.jfeatures.msg.codegen.audit.AuditFieldDetector;
+import com.jfeatures.msg.codegen.audit.AuditFieldType;
 import com.jfeatures.msg.codegen.constants.CodeGenerationConstants;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.InsertMetadata;
@@ -8,6 +10,7 @@ import com.jfeatures.msg.codegen.util.FieldBuilders;
 import com.jfeatures.msg.codegen.util.MethodBuilders;
 import com.jfeatures.msg.codegen.util.JavaPackageNameBuilder;
 import com.jfeatures.msg.codegen.util.JavaPoetTypeNameBuilder;
+import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
@@ -15,7 +18,9 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -115,34 +120,75 @@ public class GenerateInsertDAO {
         return sqlBuilder.toString();
     }
     
-    private static MethodSpec createInsertMethod(String businessPurposeOfSQL, InsertMetadata insertMetadata, 
+    private static MethodSpec createInsertMethod(String businessPurposeOfSQL, InsertMetadata insertMetadata,
                                                TypeName insertDtoType, String jdbcTemplateFieldName) {
-        
-        // Method parameter
+
+        // Method parameters
         ParameterSpec dtoParameter = ParameterSpec.builder(insertDtoType, "insertRequest")
                 .build();
-        
+
         // Build parameter mapping code
         CodeBlock.Builder paramMappingBuilder = CodeBlock.builder()
                 .addStatement("$T<$T, $T> sqlParamMap = new $T()", Map.class, String.class, Object.class, HashMap.class);
-        
-        for (ColumnMetadata column : insertMetadata.insertColumns()) {
+
+        // Separate audit and non-audit columns
+        List<ColumnMetadata> nonAuditColumns = AuditFieldDetector.filterOutAuditFields(insertMetadata.insertColumns());
+        Map<ColumnMetadata, AuditFieldType> auditFields = insertMetadata.auditFields();
+
+        // Add non-audit fields from DTO
+        for (ColumnMetadata column : nonAuditColumns) {
             String fieldName = CaseUtils.toCamelCase(column.getColumnName(), false, '_');
             String getterMethod = "get" + CaseUtils.toCamelCase(column.getColumnName(), true, '_');
-            
-            paramMappingBuilder.addStatement("sqlParamMap.put($S, insertRequest.$L())", 
+
+            paramMappingBuilder.addStatement("sqlParamMap.put($S, insertRequest.$L())",
                     fieldName, getterMethod);
         }
-        
-        // Return insert method
-        return MethodSpec.methodBuilder("insert" + businessPurposeOfSQL)
+
+        // Add audit fields (auto-populated)
+        if (!auditFields.isEmpty()) {
+            paramMappingBuilder.add("\n// Auto-populate audit fields\n");
+
+            for (Map.Entry<ColumnMetadata, AuditFieldType> entry : auditFields.entrySet()) {
+                ColumnMetadata column = entry.getKey();
+                AuditFieldType auditType = entry.getValue();
+                String fieldName = CaseUtils.toCamelCase(column.getColumnName(), false, '_');
+
+                if (auditType.isTimestampField()) {
+                    // Timestamp fields: use LocalDateTime.now()
+                    paramMappingBuilder.addStatement("sqlParamMap.put($S, $T.now())",
+                            fieldName, LocalDateTime.class);
+                } else if (auditType.isUserIdField()) {
+                    // User ID fields: use userId passed from controller
+                    paramMappingBuilder.addStatement("sqlParamMap.put($S, userId)",
+                            fieldName);
+                }
+            }
+        }
+
+        // Build method with or without HttpServletRequest parameter based on audit fields
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("insert" + businessPurposeOfSQL)
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(dtoParameter)
-                .returns(int.class)
-                .addCode(paramMappingBuilder.build())
-                .addStatement("return $N.update(" + CodeGenerationConstants.SQL_FIELD_NAME + ", sqlParamMap)", jdbcTemplateFieldName)
-                .addJavadoc("Inserts a new $L record into the database.\\n@param insertRequest the $L data to insert\\n@return number of rows affected", 
-                           businessPurposeOfSQL.toLowerCase(), businessPurposeOfSQL.toLowerCase())
-                .build();
+                .returns(int.class);
+
+        // Add userId parameter if there are ANY audit fields (for audit trail)
+        // Controller extracts userId and passes it to DAO
+        boolean hasAnyAuditFields = !auditFields.isEmpty();
+        if (hasAnyAuditFields) {
+            methodBuilder.addParameter(String.class, "userId");
+        }
+
+        methodBuilder.addCode(paramMappingBuilder.build())
+                .addStatement("return $N.update(" + CodeGenerationConstants.SQL_FIELD_NAME + ", sqlParamMap)", jdbcTemplateFieldName);
+
+        // JavaDoc
+        String javadoc = "Inserts a new $L record into the database.\\n@param insertRequest the $L data to insert";
+        if (hasAnyAuditFields) {
+            javadoc += "\\n@param userId the ID of the user performing the insert";
+        }
+        javadoc += "\\n@return number of rows affected";
+        methodBuilder.addJavadoc(javadoc, businessPurposeOfSQL.toLowerCase(), businessPurposeOfSQL.toLowerCase());
+
+        return methodBuilder.build();
     }
 }

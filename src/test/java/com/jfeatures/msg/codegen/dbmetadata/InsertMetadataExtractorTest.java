@@ -134,17 +134,17 @@ class InsertMetadataExtractorTest {
 
     @Test
     void shouldHandleMissingColumnMetadata() throws Exception {
-        // Given
+        // Given - SQL references column that doesn't exist in database
         String sql = "INSERT INTO customer (unknown_column) VALUES (?)";
         when(databaseMetaData.getColumns(isNull(), isNull(), eq("customer"), eq("unknown_column")))
             .thenReturn(resultSet);
-        when(resultSet.next()).thenReturn(false); // No metadata found
+        when(resultSet.next()).thenReturn(false); // No metadata found (column doesn't exist)
 
-        // When
-        InsertMetadata result = extractor.extractInsertMetadata(sql);
-
-        // Then
-        assertThat(result.insertColumns()).isEmpty();
+        // When & Then - Should fail fast with clear error message
+        assertThatThrownBy(() -> extractor.extractInsertMetadata(sql))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("Column 'unknown_column' specified in INSERT statement does not exist in table 'customer'")
+            .hasMessageContaining("Please ensure the database schema matches the SQL file");
     }
 
     @Test

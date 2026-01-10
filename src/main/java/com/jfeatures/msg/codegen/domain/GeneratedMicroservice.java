@@ -15,7 +15,8 @@ public record GeneratedMicroservice(
     JavaFile controllerFile,
     JavaFile daoFile,
     String databaseConfigContent,
-    SqlStatementType statementType
+    SqlStatementType statementType,
+    JavaFile authenticationUtilFile  // Optional - only generated for INSERT/UPDATE operations with audit fields
 ) {
     
     public GeneratedMicroservice {
@@ -40,5 +41,6 @@ public record GeneratedMicroservice(
         if (statementType == null) {
             throw new IllegalArgumentException("SQL statement type cannot be null");
         }
+        // authenticationUtilFile is optional - can be null for operations without audit fields
     }
 }

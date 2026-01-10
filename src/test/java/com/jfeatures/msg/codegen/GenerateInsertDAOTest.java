@@ -44,7 +44,8 @@ class GenerateInsertDAOTest {
         validMetadata = new InsertMetadata(
                 "customers",
                 Arrays.asList(customerIdColumn, customerNameColumn),
-                "INSERT INTO customers (customer_id, customer_name) VALUES (?, ?)"
+                "INSERT INTO customers (customer_id, customer_name) VALUES (?, ?)",
+                new java.util.HashMap<>()
         );
     }
 
@@ -80,7 +81,8 @@ class GenerateInsertDAOTest {
         InsertMetadata singleColumnMetadata = new InsertMetadata(
                 "simple_table",
                 Collections.singletonList(singleColumn),
-                "INSERT INTO simple_table (id) VALUES (?)"
+                "INSERT INTO simple_table (id) VALUES (?)",
+                new java.util.HashMap<>()
         );
 
         JavaFile javaFile = GenerateInsertDAO.createInsertDAO("Simple", singleColumnMetadata);
@@ -127,9 +129,10 @@ class GenerateInsertDAOTest {
     void testCreateInsertDAO_WithEmptyColumns_ThrowsException() {
         // Test edge cases based on research
         InsertMetadata emptyMetadata = new InsertMetadata(
-                "test_table", 
-                Collections.emptyList(), 
-                "INSERT INTO test_table () VALUES ()"
+                "test_table",
+                Collections.emptyList(),
+                "INSERT INTO test_table () VALUES ()",
+                new java.util.HashMap<>()
         );
         
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->

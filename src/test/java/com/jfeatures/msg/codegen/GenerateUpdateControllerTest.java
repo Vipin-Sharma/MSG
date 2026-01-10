@@ -39,7 +39,8 @@ class GenerateUpdateControllerTest {
                 "products",
                 Arrays.asList(nameSetColumn, statusSetColumn), // SET columns
                 Arrays.asList(idWhereColumn, categoryWhereColumn), // WHERE columns
-                "UPDATE products SET product_name = ?, status = ? WHERE id = ? AND category_id = ?"
+                "UPDATE products SET product_name = ?, status = ? WHERE id = ? AND category_id = ?",
+                new java.util.HashMap<>()
         );
     }
 
@@ -82,7 +83,8 @@ class GenerateUpdateControllerTest {
                 "users",
                 Arrays.asList(nameSetColumn),
                 Collections.singletonList(idWhereColumn), // Single WHERE column
-                "UPDATE users SET product_name = ? WHERE id = ?"
+                "UPDATE users SET product_name = ? WHERE id = ?",
+                new java.util.HashMap<>()
         );
 
         JavaFile javaFile = GenerateUpdateController.createUpdateController("User", singleWhereMetadata);
@@ -119,7 +121,8 @@ class GenerateUpdateControllerTest {
                 "settings",
                 Arrays.asList(nameSetColumn),
                 Collections.emptyList(), // No WHERE columns
-                "UPDATE settings SET product_name = ?"
+                "UPDATE settings SET product_name = ?",
+                new java.util.HashMap<>()
         );
 
         JavaFile javaFile = GenerateUpdateController.createUpdateController("Setting", noWhereMetadata);
@@ -172,7 +175,8 @@ class GenerateUpdateControllerTest {
                 "accounts",
                 Arrays.asList(nameSetColumn), // SET columns
                 Arrays.asList(longIdColumn, decimalColumn, timestampColumn), // WHERE columns
-                "UPDATE accounts SET product_name = ? WHERE user_id = ? AND min_price = ? AND updated_at = ?"
+                "UPDATE accounts SET product_name = ? WHERE user_id = ? AND min_price = ? AND updated_at = ?",
+                new java.util.HashMap<>()
         );
 
         JavaFile javaFile = GenerateUpdateController.createUpdateController("Account", multiTypeMetadata);
@@ -196,7 +200,8 @@ class GenerateUpdateControllerTest {
                 "user_profiles",
                 Arrays.asList(nameSetColumn),
                 Arrays.asList(snakeCaseWhereColumn, anotherSnakeCaseWhereColumn),
-                "UPDATE user_profiles SET product_name = ? WHERE user_account_id = ? AND created_date_time = ?"
+                "UPDATE user_profiles SET product_name = ? WHERE user_account_id = ? AND created_date_time = ?",
+                new java.util.HashMap<>()
         );
 
         JavaFile javaFile = GenerateUpdateController.createUpdateController("UserProfile", snakeCaseMetadata);
@@ -261,7 +266,8 @@ class GenerateUpdateControllerTest {
                 "test_table",
                 Arrays.asList(nameSetColumn),
                 Arrays.asList(genericParam1, genericParam2, genericParam3, genericParam4),
-                "UPDATE test_table SET product_name = ? WHERE whereParam1 = ? AND whereParam2 = ? AND whereParam3 = ? AND whereParam4 = ?"
+                "UPDATE test_table SET product_name = ? WHERE whereParam1 = ? AND whereParam2 = ? AND whereParam3 = ? AND whereParam4 = ?",
+                new java.util.HashMap<>()
         );
 
         JavaFile javaFile = GenerateUpdateController.createUpdateController("Test", genericMetadata);

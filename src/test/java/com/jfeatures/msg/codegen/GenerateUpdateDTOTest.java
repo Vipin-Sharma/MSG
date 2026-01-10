@@ -39,7 +39,8 @@ class GenerateUpdateDTOTest {
                 "products",
                 Arrays.asList(nameSetColumn, statusSetColumn), // SET columns
                 Arrays.asList(idWhereColumn, categoryWhereColumn), // WHERE columns
-                "UPDATE products SET product_name = ?, status = ? WHERE id = ? AND category_id = ?"
+                "UPDATE products SET product_name = ?, status = ? WHERE id = ? AND category_id = ?",
+                new java.util.HashMap<>()
         );
     }
 
@@ -108,7 +109,8 @@ class GenerateUpdateDTOTest {
                 "simple_table",
                 Arrays.asList(nameSetColumn),
                 Collections.emptyList(), // No WHERE columns
-                "UPDATE simple_table SET product_name = ?"
+                "UPDATE simple_table SET product_name = ?",
+                new java.util.HashMap<>()
         );
 
         JavaFile javaFile = GenerateUpdateDTO.createUpdateWhereDTO("Simple", noWhereMetadata);
@@ -125,7 +127,8 @@ class GenerateUpdateDTOTest {
                 "accounts",
                 Arrays.asList(nameSetColumn),
                 Arrays.asList(meaningfulColumn),
-                "UPDATE accounts SET product_name = ? WHERE user_account_id = ?"
+                "UPDATE accounts SET product_name = ? WHERE user_account_id = ?",
+                new java.util.HashMap<>()
         );
 
         JavaFile javaFile = GenerateUpdateDTO.createUpdateWhereDTO("Account", meaningfulWhereMetadata);
@@ -147,7 +150,8 @@ class GenerateUpdateDTOTest {
                 "test_table",
                 Arrays.asList(nameSetColumn),
                 Arrays.asList(genericColumn1, genericColumn2, genericColumn3, genericColumn4),
-                "UPDATE test_table SET product_name = ? WHERE whereParam1 = ? AND whereParam2 = ? AND whereParam3 = ? AND whereParam4 = ?"
+                "UPDATE test_table SET product_name = ? WHERE whereParam1 = ? AND whereParam2 = ? AND whereParam3 = ? AND whereParam4 = ?",
+                new java.util.HashMap<>()
         );
 
         JavaFile javaFile = GenerateUpdateDTO.createUpdateWhereDTO("Test", genericWhereMetadata);
@@ -171,7 +175,8 @@ class GenerateUpdateDTOTest {
                 "complex_table",
                 Arrays.asList(bigintColumn, decimalColumn, booleanColumn, timestampColumn),
                 Arrays.asList(idWhereColumn),
-                "UPDATE complex_table SET big_id = ?, price = ?, is_active = ?, updated_at = ? WHERE id = ?"
+                "UPDATE complex_table SET big_id = ?, price = ?, is_active = ?, updated_at = ? WHERE id = ?",
+                new java.util.HashMap<>()
         );
 
         JavaFile javaFile = GenerateUpdateDTO.createUpdateDTO("Complex", multiTypeMetadata);
@@ -180,15 +185,21 @@ class GenerateUpdateDTOTest {
         assertTrue(code.contains("private Long bigId"));
         assertTrue(code.contains("private BigDecimal price"));
         assertTrue(code.contains("private Boolean isActive"));
-        assertTrue(code.contains("private Timestamp updatedAt"));
-        
+
+        // Audit field (updated_at) should be EXCLUDED from DTO as it's auto-populated
+        assertFalse(code.contains("private Timestamp updatedAt"),
+                "Audit field 'updatedAt' should be excluded from DTO");
+
         // Verify validation annotations for non-nullable fields
         assertTrue(code.contains("bigId cannot be null"));
         assertTrue(code.contains("isActive cannot be null"));
-        
+
         // Nullable fields should not have @NotNull
         assertFalse(code.contains("price cannot be null"));
-        assertFalse(code.contains("updatedAt cannot be null"));
+
+        // Verify DTO JavaDoc mentions audit field exclusion
+        assertTrue(code.contains("Audit fields") || code.contains("auto-populated"),
+                "DTO should document audit field exclusion");
     }
 
     @Test
@@ -197,7 +208,8 @@ class GenerateUpdateDTOTest {
                 "simple_table",
                 Collections.singletonList(statusSetColumn),
                 Arrays.asList(idWhereColumn),
-                "UPDATE simple_table SET status = ? WHERE id = ?"
+                "UPDATE simple_table SET status = ? WHERE id = ?",
+                new java.util.HashMap<>()
         );
 
         JavaFile javaFile = GenerateUpdateDTO.createUpdateDTO("Simple", singleColumnMetadata);
@@ -233,7 +245,8 @@ class GenerateUpdateDTOTest {
                 "user_profiles",
                 Arrays.asList(snakeCaseSetColumn),
                 Arrays.asList(snakeCaseWhereColumn),
-                "UPDATE user_profiles SET user_full_name = ? WHERE account_created_date = ?"
+                "UPDATE user_profiles SET user_full_name = ? WHERE account_created_date = ?",
+                new java.util.HashMap<>()
         );
 
         JavaFile setDto = GenerateUpdateDTO.createUpdateDTO("UserProfile", snakeCaseMetadata);

@@ -70,7 +70,8 @@ public class DeleteMicroserviceGenerator {
             controllerFile,
             daoFile,
             databaseConfigContent,
-            SqlStatementType.DELETE
+            SqlStatementType.DELETE,
+            null  // No authentication util needed for DELETE operations
         );
     }
     

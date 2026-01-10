@@ -16,7 +16,7 @@ class UpdateMetadataTest {
         List<ColumnMetadata> whereColumns = createColumnMetadataList("id");
         String sql = "UPDATE customers SET name = ?, email = ? WHERE id = ?";
 
-        UpdateMetadata metadata = new UpdateMetadata("customers", setColumns, whereColumns, sql);
+        UpdateMetadata metadata = new UpdateMetadata("customers", setColumns, whereColumns, sql, new java.util.HashMap<>());
 
         assertEquals("customers", metadata.tableName());
         assertEquals(2, metadata.setColumns().size());
@@ -30,7 +30,7 @@ class UpdateMetadataTest {
         List<ColumnMetadata> whereColumns = createColumnMetadataList("id");
         String sql = "UPDATE customers WHERE id = ?";
 
-        UpdateMetadata metadata = new UpdateMetadata("customers", setColumns, whereColumns, sql);
+        UpdateMetadata metadata = new UpdateMetadata("customers", setColumns, whereColumns, sql, new java.util.HashMap<>());
 
         assertTrue(metadata.setColumns().isEmpty());
         assertEquals(1, metadata.whereColumns().size());

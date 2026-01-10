@@ -1,5 +1,6 @@
 package com.jfeatures.msg.codegen;
 
+import com.jfeatures.msg.codegen.audit.AuditFieldType;
 import com.jfeatures.msg.codegen.constants.CodeGenerationConstants;
 import com.jfeatures.msg.codegen.constants.ProjectConstants;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
@@ -21,6 +22,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -168,20 +170,44 @@ public class GenerateUpdateController {
                     .build());
             methodCallParams.add(paramName);
         }
-        
+
+        // Add HttpServletRequest parameter if there are ANY audit fields (for extracting userId)
+        // Controller extracts userId and passes it to DAO
+        boolean hasAnyAuditFields = !updateMetadata.auditFields().isEmpty();
+        if (hasAnyAuditFields) {
+            parameterSpecs.add(ParameterSpec.builder(HttpServletRequest.class, "request").build());
+        }
+
+        // Build method body with userId extraction for audit logging
+        CodeBlock.Builder methodBodyBuilder = CodeBlock.builder();
+
+        if (hasAnyAuditFields) {
+            // Extract and log userId for audit trail
+            TypeName authUtilClass = JavaPoetTypeNameBuilder.buildJavaPoetTypeNameForClass(
+                    businessPurposeOfSQL, "util", "AuthenticationUtil");
+
+            methodBodyBuilder.addStatement("$T userId = $T.getUserId(request)",
+                    String.class, authUtilClass)
+                    .addStatement("$T.out.println($S + userId)",
+                            System.class, "User updating " + businessPurposeOfSQL.toLowerCase() + ": ")
+                    .add("\n");
+
+            // Pass userId to DAO, not HttpServletRequest
+            methodCallParams.add("userId");
+        }
+
         // Build method call parameters string
         String methodCallParamsString = String.join(", ", methodCallParams);
-        
-        // Build method body
-        CodeBlock methodBody = CodeBlock.builder()
-                .addStatement("int rowsUpdated = $N.update$N($N)", daoInstanceFieldName, businessPurposeOfSQL, methodCallParamsString)
+
+        methodBodyBuilder.addStatement("int rowsUpdated = $N.update$N($N)", daoInstanceFieldName, businessPurposeOfSQL, methodCallParamsString)
                 .add("\n")
                 .beginControlFlow("if (rowsUpdated > 0)")
                 .addStatement("return $T.ok().build()", ResponseEntity.class)
                 .nextControlFlow("else")
                 .addStatement("return $T.notFound().build()", ResponseEntity.class)
-                .endControlFlow()
-                .build();
+                .endControlFlow();
+
+        CodeBlock methodBody = methodBodyBuilder.build();
         
         // Determine URL mapping
         String mappingUrl = hasPathVariable ? 

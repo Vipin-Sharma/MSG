@@ -39,6 +39,11 @@ CREATE TABLE customer (
     active char(1) NOT NULL DEFAULT 'Y',
     create_date datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_update datetime DEFAULT CURRENT_TIMESTAMP,
+    -- Audit fields for tracking record creation and updates
+    created_at datetime DEFAULT CURRENT_TIMESTAMP,
+    created_by varchar(100),
+    updated_at datetime,
+    updated_by varchar(100),
     FOREIGN KEY (address_id) REFERENCES address(address_id)
 );
 

@@ -1,5 +1,6 @@
 package com.jfeatures.msg.codegen;
 
+import com.jfeatures.msg.codegen.audit.AuditFieldDetector;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.UpdateMetadata;
 import com.jfeatures.msg.codegen.util.DtoFieldNameConverter;
@@ -31,13 +32,20 @@ public class GenerateUpdateDTO {
      * Creates the main update DTO containing fields for SET clause columns.
      */
     public static JavaFile createUpdateDTO(String businessPurposeOfSQL, UpdateMetadata updateMetadata) throws IOException {
-        List<FieldSpec> fieldSpecList = generateFieldSpecsForSetColumns(updateMetadata.setColumns());
-        
+        // Filter out audit fields - they will be auto-populated
+        List<ColumnMetadata> nonAuditColumns = AuditFieldDetector.filterOutAuditFields(updateMetadata.setColumns());
+        int auditFieldCount = updateMetadata.setColumns().size() - nonAuditColumns.size();
+        if (auditFieldCount > 0) {
+            log.info("Excluding {} audit field(s) from UpdateDTO", auditFieldCount);
+        }
+
+        List<FieldSpec> fieldSpecList = generateFieldSpecsForSetColumns(nonAuditColumns);
+
         TypeSpec updateDTO = TypeSpec.classBuilder(businessPurposeOfSQL + "UpdateDTO")
                 .addModifiers(Modifier.PUBLIC)
                 .addFields(fieldSpecList)
                 .addAnnotation(AnnotationSpec.builder(Data.class).build())
-                .addJavadoc("DTO for updating $L entity.\nContains fields that can be updated via PUT API.", businessPurposeOfSQL.toLowerCase())
+                .addJavadoc("DTO for updating $L entity.\nContains fields that can be updated via PUT API.\nAudit fields (updatedAt, updatedBy) are auto-populated and excluded from this DTO.", businessPurposeOfSQL.toLowerCase())
                 .build();
         
         JavaFile javaFile = JavaFile.builder(JavaPackageNameBuilder.buildJavaPackageName(businessPurposeOfSQL, "dto"), updateDTO)

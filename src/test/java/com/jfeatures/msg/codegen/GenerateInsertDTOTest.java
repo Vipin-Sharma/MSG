@@ -38,7 +38,8 @@ class GenerateInsertDTOTest {
         validInsertMetadata = new InsertMetadata(
                 "products",
                 Arrays.asList(productNameColumn, descriptionColumn, priceColumn),
-                "INSERT INTO products (product_name, description, price) VALUES (?, ?, ?)"
+                "INSERT INTO products (product_name, description, price) VALUES (?, ?, ?)",
+                new java.util.HashMap<>()
         );
     }
 
@@ -80,7 +81,8 @@ class GenerateInsertDTOTest {
         InsertMetadata singleColumnMetadata = new InsertMetadata(
                 "categories",
                 Collections.singletonList(productNameColumn),
-                "INSERT INTO categories (product_name) VALUES (?)"
+                "INSERT INTO categories (product_name) VALUES (?)",
+                new java.util.HashMap<>()
         );
 
         JavaFile javaFile = GenerateInsertDTO.createInsertDTO("Category", singleColumnMetadata);
@@ -104,7 +106,8 @@ class GenerateInsertDTOTest {
         InsertMetadata multiTypeMetadata = new InsertMetadata(
                 "users",
                 Arrays.asList(idColumn, activeFlagColumn, createdDateColumn),
-                "INSERT INTO users (id, is_active, created_date) VALUES (?, ?, ?)"
+                "INSERT INTO users (id, is_active, created_date) VALUES (?, ?, ?)",
+                new java.util.HashMap<>()
         );
 
         JavaFile javaFile = GenerateInsertDTO.createInsertDTO("User", multiTypeMetadata);
@@ -154,9 +157,10 @@ class GenerateInsertDTOTest {
     void testCreateInsertDTO_WithEmptyColumns_ThrowsException() {
         // Test edge cases based on research
         InsertMetadata emptyMetadata = new InsertMetadata(
-                "test_table", 
-                Collections.emptyList(), 
-                "INSERT INTO test_table () VALUES ()"
+                "test_table",
+                Collections.emptyList(),
+                "INSERT INTO test_table () VALUES ()",
+                new java.util.HashMap<>()
         );
         
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
@@ -187,7 +191,8 @@ class GenerateInsertDTOTest {
         InsertMetadata snakeCaseMetadata = new InsertMetadata(
                 "user_sessions",
                 Arrays.asList(snakeCaseColumn, anotherSnakeCaseColumn),
-                "INSERT INTO user_sessions (user_account_id, first_login_date) VALUES (?, ?)"
+                "INSERT INTO user_sessions (user_account_id, first_login_date) VALUES (?, ?)",
+                new java.util.HashMap<>()
         );
 
         JavaFile javaFile = GenerateInsertDTO.createInsertDTO("UserSession", snakeCaseMetadata);

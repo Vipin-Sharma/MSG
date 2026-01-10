@@ -84,6 +84,11 @@ CREATE TABLE customer (
   active CHAR(1) NOT NULL DEFAULT 'Y',
   create_date DATETIME NOT NULL,
   last_update DATETIME NOT NULL,
+  -- Audit fields for tracking record creation and updates
+  created_at DATETIME DEFAULT GETDATE(),
+  created_by VARCHAR(100),
+  updated_at DATETIME,
+  updated_by VARCHAR(100),
   PRIMARY KEY NONCLUSTERED (customer_id),
   CONSTRAINT fk_customer_address FOREIGN KEY (address_id) REFERENCES address (address_id) ON DELETE NO ACTION ON UPDATE CASCADE
 );

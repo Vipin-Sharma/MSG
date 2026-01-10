@@ -15,7 +15,7 @@ class InsertMetadataTest {
         List<ColumnMetadata> insertColumns = createColumnMetadataList("name", "email", "phone");
         String sql = "INSERT INTO customers (name, email, phone) VALUES (?, ?, ?)";
 
-        InsertMetadata metadata = new InsertMetadata("customers", insertColumns, sql);
+        InsertMetadata metadata = new InsertMetadata("customers", insertColumns, sql, new java.util.HashMap<>());
 
         assertEquals("customers", metadata.tableName());
         assertEquals(3, metadata.insertColumns().size());
@@ -31,7 +31,7 @@ class InsertMetadataTest {
         List<ColumnMetadata> insertColumns = createColumnMetadataList(columnNames);
         String sql = "INSERT INTO customers (...) VALUES (...)";
 
-        InsertMetadata metadata = new InsertMetadata("customers", insertColumns, sql);
+        InsertMetadata metadata = new InsertMetadata("customers", insertColumns, sql, new java.util.HashMap<>());
 
         assertEquals(50, metadata.insertColumns().size());
     }
@@ -45,7 +45,7 @@ class InsertMetadataTest {
             VALUES (?, ?)
             """;
 
-        InsertMetadata metadata = new InsertMetadata("customers", columns, sql);
+        InsertMetadata metadata = new InsertMetadata("customers", columns, sql, new java.util.HashMap<>());
 
         assertEquals(sql, metadata.originalSql());
         assertTrue(metadata.originalSql().contains("\n"));

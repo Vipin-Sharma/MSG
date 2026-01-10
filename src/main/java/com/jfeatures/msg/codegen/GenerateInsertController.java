@@ -1,5 +1,6 @@
 package com.jfeatures.msg.codegen;
 
+import com.jfeatures.msg.codegen.audit.AuditFieldType;
 import com.jfeatures.msg.codegen.constants.CodeGenerationConstants;
 import com.jfeatures.msg.codegen.constants.ProjectConstants;
 import com.jfeatures.msg.codegen.dbmetadata.InsertMetadata;
@@ -16,6 +17,7 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.io.IOException;
 import javax.lang.model.element.Modifier;
@@ -61,8 +63,12 @@ public class GenerateInsertController {
         
         // Constructor for dependency injection - kept as-is since it uses a specific parameter type
         
-        // POST endpoint method - keep original complex mapping for now
-        MethodSpec insertMethodSpec = MethodSpec.methodBuilder("create" + businessPurposeOfSQL)
+        // Check if we need HttpServletRequest parameter for audit fields
+        // Even if SQL only has timestamp fields, we still want to log who made the change
+        boolean hasAnyAuditFields = !insertMetadata.auditFields().isEmpty();
+
+        // Build method parameters
+        MethodSpec.Builder insertMethodBuilder = MethodSpec.methodBuilder("create" + businessPurposeOfSQL)
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(AnnotationSpec.builder(PostMapping.class)
                         .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_VALUE,
@@ -84,18 +90,47 @@ public class GenerateInsertController {
                         .addAnnotation(AnnotationSpec.builder(Valid.class).build())
                         .addAnnotation(AnnotationSpec.builder(RequestBody.class).build())
                         .build())
-                .returns(ClassName.get("org.springframework.http", "ResponseEntity").withoutAnnotations())
-                .addStatement("int rowsAffected = $N.insert$L(insertRequest)", daoInstanceFieldName, businessPurposeOfSQL)
+                .returns(ClassName.get("org.springframework.http", "ResponseEntity").withoutAnnotations());
+
+        // Add HttpServletRequest parameter if needed for audit fields
+        if (hasAnyAuditFields) {
+            insertMethodBuilder.addParameter(HttpServletRequest.class, "request");
+        }
+
+        // Build method body with userId extraction for audit logging
+        CodeBlock.Builder methodBodyBuilder = CodeBlock.builder();
+
+        if (hasAnyAuditFields) {
+            // Extract and log userId for audit trail
+            TypeName authUtilClass = JavaPoetTypeNameBuilder.buildJavaPoetTypeNameForClass(
+                    businessPurposeOfSQL, "util", "AuthenticationUtil");
+
+            methodBodyBuilder.addStatement("$T userId = $T.getUserId(request)",
+                    String.class, authUtilClass)
+                    .addStatement("$T.out.println($S + userId)",
+                            System.class, "User creating " + businessPurposeOfSQL.toLowerCase() + ": ")
+                    .add("\n");
+        }
+
+        // Build DAO method call - pass userId directly instead of HttpServletRequest
+        String daoMethodCall = hasAnyAuditFields
+                ? String.format("int rowsAffected = %s.insert%s(insertRequest, userId)", daoInstanceFieldName, businessPurposeOfSQL)
+                : String.format("int rowsAffected = %s.insert%s(insertRequest)", daoInstanceFieldName, businessPurposeOfSQL);
+
+        methodBodyBuilder.addStatement(daoMethodCall);
+
+        insertMethodBuilder.addCode(methodBodyBuilder.build())
                 .addCode(CodeBlock.builder()
                         .beginControlFlow("if (rowsAffected > 0)")
-                        .addStatement("return $T.status($T.CREATED).body($S)", 
+                        .addStatement("return $T.status($T.CREATED).body($S)",
                                 ResponseEntity.class, HttpStatus.class, businessPurposeOfSQL.toLowerCase() + " created successfully")
                         .nextControlFlow("else")
-                        .addStatement("return $T.status($T.INTERNAL_SERVER_ERROR).body($S)", 
+                        .addStatement("return $T.status($T.INTERNAL_SERVER_ERROR).body($S)",
                                 ResponseEntity.class, HttpStatus.class, "Failed to create " + businessPurposeOfSQL.toLowerCase())
                         .endControlFlow()
-                        .build())
-                .build();
+                        .build());
+
+        MethodSpec insertMethodSpec = insertMethodBuilder.build();
         
         // Controller class defined manually to avoid deprecated helpers
         TypeSpec.Builder controllerBuilder = TypeSpec.classBuilder(businessPurposeOfSQL + "InsertController")

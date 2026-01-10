@@ -26,7 +26,7 @@ class GeneratedMicroserviceTest {
 
         // when
         GeneratedMicroservice microservice = new GeneratedMicroservice(
-            businessName, springBootApp, dto, controller, dao, dbConfig, statementType
+            businessName, springBootApp, dto, controller, dao, dbConfig, statementType, null
         );
 
         // then
@@ -48,7 +48,8 @@ class GeneratedMicroserviceTest {
             createMockJavaFile("Controller"),
             createMockJavaFile("DAO"),
             "config",
-            SqlStatementType.SELECT
+            SqlStatementType.SELECT,
+            null
         ))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("Business domain name cannot be null or empty");
@@ -63,7 +64,8 @@ class GeneratedMicroserviceTest {
             createMockJavaFile("Controller"),
             createMockJavaFile("DAO"),
             "config",
-            SqlStatementType.SELECT
+            SqlStatementType.SELECT,
+            null
         ))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("Business domain name cannot be null or empty");
@@ -78,7 +80,8 @@ class GeneratedMicroserviceTest {
             createMockJavaFile("Controller"),
             createMockJavaFile("DAO"),
             "config",
-            SqlStatementType.SELECT
+            SqlStatementType.SELECT,
+            null
         ))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("Business domain name cannot be null or empty");
@@ -93,7 +96,8 @@ class GeneratedMicroserviceTest {
             createMockJavaFile("Controller"),
             createMockJavaFile("DAO"),
             "config",
-            SqlStatementType.SELECT
+            SqlStatementType.SELECT,
+            null
         ))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("Spring Boot application file cannot be null");
@@ -108,7 +112,8 @@ class GeneratedMicroserviceTest {
             createMockJavaFile("Controller"),
             createMockJavaFile("DAO"),
             "config",
-            SqlStatementType.SELECT
+            SqlStatementType.SELECT,
+            null
         ))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("DTO file cannot be null");
@@ -123,7 +128,8 @@ class GeneratedMicroserviceTest {
             null,
             createMockJavaFile("DAO"),
             "config",
-            SqlStatementType.SELECT
+            SqlStatementType.SELECT,
+            null
         ))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("Controller file cannot be null");
@@ -138,7 +144,8 @@ class GeneratedMicroserviceTest {
             createMockJavaFile("Controller"),
             null,
             "config",
-            SqlStatementType.SELECT
+            SqlStatementType.SELECT,
+            null
         ))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("DAO file cannot be null");
@@ -153,7 +160,8 @@ class GeneratedMicroserviceTest {
             createMockJavaFile("Controller"),
             createMockJavaFile("DAO"),
             null,
-            SqlStatementType.SELECT
+            SqlStatementType.SELECT,
+            null
         ))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("Database config content cannot be null or empty");
@@ -168,7 +176,8 @@ class GeneratedMicroserviceTest {
             createMockJavaFile("Controller"),
             createMockJavaFile("DAO"),
             "",
-            SqlStatementType.SELECT
+            SqlStatementType.SELECT,
+            null
         ))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("Database config content cannot be null or empty");
@@ -183,7 +192,8 @@ class GeneratedMicroserviceTest {
             createMockJavaFile("Controller"),
             createMockJavaFile("DAO"),
             "   ",
-            SqlStatementType.SELECT
+            SqlStatementType.SELECT,
+            null
         ))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("Database config content cannot be null or empty");
@@ -198,6 +208,7 @@ class GeneratedMicroserviceTest {
             createMockJavaFile("Controller"),
             createMockJavaFile("DAO"),
             "config",
+            null,
             null
         ))
         .isInstanceOf(IllegalArgumentException.class)

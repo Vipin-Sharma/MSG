@@ -47,7 +47,8 @@ class GenerateUpdateDAOTest {
                 "customers",
                 Arrays.asList(nameColumn, statusColumn),
                 Collections.singletonList(idColumn),
-                "UPDATE customers SET customer_name = ?, status = ? WHERE customer_id = ?"
+                "UPDATE customers SET customer_name = ?, status = ? WHERE customer_id = ?",
+                new java.util.HashMap<>()
         );
     }
 
@@ -92,7 +93,8 @@ class GenerateUpdateDAOTest {
                 "simple_table",
                 Collections.singletonList(singleStatusColumn),
                 Collections.singletonList(singleIdColumn),
-                "UPDATE simple_table SET status = ? WHERE id = ?"
+                "UPDATE simple_table SET status = ? WHERE id = ?",
+                new java.util.HashMap<>()
         );
 
         JavaFile javaFile = GenerateUpdateDAO.createUpdateDAO("Simple", singleColumnMetadata);
@@ -131,7 +133,8 @@ class GenerateUpdateDAOTest {
                 "test_table",
                 Collections.emptyList(),  // Empty SET columns
                 Collections.singletonList(singleIdColumn),
-                "UPDATE test_table WHERE id = ?"
+                "UPDATE test_table WHERE id = ?",
+                new java.util.HashMap<>()
         );
         
         JavaFile javaFile = GenerateUpdateDAO.createUpdateDAO("Test", emptySetMetadata);

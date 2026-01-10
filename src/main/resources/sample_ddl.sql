@@ -44,7 +44,12 @@ CREATE TABLE customer (
   address_id INT NOT NULL,
   active CHAR(1) NOT NULL DEFAULT 'Y',
   create_date DATETIME NOT NULL,
-  last_update DATETIME NOT NULL
+  last_update DATETIME NOT NULL,
+  -- Audit fields for tracking record creation and updates
+  created_at DATETIME DEFAULT GETDATE(),
+  created_by VARCHAR(100),
+  updated_at DATETIME,
+  updated_by VARCHAR(100)
 );
 CREATE TABLE film (
   film_id INT NOT NULL IDENTITY ,

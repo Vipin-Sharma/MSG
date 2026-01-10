@@ -1,10 +1,14 @@
 package com.jfeatures.msg.codegen.dbmetadata;
 
+import com.jfeatures.msg.codegen.audit.AuditFieldDetector;
+import com.jfeatures.msg.codegen.audit.AuditFieldType;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
@@ -52,8 +56,14 @@ public class UpdateMetadataExtractor {
         
         // Extract WHERE columns using parameter metadata
         List<ColumnMetadata> whereColumns = extractWhereColumns(sql);
-        
-        return new UpdateMetadata(tableName, setColumns, whereColumns, sql);
+
+        // Detect audit fields (only in SET columns, not WHERE columns)
+        Map<ColumnMetadata, AuditFieldType> auditFields = AuditFieldDetector.detectAuditFields(setColumns);
+        if (!auditFields.isEmpty()) {
+            log.info("Detected {} audit field(s) in UPDATE statement", auditFields.size());
+        }
+
+        return new UpdateMetadata(tableName, setColumns, whereColumns, sql, auditFields);
     }
     
     private List<ColumnMetadata> extractSetColumns(Update updateStatement) throws SQLException {
@@ -89,13 +99,16 @@ public class UpdateMetadataExtractor {
                 if (metadata != null) {
                     setColumns.add(metadata);
                 } else {
-                    ColumnMetadata fallback = new ColumnMetadata();
-                    fallback.setColumnName(columnName);
-                    fallback.setColumnTypeName("VARCHAR");
-                    fallback.setColumnType(java.sql.Types.VARCHAR);
-                    fallback.setIsNullable(1);
-                    setColumns.add(fallback);
-                    log.warn("Could not find metadata for SET column: {}", columnName);
+                    // FAIL FAST: Column in UPDATE SET clause doesn't exist in database
+                    String errorMsg = String.format(
+                        "Column '%s' specified in UPDATE SET clause does not exist in table '%s'. " +
+                        "Please ensure the database schema matches the SQL file. " +
+                        "If this is an audit field (updated_at, updated_by, etc.), verify the table has been created with audit columns. " +
+                        "Check your DDL scripts in src/main/resources/",
+                        columnName, updateStatement.getTable().getName()
+                    );
+                    log.error(errorMsg);
+                    throw new IllegalStateException(errorMsg);
                 }
             }
         }

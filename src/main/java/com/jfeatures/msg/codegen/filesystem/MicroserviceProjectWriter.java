@@ -50,10 +50,16 @@ public class MicroserviceProjectWriter {
             writeJavaFile(microservice.dtoFile(), directories.srcMainJava());
             writeJavaFile(microservice.controllerFile(), directories.srcMainJava());
             writeJavaFile(microservice.daoFile(), directories.srcMainJava());
-            
+
+            // Write AuthenticationUtil if present (for audit field support)
+            if (microservice.authenticationUtilFile() != null) {
+                writeJavaFile(microservice.authenticationUtilFile(), directories.srcMainJava());
+                log.info("Wrote AuthenticationUtil for audit field support");
+            }
+
             // Write database configuration file
-            writeDatabaseConfigFile(microservice.databaseConfigContent(), 
-                                   microservice.businessDomainName(), 
+            writeDatabaseConfigFile(microservice.databaseConfigContent(),
+                                   microservice.businessDomainName(),
                                    directories.srcMainJava());
             
             // Copy template files (pom.xml, application.properties)

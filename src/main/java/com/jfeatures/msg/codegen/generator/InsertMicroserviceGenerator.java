@@ -1,5 +1,6 @@
 package com.jfeatures.msg.codegen.generator;
 
+import com.jfeatures.msg.codegen.GenerateAuthenticationUtil;
 import com.jfeatures.msg.codegen.GenerateDatabaseConfig;
 import com.jfeatures.msg.codegen.GenerateInsertController;
 import com.jfeatures.msg.codegen.GenerateInsertDAO;
@@ -53,9 +54,16 @@ public class InsertMicroserviceGenerator {
         
         // Generate DAO for INSERT operations
         JavaFile daoFile = GenerateInsertDAO.createInsertDAO(businessDomainName, insertMetadata);
-        
+
+        // Generate AuthenticationUtil if there are audit fields
+        JavaFile authUtilFile = null;
+        if (!insertMetadata.auditFields().isEmpty()) {
+            log.info("Generating AuthenticationUtil for audit field support");
+            authUtilFile = GenerateAuthenticationUtil.createAuthenticationUtil(businessDomainName);
+        }
+
         log.info("Successfully generated INSERT microservice components for: {}", businessDomainName);
-        
+
         return new GeneratedMicroservice(
             businessDomainName,
             springBootApplication,
@@ -63,7 +71,8 @@ public class InsertMicroserviceGenerator {
             controllerFile,
             daoFile,
             databaseConfigContent,
-            SqlStatementType.INSERT
+            SqlStatementType.INSERT,
+            authUtilFile
         );
     }
     

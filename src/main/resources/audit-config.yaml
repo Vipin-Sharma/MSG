@@ -1,0 +1,40 @@
+# Audit Field Configuration for MSG Code Generator
+# Define column name patterns that should be treated as audit fields
+# These fields will be auto-populated and excluded from request DTOs
+
+auditFields:
+  # Creation timestamp fields - auto-populated with current timestamp on INSERT
+  createdAt:
+    - created_at
+    - create_date
+    - created_timestamp
+    - creation_date
+    - created_time
+    - date_created
+
+  # Creator user ID fields - auto-populated with authenticated user ID on INSERT
+  createdBy:
+    - created_by
+    - creator_id
+    - creator
+    - created_user
+    - created_user_id
+
+  # Update timestamp fields - auto-populated with current timestamp on UPDATE
+  updatedAt:
+    - updated_at
+    - last_update
+    - modified_at
+    - last_modified
+    - update_date
+    - modification_date
+    - last_update_date
+
+  # Updater user ID fields - auto-populated with authenticated user ID on UPDATE
+  updatedBy:
+    - updated_by
+    - modifier_id
+    - last_updated_by
+    - modified_by
+    - updater_id
+    - last_modified_by

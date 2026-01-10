@@ -1,11 +1,15 @@
 package com.jfeatures.msg.codegen.dbmetadata;
 
+import com.jfeatures.msg.codegen.audit.AuditFieldDetector;
+import com.jfeatures.msg.codegen.audit.AuditFieldType;
+
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
@@ -65,14 +69,29 @@ public class InsertMetadataExtractor {
                     columnMetadataList.add(columnMetadata);
                     log.info("Extracted INSERT column metadata: {} ({})", columnName, columnMetadata.getColumnTypeName());
                 } else {
-                    log.warn("Could not extract metadata for INSERT column: {}", columnName);
+                    // FAIL FAST: Column in SQL doesn't exist in database
+                    String errorMsg = String.format(
+                        "Column '%s' specified in INSERT statement does not exist in table '%s'. " +
+                        "Please ensure the database schema matches the SQL file. " +
+                        "If this is an audit field (created_at, created_by, etc.), verify the table has been created with audit columns. " +
+                        "Check your DDL scripts in src/main/resources/",
+                        columnName, tableName
+                    );
+                    log.error(errorMsg);
+                    throw new IllegalStateException(errorMsg);
                 }
             }
         }
         
         log.info("Successfully extracted INSERT metadata for {} columns in table: {}", columnMetadataList.size(), tableName);
-        
-        return new InsertMetadata(tableName, columnMetadataList, sql);
+
+        // Detect audit fields
+        Map<ColumnMetadata, AuditFieldType> auditFields = AuditFieldDetector.detectAuditFields(columnMetadataList);
+        if (!auditFields.isEmpty()) {
+            log.info("Detected {} audit field(s) in INSERT statement", auditFields.size());
+        }
+
+        return new InsertMetadata(tableName, columnMetadataList, sql, auditFields);
     }
     
     // JSQLParser 5.x is used; no custom string parsing helpers needed here.

@@ -49,30 +49,30 @@ class UpdateMetadataExtractorTest {
     
     @Test
     void testExtractUpdateMetadata_ValidUpdateStatement_ReturnsMetadata() throws Exception {
-        // Given
-        String sql = "UPDATE customers SET customer_name = ?, email = ? WHERE customer_id = ?";
-        
+        // Given - Use real customer table and columns
+        String sql = "UPDATE customer SET first_name = ?, email = ? WHERE customer_id = ?";
+
         setupColumnMetadata();
         setupParameterMetadata(3, 2); // 3 total params, 2 SET params
-        
+
         // When
         UpdateMetadata result = extractor.extractUpdateMetadata(sql);
-        
+
         // Then
         assertNotNull(result);
-        assertEquals("customers", result.tableName());
+        assertEquals("customer", result.tableName());
         assertEquals(sql, result.originalSql());
-        
+
         assertNotNull(result.setColumns());
         assertEquals(2, result.setColumns().size());
-        assertEquals("customer_name", result.setColumns().get(0).getColumnName());
+        assertEquals("first_name", result.setColumns().get(0).getColumnName());
         assertEquals("email", result.setColumns().get(1).getColumnName());
         
         assertNotNull(result.whereColumns());
         assertEquals(1, result.whereColumns().size());
         assertEquals("whereParam1", result.whereColumns().get(0).getColumnName());
-        
-        verify(databaseMetaData).getColumns(null, null, "customers", null);
+
+        verify(databaseMetaData).getColumns(null, null, "customer", null);
         verify(parameterMetaData).getParameterCount();
     }
     
@@ -104,36 +104,36 @@ class UpdateMetadataExtractorTest {
     
     @Test
     void testExtractUpdateMetadata_MultipleSetColumns_HandlesCorrectly() throws Exception {
-        // Given
-        String sql = "UPDATE customers SET name = ?, email = ?, phone = ?, address = ? WHERE id = ? AND status = ?";
-        
+        // Given - Use real customer table columns
+        String sql = "UPDATE customer SET first_name = ?, last_name = ?, email = ?, active = ? WHERE customer_id = ? AND address_id = ?";
+
         setupColumnMetadata();
         setupParameterMetadata(6, 4); // 6 total params, 4 SET params
-        
+
         // When
         UpdateMetadata result = extractor.extractUpdateMetadata(sql);
-        
+
         // Then
         assertNotNull(result);
-        assertEquals("customers", result.tableName());
+        assertEquals("customer", result.tableName());
         assertEquals(4, result.setColumns().size());
         assertEquals(2, result.whereColumns().size());
     }
     
     @Test
     void testExtractUpdateMetadata_NoWhereClause_HandlesCorrectly() throws Exception {
-        // Given
-        String sql = "UPDATE customers SET customer_name = ?, email = ?";
-        
+        // Given - Use real customer table and columns
+        String sql = "UPDATE customer SET first_name = ?, email = ?";
+
         setupColumnMetadata();
         setupParameterMetadata(2, 2); // 2 total params, 2 SET params
-        
+
         // When
         UpdateMetadata result = extractor.extractUpdateMetadata(sql);
-        
+
         // Then
         assertNotNull(result);
-        assertEquals("customers", result.tableName());
+        assertEquals("customer", result.tableName());
         assertEquals(2, result.setColumns().size());
         assertEquals(0, result.whereColumns().size());
     }
@@ -157,21 +157,21 @@ class UpdateMetadataExtractorTest {
     
     @Test
     void testExtractUpdateMetadata_ParameterMetadataFails_UsesParsing() throws Exception {
-        // Given
-        String sql = "UPDATE customers SET name = ? WHERE id = ?";
-        
+        // Given - Use real customer table columns
+        String sql = "UPDATE customer SET first_name = ? WHERE customer_id = ?";
+
         setupColumnMetadata();
-        
+
         // Setup parameter metadata to fail
         when(preparedStatement.getParameterMetaData())
             .thenThrow(new SQLException("Parameter metadata not supported"));
-        
+
         // When
         UpdateMetadata result = extractor.extractUpdateMetadata(sql);
-        
+
         // Then
         assertNotNull(result);
-        assertEquals("customers", result.tableName());
+        assertEquals("customer", result.tableName());
         assertEquals(1, result.setColumns().size());
         assertEquals(1, result.whereColumns().size());
         assertEquals("VARCHAR", result.whereColumns().get(0).getColumnTypeName()); // Fallback parsing
@@ -179,15 +179,15 @@ class UpdateMetadataExtractorTest {
     
     @Test
     void testExtractUpdateMetadata_ComplexUpdateWithJoin_HandlesCorrectly() throws Exception {
-        // Given
+        // Given - Use real customer table and columns
         String sql = """
-            UPDATE c 
-            SET c.customer_name = ?, c.email = ? 
-            FROM customers c 
-            JOIN orders o ON c.customer_id = o.customer_id 
+            UPDATE c
+            SET c.first_name = ?, c.email = ?
+            FROM customer c
+            JOIN orders o ON c.customer_id = o.customer_id
             WHERE o.order_date > ?
             """;
-        
+
         setupColumnMetadata();
         setupParameterMetadata(3, 2);
         
@@ -202,38 +202,38 @@ class UpdateMetadataExtractorTest {
     void testExtractUpdateMetadata_UpdateWithSubquery_HandlesCorrectly() throws Exception {
         // Given
         String sql = """
-            UPDATE customers 
-            SET status = ? 
+            UPDATE customer
+            SET active = ?
             WHERE customer_id IN (SELECT customer_id FROM orders WHERE order_date > ?)
             """;
-        
+
         setupColumnMetadata();
         setupParameterMetadata(2, 1);
-        
+
         // When
         UpdateMetadata result = extractor.extractUpdateMetadata(sql);
-        
+
         // Then
         assertNotNull(result);
-        assertEquals("customers", result.tableName());
+        assertEquals("customer", result.tableName());
         assertEquals(1, result.setColumns().size());
         assertEquals(1, result.whereColumns().size());
     }
     
     @Test
     void testExtractUpdateMetadata_CaseInsensitiveSql_HandlesCorrectly() throws Exception {
-        // Given
-        String sql = "update customers set customer_name = ?, email = ? where customer_id = ?";
-        
+        // Given - Use real customer table and columns (test case insensitivity)
+        String sql = "update customer set first_name = ?, email = ? where customer_id = ?";
+
         setupColumnMetadata();
         setupParameterMetadata(3, 2);
-        
+
         // When
         UpdateMetadata result = extractor.extractUpdateMetadata(sql);
-        
+
         // Then
         assertNotNull(result);
-        assertEquals("customers", result.tableName());
+        assertEquals("customer", result.tableName());
         assertEquals(2, result.setColumns().size());
         assertEquals(1, result.whereColumns().size());
     }
@@ -272,22 +272,24 @@ class UpdateMetadataExtractorTest {
     }
     
     private void setupColumnMetadata() throws SQLException {
-        lenient().when(databaseMetaData.getColumns(null, null, "customers", null))
+        // Setup for real customer table (singular)
+        lenient().when(databaseMetaData.getColumns(null, null, "customer", null))
             .thenReturn(columnsResultSet);
         lenient().when(databaseMetaData.getColumns(null, null, "c", null))
             .thenReturn(columnsResultSet);
-        
+
         when(columnsResultSet.next())
-            .thenReturn(true, true, true, true, false); // 4 columns, then end
-        
+            .thenReturn(true, true, true, true, true, true, false); // 6 columns, then end
+
+        // Use real customer table columns: first_name, last_name, email, active, address_id, customer_id
         when(columnsResultSet.getString("COLUMN_NAME"))
-            .thenReturn("customer_name", "email", "phone", "customer_id");
+            .thenReturn("first_name", "last_name", "email", "active", "address_id", "customer_id");
         when(columnsResultSet.getString("TYPE_NAME"))
-            .thenReturn("VARCHAR", "VARCHAR", "VARCHAR", "INT");
+            .thenReturn("VARCHAR", "VARCHAR", "VARCHAR", "CHAR", "INT", "INT");
         when(columnsResultSet.getInt("DATA_TYPE"))
-            .thenReturn(Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER);
+            .thenReturn(Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.CHAR, Types.INTEGER, Types.INTEGER);
         when(columnsResultSet.getInt("NULLABLE"))
-            .thenReturn(1, 1, 1, 0); // All nullable except ID
+            .thenReturn(0, 0, 1, 0, 0, 0); // first_name, last_name, active, address_id, customer_id are NOT NULL; email is nullable
     }
     
     private void setupParameterMetadata(int totalParams, int setParams) throws SQLException {
@@ -343,7 +345,7 @@ class UpdateMetadataExtractorTest {
 
     @Test
     void testExtractUpdateMetadata_UpdateWithMultipleWhereClauses() throws Exception {
-        String sql = "UPDATE customers SET name = ?, email = ? WHERE id = ? AND status = ? OR age > ?";
+        String sql = "UPDATE customer SET first_name = ?, email = ? WHERE customer_id = ? AND active = ? OR address_id > ?";
 
         setupColumnMetadata();
         setupParameterMetadata(5, 2);
@@ -375,7 +377,7 @@ class UpdateMetadataExtractorTest {
 
     @Test
     void testExtractUpdateMetadata_UpdateWithNullValue() throws Exception {
-        String sql = "UPDATE customers SET email = NULL, status = ? WHERE id = ?";
+        String sql = "UPDATE customer SET email = NULL, active = ? WHERE customer_id = ?";
 
         setupColumnMetadata();
         setupParameterMetadata(2, 1);
@@ -389,7 +391,7 @@ class UpdateMetadataExtractorTest {
 
     @Test
     void testExtractUpdateMetadata_UpdateWithCaseExpression() throws Exception {
-        String sql = "UPDATE customers SET status = CASE WHEN age > 18 THEN ? ELSE ? END WHERE id = ?";
+        String sql = "UPDATE customer SET active = CASE WHEN address_id > 18 THEN ? ELSE ? END WHERE customer_id = ?";
 
         setupColumnMetadata();
         setupParameterMetadata(3, 2);
@@ -403,7 +405,7 @@ class UpdateMetadataExtractorTest {
 
     @Test
     void testExtractUpdateMetadata_SqlInjectionAttempt() throws Exception {
-        String maliciousSql = "UPDATE customers SET name = ? WHERE id = ? OR 1=1; DROP TABLE customers; --";
+        String maliciousSql = "UPDATE customer SET first_name = ? WHERE customer_id = ? OR 1=1; DROP TABLE customer; --";
 
         setupColumnMetadata();
 

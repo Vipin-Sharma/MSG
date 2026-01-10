@@ -1,5 +1,6 @@
 package com.jfeatures.msg.codegen;
 
+import com.jfeatures.msg.codegen.audit.AuditFieldDetector;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.InsertMetadata;
 import com.jfeatures.msg.codegen.util.DtoFieldNameConverter;
@@ -9,6 +10,7 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeSpec;
 import java.io.IOException;
+import java.util.List;
 import javax.lang.model.element.Modifier;
 import lombok.Builder;
 import lombok.Value;
@@ -49,10 +51,17 @@ public class GenerateInsertDTO {
                         .build())
                 .addAnnotation(AnnotationSpec.builder(Value.class).build())
                 .addAnnotation(AnnotationSpec.builder(Jacksonized.class).build())
-                .addJavadoc("DTO for creating new $L entities via POST API.\nContains all fields required for insertion.", businessPurposeOfSQL.toLowerCase());
-        
-        // Generate fields for all INSERT columns
-        for (ColumnMetadata column : insertMetadata.insertColumns()) {
+                .addJavadoc("DTO for creating new $L entities via POST API.\nContains all fields required for insertion.\nAudit fields (createdAt, createdBy) are auto-populated and excluded from this DTO.", businessPurposeOfSQL.toLowerCase());
+
+        // Filter out audit fields from DTO - they will be auto-populated
+        List<ColumnMetadata> nonAuditColumns = AuditFieldDetector.filterOutAuditFields(insertMetadata.insertColumns());
+        int auditFieldCount = insertMetadata.insertColumns().size() - nonAuditColumns.size();
+        if (auditFieldCount > 0) {
+            log.info("Excluding {} audit field(s) from InsertDTO", auditFieldCount);
+        }
+
+        // Generate fields for non-audit INSERT columns only
+        for (ColumnMetadata column : nonAuditColumns) {
             Class<?> fieldType = SQLServerDataTypeEnum.getClassForType(column.getColumnTypeName());
             String fieldName = DtoFieldNameConverter.convertToJavaCamelCase(column.getColumnName());
             

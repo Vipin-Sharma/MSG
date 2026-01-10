@@ -81,7 +81,8 @@ public class SelectMicroserviceGenerator {
             controllerFile,
             daoFile,
             databaseConfigContent,
-            SqlStatementType.SELECT
+            SqlStatementType.SELECT,
+            null  // No authentication util needed for SELECT operations
         );
     }
     

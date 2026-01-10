@@ -1,6 +1,8 @@
 package com.jfeatures.msg.codegen;
 
 import com.github.vertical_blank.sqlformatter.SqlFormatter;
+import com.jfeatures.msg.codegen.audit.AuditFieldDetector;
+import com.jfeatures.msg.codegen.audit.AuditFieldType;
 import com.jfeatures.msg.codegen.constants.CodeGenerationConstants;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.UpdateMetadata;
@@ -16,6 +18,8 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import jakarta.servlet.http.HttpServletRequest;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -77,15 +81,15 @@ public class GenerateUpdateDAO {
      * Creates the main UPDATE method.
      */
     private static MethodSpec createUpdateMethod(String businessPurposeOfSQL, UpdateMetadata updateMetadata, String jdbcTemplateFieldName) {
-        
+
         TypeName updateDtoType = JavaPoetTypeNameBuilder.buildJavaPoetTypeNameForClass(businessPurposeOfSQL, "dto", "UpdateDTO");
-        
+
         // Build parameter specifications
         List<ParameterSpec> parameterSpecs = new ArrayList<>();
         parameterSpecs.add(ParameterSpec.builder(updateDtoType, "updateDto")
                 .addAnnotation(ClassName.get("jakarta.validation", "Valid"))
                 .build());
-        
+
         // Add WHERE parameters
         List<String> whereParamNames = new ArrayList<>();
         for (int i = 0; i < updateMetadata.whereColumns().size(); i++) {
@@ -93,13 +97,20 @@ public class GenerateUpdateDAO {
             Class<?> paramType = SQLServerDataTypeEnum.getClassForType(column.getColumnTypeName());
             String paramName = generateWhereParamName(column, i);
             whereParamNames.add(paramName);
-            
+
             parameterSpecs.add(ParameterSpec.builder(paramType, paramName).build());
         }
-        
+
+        // Add userId parameter if there are ANY audit fields (for audit trail)
+        // Controller extracts userId and passes it to DAO
+        boolean hasAnyAuditFields = !updateMetadata.auditFields().isEmpty();
+        if (hasAnyAuditFields) {
+            parameterSpecs.add(ParameterSpec.builder(String.class, "userId").build());
+        }
+
         // Build parameter map construction code
-        CodeBlock paramMapCode = buildParameterMapCode(updateMetadata, whereParamNames);
-        
+        CodeBlock paramMapCode = buildParameterMapCode(businessPurposeOfSQL, updateMetadata, whereParamNames);
+
         // Build method body using SQL constant (clean code practice)
         CodeBlock methodBody = CodeBlock.builder()
                 .addStatement("$T<String, Object> paramMap = new $T<>()", Map.class, HashMap.class)
@@ -113,13 +124,20 @@ public class GenerateUpdateDAO {
                 .addStatement("log.info(\"Updated {} rows for {}\", rowsUpdated, $S)", businessPurposeOfSQL)
                 .addStatement("return rowsUpdated")
                 .build();
-        
+
+        // Build javadoc
+        String javadoc = "Updates $L record(s) in the database.\n@param updateDto The data to update";
+        if (hasAnyAuditFields) {
+            javadoc += "\n@param userId the ID of the user performing the update";
+        }
+        javadoc += "\n@return Number of rows updated";
+
         return MethodSpec.methodBuilder("update" + businessPurposeOfSQL)
                 .addModifiers(Modifier.PUBLIC)
                 .addParameters(parameterSpecs)
                 .returns(int.class)
                 .addCode(methodBody)
-                .addJavadoc("Updates $L record(s) in the database.\n@param updateDto The data to update\n@return Number of rows updated", businessPurposeOfSQL.toLowerCase())
+                .addJavadoc(javadoc, businessPurposeOfSQL.toLowerCase())
                 .build();
     }
     
@@ -159,22 +177,47 @@ public class GenerateUpdateDAO {
     /**
      * Builds the code block for constructing the parameter map.
      */
-    private static CodeBlock buildParameterMapCode(UpdateMetadata updateMetadata, List<String> whereParamNames) {
+    private static CodeBlock buildParameterMapCode(String businessPurposeOfSQL, UpdateMetadata updateMetadata, List<String> whereParamNames) {
         CodeBlock.Builder codeBuilder = CodeBlock.builder();
-        
-        // Add SET parameters from DTO
-        for (ColumnMetadata column : updateMetadata.setColumns()) {
+
+        // Separate audit and non-audit columns
+        List<ColumnMetadata> nonAuditColumns = AuditFieldDetector.filterOutAuditFields(updateMetadata.setColumns());
+        Map<ColumnMetadata, AuditFieldType> auditFields = updateMetadata.auditFields();
+
+        // Add non-audit SET parameters from DTO
+        for (ColumnMetadata column : nonAuditColumns) {
             String paramName = CaseUtils.toCamelCase(column.getColumnName(), false, '_');
             String getterMethod = "get" + CaseUtils.toCamelCase(column.getColumnName(), true, '_');
             codeBuilder.addStatement("paramMap.put($S, updateDto.$N())", paramName, getterMethod);
         }
-        
+
+        // Add audit fields (auto-populated)
+        if (!auditFields.isEmpty()) {
+            codeBuilder.add("\n// Auto-populate audit fields\n");
+
+            for (Map.Entry<ColumnMetadata, AuditFieldType> entry : auditFields.entrySet()) {
+                ColumnMetadata column = entry.getKey();
+                AuditFieldType auditType = entry.getValue();
+                String paramName = CaseUtils.toCamelCase(column.getColumnName(), false, '_');
+
+                if (auditType.isTimestampField()) {
+                    // Timestamp fields: use LocalDateTime.now()
+                    codeBuilder.addStatement("paramMap.put($S, $T.now())",
+                            paramName, LocalDateTime.class);
+                } else if (auditType.isUserIdField()) {
+                    // User ID fields: use userId passed from controller
+                    codeBuilder.addStatement("paramMap.put($S, userId)",
+                            paramName);
+                }
+            }
+        }
+
         // Add WHERE parameters
         for (int i = 0; i < whereParamNames.size(); i++) {
             String paramName = whereParamNames.get(i);
             codeBuilder.addStatement("paramMap.put($S, $N)", paramName, paramName);
         }
-        
+
         return codeBuilder.build();
     }
     

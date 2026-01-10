@@ -1,6 +1,9 @@
 package com.jfeatures.msg.codegen.dbmetadata;
 
+import com.jfeatures.msg.codegen.audit.AuditFieldType;
+
 import java.util.List;
+import java.util.Map;
 
 /**
  * Metadata extracted from INSERT statements using database metadata approach.
@@ -9,5 +12,6 @@ import java.util.List;
 public record InsertMetadata(
     String tableName,
     List<ColumnMetadata> insertColumns,
-    String originalSql
+    String originalSql,
+    Map<ColumnMetadata, AuditFieldType> auditFields
 ) {}

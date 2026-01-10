@@ -37,7 +37,8 @@ class GenerateInsertControllerTest {
         validInsertMetadata = new InsertMetadata(
                 "products",
                 Arrays.asList(productNameColumn, descriptionColumn, priceColumn),
-                "INSERT INTO products (product_name, description, price) VALUES (?, ?, ?)"
+                "INSERT INTO products (product_name, description, price) VALUES (?, ?, ?)",
+                new java.util.HashMap<>()
         );
     }
 
@@ -83,7 +84,8 @@ class GenerateInsertControllerTest {
         InsertMetadata singleColumnMetadata = new InsertMetadata(
                 "categories",
                 Collections.singletonList(productNameColumn),
-                "INSERT INTO categories (product_name) VALUES (?)"
+                "INSERT INTO categories (product_name) VALUES (?)",
+                new java.util.HashMap<>()
         );
 
         JavaFile javaFile = GenerateInsertController.createInsertController("Category", singleColumnMetadata);
