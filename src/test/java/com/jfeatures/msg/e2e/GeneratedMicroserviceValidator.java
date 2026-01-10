@@ -3,14 +3,11 @@ package com.jfeatures.msg.e2e;
 import com.jfeatures.msg.codegen.util.SqlStatementType;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.tools.JavaCompiler;
-import javax.tools.StandardJavaFileManager;
-import javax.tools.ToolProvider;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -186,43 +183,32 @@ public class GeneratedMicroserviceValidator {
      */
     public boolean compileGeneratedProject(Path projectRoot) {
         try {
-            JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-            if (compiler == null) {
-                log.error("No Java compiler available");
+            ProcessBuilder processBuilder = new ProcessBuilder(
+                    "mvn", "-q", "-DskipTests", "package"
+            );
+            processBuilder.directory(projectRoot.toFile());
+            processBuilder.redirectErrorStream(true);
+            
+            Process process = processBuilder.start();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    log.info("[MAVEN] " + line);
+                }
+            }
+            
+            int exitCode = process.waitFor();
+            if (exitCode != 0) {
+                log.error("❌ Maven package command failed with exit code {}", exitCode);
                 return false;
             }
             
-            List<String> javaFiles = findAllJavaFiles(projectRoot);
-            if (javaFiles.isEmpty()) {
-                log.error("No Java files found to compile");
-                return false;
-            }
-            
-            StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
-            
-            // Compile with classpath including test dependencies
-            List<String> compileOptions = Arrays.asList(
-                    "-cp", System.getProperty("java.class.path"),
-                    "-d", projectRoot.resolve("target/classes").toString()
-            );
-            
-            // Create target directory
-            Files.createDirectories(projectRoot.resolve("target/classes"));
-            
-            var compilationTask = compiler.getTask(
-                    null, fileManager, null, compileOptions, null,
-                    fileManager.getJavaFileObjectsFromStrings(javaFiles)
-            );
-            
-            Boolean success = compilationTask.call();
-            fileManager.close();
-            
-            log.info(success ? "✅ Compilation successful" : "❌ Compilation failed");
-            return Boolean.TRUE.equals(success);
+            boolean buildArtifactsPresent = Files.exists(projectRoot.resolve("target"));
+            log.info(buildArtifactsPresent ? "✅ Maven build successful" : "⚠️ Maven build completed but target directory missing");
+            return buildArtifactsPresent;
             
         } catch (Exception e) {
-            log.error("Compilation error: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Compilation error: " + e.getMessage(), e);
             return false;
         }
     }
@@ -354,14 +340,4 @@ public class GeneratedMicroserviceValidator {
         }
     }
     
-    private List<String> findAllJavaFiles(Path projectRoot) throws IOException {
-        List<String> javaFiles = new ArrayList<>();
-        
-        try (Stream<Path> paths = Files.walk(projectRoot)) {
-            paths.filter(path -> path.toString().endsWith(".java"))
-                    .forEach(path -> javaFiles.add(path.toString()));
-        }
-        
-        return javaFiles;
-    }
 }

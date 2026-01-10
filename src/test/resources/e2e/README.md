@@ -7,7 +7,7 @@ This directory contains comprehensive end-to-end tests that validate the complet
 ### Test Classes
 - **CompleteCrudGenerationE2ETest** - Fast CRUD generation tests without Docker dependencies (~5 seconds) ✅ **STABLE**
 - **SqlStatementDetectionAndCrudGenerationE2ETest** - Ultra-fast SQL detection validation (~0.2 seconds) ✅ **STABLE**
-- **FullStackCrudGenerationWithDatabaseE2ETest** - Full database integration testing with Testcontainers (~5-10 minutes) 🟡 **MOSTLY STABLE** (5/6 tests pass)
+- **FullStackCrudGenerationWithDatabaseE2ETest** - Full database integration testing with Testcontainers (~5-10 minutes) ✅ **STABLE** (includes live REST verification)
 - **GeneratedMicroserviceValidator** - Validates generated code structure and quality  
 - **ApiEndpointTester** - Tests generated REST endpoints with descriptive method names
 
@@ -41,7 +41,7 @@ mvn test -Pe2e-tests
 # Run individual tests
 mvn test -Pe2e-tests -Dtest=CompleteCrudGenerationE2ETest  # Fast, no Docker
 mvn test -Pe2e-tests -Dtest=SqlStatementDetectionAndCrudGenerationE2ETest  # Ultra-fast
-mvn test -Pe2e-tests -Dtest=FullStackCrudGenerationWithDatabaseE2ETest  # Full integration (mostly stable)
+mvn test -Pe2e-tests -Dtest=FullStackCrudGenerationWithDatabaseE2ETest  # Full integration (with REST checks)
 
 # Run with detailed output
 mvn test -Pe2e-tests -X
