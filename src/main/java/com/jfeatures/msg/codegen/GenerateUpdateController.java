@@ -32,9 +32,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.jfeatures.msg.codegen.domain.AuditConfiguration;
 
 /**
  * Generates REST Controller with PUT endpoints for UPDATE operations.
@@ -49,33 +52,53 @@ public class GenerateUpdateController {
     }
 
     /**
-     * Creates controller with PUT mapping for UPDATE operations.
+     * Creates controller with PUT mapping for UPDATE operations without audit support.
      */
     public static JavaFile createUpdateController(String businessPurposeOfSQL, UpdateMetadata updateMetadata) throws IOException {
-        
+        return createUpdateController(businessPurposeOfSQL, updateMetadata, AuditConfiguration.disabled());
+    }
+
+    /**
+     * Creates controller with PUT mapping for UPDATE operations with optional audit support.
+     * When audit is enabled, adds a @RequestHeader parameter to capture user identity.
+     *
+     * @param businessPurposeOfSQL The business domain name (e.g., "Customer")
+     * @param updateMetadata The UPDATE metadata from SQL
+     * @param auditConfig Audit configuration for user context support
+     * @return Generated JavaFile containing the controller class
+     * @throws IOException if file generation fails
+     */
+    public static JavaFile createUpdateController(String businessPurposeOfSQL, UpdateMetadata updateMetadata,
+                                                  AuditConfiguration auditConfig) throws IOException {
+
+        if (auditConfig == null) {
+            auditConfig = AuditConfiguration.disabled();
+        }
+
         TypeName updateDaoTypeName = JavaPoetTypeNameBuilder.buildJavaPoetTypeNameForClass(businessPurposeOfSQL, "dao", "UpdateDAO");
         TypeName updateDtoTypeName = JavaPoetTypeNameBuilder.buildJavaPoetTypeNameForClass(businessPurposeOfSQL, "dto", "UpdateDTO");
-        
+
         String daoInstanceFieldName = CaseUtils.toCamelCase(businessPurposeOfSQL, false) + "UpdateDAO";
-        
+
         // DAO field
         FieldSpec daoFieldSpec = FieldSpec.builder(updateDaoTypeName, daoInstanceFieldName)
                 .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                 .build();
-        
+
         // Constructor
         CodeBlock constructorCode = CodeBlock.builder()
                 .addStatement("this.$N = $N", daoInstanceFieldName, daoInstanceFieldName)
                 .build();
-        
+
         MethodSpec constructorSpec = MethodSpec.constructorBuilder()
                 .addParameter(updateDaoTypeName, daoInstanceFieldName)
                 .addCode(constructorCode)
                 .build();
-        
-        // Generate PUT method
-        MethodSpec putMethod = createPutMethod(businessPurposeOfSQL, updateMetadata, updateDtoTypeName, daoInstanceFieldName);
-        
+
+        // Generate PUT method with audit support
+        MethodSpec putMethod = createPutMethod(businessPurposeOfSQL, updateMetadata, updateDtoTypeName,
+                daoInstanceFieldName, auditConfig);
+
         // Create controller class
         TypeSpec controller = TypeSpec.classBuilder(businessPurposeOfSQL + "UpdateController")
                 .addModifiers(Modifier.PUBLIC)
@@ -94,24 +117,25 @@ public class GenerateUpdateController {
                                 "REST API for updating " + businessPurposeOfSQL.toLowerCase() + " records")
                         .build())
                 .build();
-        
+
         JavaFile javaFile = JavaFile.builder(JavaPackageNameBuilder.buildJavaPackageName(businessPurposeOfSQL, "controller"), controller)
                 .build();
-        
+
         log.info(javaFile.toString());
         return javaFile;
     }
     
     /**
-     * Creates the PUT method for UPDATE operations.
+     * Creates the PUT method for UPDATE operations with optional audit support.
      */
-    private static MethodSpec createPutMethod(String businessPurposeOfSQL, UpdateMetadata updateMetadata, 
-                                            TypeName updateDtoTypeName, String daoInstanceFieldName) {
-        
+    private static MethodSpec createPutMethod(String businessPurposeOfSQL, UpdateMetadata updateMetadata,
+                                            TypeName updateDtoTypeName, String daoInstanceFieldName,
+                                            AuditConfiguration auditConfig) {
+
         // Build parameter specifications
         List<ParameterSpec> parameterSpecs = new ArrayList<>();
         List<String> methodCallParams = new ArrayList<>();
-        
+
         // Add request body parameter (DTO)
         parameterSpecs.add(ParameterSpec.builder(updateDtoTypeName, "updateDto")
                 .addAnnotation(Valid.class)
@@ -125,13 +149,13 @@ public class GenerateUpdateController {
                         .build())
                 .build());
         methodCallParams.add("updateDto");
-        
+
         // Determine if we need path variable for ID (first WHERE parameter is typically ID)
         boolean hasPathVariable = false;
         if (!updateMetadata.whereColumns().isEmpty()) {
             ColumnMetadata firstWhereColumn = updateMetadata.whereColumns().get(0);
             Class<?> idType = SQLServerDataTypeEnum.getClassForType(firstWhereColumn.getColumnTypeName());
-            
+
             parameterSpecs.add(ParameterSpec.builder(idType, ID_PARAMETER)
                     .addAnnotation(AnnotationSpec.builder(PathVariable.class)
                             .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_VALUE,
@@ -147,13 +171,13 @@ public class GenerateUpdateController {
             methodCallParams.add(ID_PARAMETER);
             hasPathVariable = true;
         }
-        
+
         // Add remaining WHERE parameters as query parameters
         for (int i = 1; i < updateMetadata.whereColumns().size(); i++) {
             ColumnMetadata column = updateMetadata.whereColumns().get(i);
             Class<?> paramType = SQLServerDataTypeEnum.getClassForType(column.getColumnTypeName());
             String paramName = generateWhereParamName(column, i);
-            
+
             parameterSpecs.add(ParameterSpec.builder(paramType, paramName)
                     .addAnnotation(AnnotationSpec.builder(RequestParam.class)
                             .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_VALUE,
@@ -168,10 +192,26 @@ public class GenerateUpdateController {
                     .build());
             methodCallParams.add(paramName);
         }
-        
+
+        // Add userId header parameter if audit is enabled
+        if (auditConfig.enabled()) {
+            parameterSpecs.add(ParameterSpec.builder(String.class, "userId")
+                    .addAnnotation(AnnotationSpec.builder(RequestHeader.class)
+                            .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_VALUE,
+                                    CodeGenerationConstants.STRING_PLACEHOLDER, auditConfig.userHeaderName())
+                            .addMember("required", "$L", true)
+                            .build())
+                    .addAnnotation(AnnotationSpec.builder(Parameter.class)
+                            .addMember(CodeGenerationConstants.ANNOTATION_MEMBER_DESCRIPTION,
+                                    CodeGenerationConstants.STRING_PLACEHOLDER, "User ID for audit purposes")
+                            .build())
+                    .build());
+            methodCallParams.add("userId");
+        }
+
         // Build method call parameters string
         String methodCallParamsString = String.join(", ", methodCallParams);
-        
+
         // Build method body
         CodeBlock methodBody = CodeBlock.builder()
                 .addStatement("int rowsUpdated = $N.update$N($N)", daoInstanceFieldName, businessPurposeOfSQL, methodCallParamsString)
@@ -182,13 +222,13 @@ public class GenerateUpdateController {
                 .addStatement("return $T.notFound().build()", ResponseEntity.class)
                 .endControlFlow()
                 .build();
-        
+
         // Determine URL mapping
-        String mappingUrl = hasPathVariable ? 
-            "/" + businessPurposeOfSQL.toLowerCase() + "/{id}" : 
+        String mappingUrl = hasPathVariable ?
+            "/" + businessPurposeOfSQL.toLowerCase() + "/{id}" :
             "/" + businessPurposeOfSQL.toLowerCase();
-        
-        return MethodSpec.methodBuilder("update" + businessPurposeOfSQL)
+
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("update" + businessPurposeOfSQL)
                 .addModifiers(Modifier.PUBLIC)
                 .addParameters(parameterSpecs)
                 .returns(ParameterizedTypeName.get(ClassName.get(ResponseEntity.class), ClassName.get(Void.class)))
@@ -214,13 +254,25 @@ public class GenerateUpdateController {
                                     @$T(responseCode = "404", description = "Record not found")
                                 }""", ApiResponse.class, ApiResponse.class, ApiResponse.class)
                         .build())
-                .addCode(methodBody)
-                .addJavadoc("Updates a $L record.\n" +
+                .addCode(methodBody);
+
+        // Add JavaDoc
+        if (auditConfig.enabled()) {
+            methodBuilder.addJavadoc("Updates a $L record with audit tracking.\n" +
+                           "@param updateDto The updated data\n" +
+                           (hasPathVariable ? "@param id The record identifier\n" : "") +
+                           "@param userId The user ID for audit purposes\n" +
+                           "@return ResponseEntity indicating success or failure",
+                           businessPurposeOfSQL.toLowerCase());
+        } else {
+            methodBuilder.addJavadoc("Updates a $L record.\n" +
                            "@param updateDto The updated data\n" +
                            (hasPathVariable ? "@param id The record identifier\n" : "") +
                            "@return ResponseEntity indicating success or failure",
-                           businessPurposeOfSQL.toLowerCase())
-                .build();
+                           businessPurposeOfSQL.toLowerCase());
+        }
+
+        return methodBuilder.build();
     }
     
     /**

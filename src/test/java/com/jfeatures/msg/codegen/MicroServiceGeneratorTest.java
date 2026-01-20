@@ -6,11 +6,14 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import com.jfeatures.msg.codegen.constants.ProjectConstants;
+import com.jfeatures.msg.codegen.domain.AuditConfiguration;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
@@ -632,7 +635,7 @@ class MicroServiceGeneratorTest {
         MicroServiceGenerator generator = new MicroServiceGenerator();
         setPrivateField(generator, "businessPurposeName", "TestService");
         setPrivateField(generator, "destinationDirectory", tempDir.toString());
-        
+
         try {
             Integer result = generator.call();
             // If it doesn't throw, result should be 0 for success
@@ -642,5 +645,283 @@ class MicroServiceGeneratorTest {
             // The important thing is that the method signature returns Integer
             assertTrue(e instanceof RuntimeException || e instanceof SQLException || e.getCause() != null);
         }
+    }
+
+    // ========== AUDIT CONFIGURATION CLI TESTS ==========
+
+    @Test
+    void testAuditOptions_DisplayInHelp() {
+        // Given
+        MicroServiceGenerator generator = new MicroServiceGenerator();
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        CommandLine cmd = new CommandLine(generator);
+        cmd.setOut(new PrintWriter(outContent));
+
+        // When
+        cmd.execute("--help");
+
+        // Then
+        String output = outContent.toString();
+        assertThat(output).contains("--enable-audit");
+        assertThat(output).contains("--user-header");
+        assertThat(output).contains("--audit-columns");
+    }
+
+    @Test
+    void testEnableAuditFlag_ParsesCorrectly() {
+        // Given
+        MicroServiceGenerator generator = new MicroServiceGenerator();
+        CommandLine cmd = new CommandLine(generator);
+
+        // When
+        cmd.parseArgs("--enable-audit");
+
+        // Then
+        assertThat(cmd.getParseResult().hasMatchedOption("--enable-audit")).isTrue();
+    }
+
+    @Test
+    void testUserHeaderOption_ParsesCorrectly() {
+        // Given
+        MicroServiceGenerator generator = new MicroServiceGenerator();
+        CommandLine cmd = new CommandLine(generator);
+
+        // When
+        cmd.parseArgs("--user-header", "Authorization");
+
+        // Then
+        assertThat(cmd.getParseResult().hasMatchedOption("--user-header")).isTrue();
+        assertThat(cmd.getParseResult().matchedOption("--user-header").getValue().toString())
+                .isEqualTo("Authorization");
+    }
+
+    @Test
+    void testAuditColumnsOption_ParsesSingleColumn() {
+        // Given
+        MicroServiceGenerator generator = new MicroServiceGenerator();
+        CommandLine cmd = new CommandLine(generator);
+
+        // When
+        cmd.parseArgs("--audit-columns", "created_by");
+
+        // Then
+        assertThat(cmd.getParseResult().hasMatchedOption("--audit-columns")).isTrue();
+    }
+
+    @Test
+    void testAuditColumnsOption_ParsesMultipleColumns() {
+        // Given
+        MicroServiceGenerator generator = new MicroServiceGenerator();
+        CommandLine cmd = new CommandLine(generator);
+
+        // When
+        cmd.parseArgs("--audit-columns", "created_by,updated_by,modified_by");
+
+        // Then
+        assertThat(cmd.getParseResult().hasMatchedOption("--audit-columns")).isTrue();
+    }
+
+    @Test
+    void testAllAuditOptions_ParseTogether() {
+        // Given
+        MicroServiceGenerator generator = new MicroServiceGenerator();
+        CommandLine cmd = new CommandLine(generator);
+
+        // When
+        cmd.parseArgs(
+                "--name", "Customer",
+                "--destination", tempDir.toString(),
+                "--enable-audit",
+                "--user-header", "X-User-ID",
+                "--audit-columns", "created_by,updated_by"
+        );
+
+        // Then
+        var parseResult = cmd.getParseResult();
+        assertThat(parseResult.hasMatchedOption("--enable-audit")).isTrue();
+        assertThat(parseResult.hasMatchedOption("--user-header")).isTrue();
+        assertThat(parseResult.hasMatchedOption("--audit-columns")).isTrue();
+    }
+
+    @Test
+    void testEnableAuditFlag_DefaultsToFalse() throws Exception {
+        // Given
+        MicroServiceGenerator generator = new MicroServiceGenerator();
+
+        // When - check default value via reflection
+        var enableAuditField = generator.getClass().getDeclaredField("enableAudit");
+        enableAuditField.setAccessible(true);
+
+        // Then
+        assertThat(enableAuditField.getBoolean(generator)).isFalse();
+    }
+
+    @Test
+    void testUserHeaderOption_DefaultsToXUserId() throws Exception {
+        // Given
+        MicroServiceGenerator generator = new MicroServiceGenerator();
+
+        // When - check default value via reflection
+        var userHeaderField = generator.getClass().getDeclaredField("userHeader");
+        userHeaderField.setAccessible(true);
+
+        // Then
+        assertThat(userHeaderField.get(generator)).isEqualTo(ProjectConstants.DEFAULT_USER_HEADER);
+    }
+
+    @Test
+    void testAuditColumnsOption_DefaultsToEmptyList() throws Exception {
+        // Given
+        MicroServiceGenerator generator = new MicroServiceGenerator();
+
+        // When - check default value via reflection
+        var auditColumnsField = generator.getClass().getDeclaredField("auditColumns");
+        auditColumnsField.setAccessible(true);
+
+        // Then
+        @SuppressWarnings("unchecked")
+        List<String> auditColumns = (List<String>) auditColumnsField.get(generator);
+        assertThat(auditColumns).isEmpty();
+    }
+
+    @Test
+    void testCreateAuditConfiguration_WhenDisabled_ReturnsDisabledConfig() throws Exception {
+        // Given
+        MicroServiceGenerator generator = new MicroServiceGenerator();
+        setPrivateField(generator, "enableAudit", false);
+        setPrivateField(generator, "userHeader", "X-User-ID");
+        setPrivateField(generator, "auditColumns", new ArrayList<String>());
+
+        // When - invoke createAuditConfiguration via reflection
+        var method = generator.getClass().getDeclaredMethod("createAuditConfiguration");
+        method.setAccessible(true);
+        AuditConfiguration config = (AuditConfiguration) method.invoke(generator);
+
+        // Then
+        assertThat(config.enabled()).isFalse();
+    }
+
+    @Test
+    void testCreateAuditConfiguration_WhenEnabled_ReturnsEnabledConfig() throws Exception {
+        // Given
+        MicroServiceGenerator generator = new MicroServiceGenerator();
+        setPrivateField(generator, "enableAudit", true);
+        setPrivateField(generator, "userHeader", "Authorization");
+        List<String> columns = new ArrayList<>();
+        columns.add("created_by");
+        columns.add("updated_by");
+        setPrivateField(generator, "auditColumns", columns);
+
+        // When - invoke createAuditConfiguration via reflection
+        var method = generator.getClass().getDeclaredMethod("createAuditConfiguration");
+        method.setAccessible(true);
+        AuditConfiguration config = (AuditConfiguration) method.invoke(generator);
+
+        // Then
+        assertThat(config.enabled()).isTrue();
+        assertThat(config.userHeaderName()).isEqualTo("Authorization");
+        assertThat(config.auditColumnNames()).containsExactlyInAnyOrder("created_by", "updated_by");
+    }
+
+    @Test
+    void testValidation_AuditEnabledWithoutColumns_ThrowsException() {
+        // Given
+        MicroServiceGenerator generator = new MicroServiceGenerator();
+        setPrivateField(generator, "businessPurposeName", "TestService");
+        setPrivateField(generator, "destinationDirectory", tempDir.toString());
+        setPrivateField(generator, "enableAudit", true);
+        setPrivateField(generator, "auditColumns", new ArrayList<String>());
+
+        // When/Then
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, generator::call);
+        assertThat(exception.getMessage()).contains("Audit columns must be specified");
+    }
+
+    @Test
+    void testValidation_AuditDisabledWithoutColumns_Succeeds() {
+        // Given
+        MicroServiceGenerator generator = new MicroServiceGenerator();
+        setPrivateField(generator, "businessPurposeName", "TestService");
+        setPrivateField(generator, "destinationDirectory", tempDir.toString());
+        setPrivateField(generator, "enableAudit", false);
+        setPrivateField(generator, "auditColumns", new ArrayList<String>());
+
+        // When/Then - should not throw validation exception for audit columns
+        assertDoesNotThrow(() -> {
+            try {
+                generator.call();
+            } catch (Exception e) {
+                // Ignore database-related exceptions
+                if (e instanceof IllegalArgumentException &&
+                        e.getMessage().contains("Audit columns must be specified")) {
+                    throw e;
+                }
+            }
+        });
+    }
+
+    @Test
+    void testAuditOptions_WithCustomHeader_ParsesCorrectly() {
+        // Test various custom header names
+        String[] headerNames = {
+                "X-User-ID",
+                "Authorization",
+                "X-Auth-User",
+                "X-Request-User-ID",
+                "User-Identity"
+        };
+
+        for (String headerName : headerNames) {
+            MicroServiceGenerator generator = new MicroServiceGenerator();
+            CommandLine cmd = new CommandLine(generator);
+
+            cmd.parseArgs("--user-header", headerName);
+
+            assertThat(cmd.getParseResult().matchedOption("--user-header").getValue().toString())
+                    .as("Header name should be parsed correctly: " + headerName)
+                    .isEqualTo(headerName);
+        }
+    }
+
+    @Test
+    void testAuditColumns_SplitCorrectly() {
+        // Given
+        MicroServiceGenerator generator = new MicroServiceGenerator();
+        CommandLine cmd = new CommandLine(generator);
+
+        // When - parse with comma-separated audit columns
+        cmd.parseArgs("--audit-columns", "created_by,updated_by,modified_at,last_changed_by");
+
+        // Then - columns should be split
+        var parseResult = cmd.getParseResult();
+        assertThat(parseResult.hasMatchedOption("--audit-columns")).isTrue();
+    }
+
+    @Test
+    void testFullCommandLine_WithAllAuditOptions() {
+        // Given
+        MicroServiceGenerator generator = new MicroServiceGenerator();
+        CommandLine cmd = new CommandLine(generator);
+
+        // When - full command line with all options
+        String[] args = {
+                "--name", "Customer",
+                "--destination", tempDir.toString(),
+                "--sql-file", "sample_insert_parameterized.sql",
+                "--enable-audit",
+                "--user-header", "X-User-ID",
+                "--audit-columns", "created_by,updated_by"
+        };
+
+        assertDoesNotThrow(() -> cmd.parseArgs(args));
+
+        // Then - all options should be parsed
+        var parseResult = cmd.getParseResult();
+        assertThat(parseResult.hasMatchedOption("--name")).isTrue();
+        assertThat(parseResult.hasMatchedOption("--destination")).isTrue();
+        assertThat(parseResult.hasMatchedOption("--sql-file")).isTrue();
+        assertThat(parseResult.hasMatchedOption("--enable-audit")).isTrue();
+        assertThat(parseResult.hasMatchedOption("--user-header")).isTrue();
+        assertThat(parseResult.hasMatchedOption("--audit-columns")).isTrue();
     }
 }

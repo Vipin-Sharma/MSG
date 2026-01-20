@@ -63,4 +63,8 @@ public final class ProjectConstants {
     public static final String BUSINESS_NAME_PARAM = "businessName";
     public static final String OPERATION_PARAM = "operation";
     public static final String APPLICATION_JSON = "application/json";
+
+    // Audit configuration defaults
+    public static final String DEFAULT_USER_HEADER = "X-User-ID";
+    public static final String ERROR_AUDIT_COLUMNS_REQUIRED = "Audit columns must be specified when audit is enabled. Use --audit-columns=\"created_by,updated_by\"";
 }

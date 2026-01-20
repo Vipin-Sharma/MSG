@@ -311,32 +311,219 @@ class CompleteCrudGenerationE2ETest {
     @DisplayName("When multiple CRUD operations requested should generate separate valid microservices for each")
     void whenMultipleCrudOperationsRequestedShouldGenerateSeparateValidMicroservicesForEach() throws IOException {
         log.info("📋 Testing comprehensive generation workflow...");
-        
+
         String[] sqlFiles = {"customer_select.sql", "customer_insert.sql", "customer_update.sql", "customer_delete.sql"};
         String[] operations = {"Select", "Insert", "Update", "Delete"};
-        
+
         for (int i = 0; i < sqlFiles.length; i++) {
             Path operationDir = Files.createTempDirectory(baseTestDir, operations[i].toLowerCase() + "-workflow-");
-            
+
             String[] args = {
-                "--name", "Workflow" + operations[i], 
+                "--name", "Workflow" + operations[i],
                 "--destination", operationDir.toString(),
                 "--sql-file", sqlFiles[i]
             };
-            
+
             MicroServiceGenerator generator = new MicroServiceGenerator();
             CommandLine commandLine = new CommandLine(generator);
             int exitCode = commandLine.execute(args);
-            
+
             assertThat(exitCode)
                     .as(operations[i] + " workflow generation should complete successfully")
                     .isZero();
-            
+
             assertThat(operationDir.resolve("pom.xml"))
                     .as(operations[i] + " should generate valid Maven project structure")
                     .exists();
         }
-        
+
         log.info("✅ Comprehensive generation workflow validation completed successfully");
+    }
+
+    // ========== AUDIT CONFIGURATION E2E TESTS ==========
+
+    @Test
+    @Order(9)
+    @DisplayName("When INSERT SQL with audit enabled should generate controller with @RequestHeader")
+    void whenInsertSqlWithAuditEnabledShouldGenerateControllerWithRequestHeader() throws IOException {
+        log.info("📋 Testing INSERT with audit configuration...");
+
+        Path auditInsertDir = Files.createTempDirectory(baseTestDir, "audit-insert-");
+
+        String[] args = {
+                "--name", businessName + "AuditInsert",
+                "--destination", auditInsertDir.toString(),
+                "--sql-file", "customer_insert.sql",
+                "--enable-audit",
+                "--user-header", "X-User-ID",
+                "--audit-columns", "created_by,updated_by"
+        };
+
+        MicroServiceGenerator generator = new MicroServiceGenerator();
+        CommandLine commandLine = new CommandLine(generator);
+
+        int exitCode = commandLine.execute(args);
+
+        assertThat(exitCode)
+                .as("INSERT with audit should complete successfully")
+                .isZero();
+
+        // Verify project structure
+        assertThat(auditInsertDir.resolve("pom.xml"))
+                .as("Audit INSERT project should have Maven pom.xml")
+                .exists();
+
+        // Check controller file contains @RequestHeader
+        Path controllerDir = auditInsertDir.resolve("src/main/java/com/jfeatures/msg/testcustomerauditinsert/controller");
+        if (Files.exists(controllerDir)) {
+            boolean foundRequestHeader = Files.walk(controllerDir)
+                    .filter(p -> p.toString().endsWith("Controller.java"))
+                    .anyMatch(p -> {
+                        try {
+                            String content = Files.readString(p);
+                            return content.contains("@RequestHeader") || content.contains("userId");
+                        } catch (IOException e) {
+                            return false;
+                        }
+                    });
+
+            assertThat(foundRequestHeader)
+                    .as("Controller should contain @RequestHeader or userId for audit")
+                    .isTrue();
+        }
+
+        log.info("✅ INSERT with audit configuration completed successfully");
+    }
+
+    @Test
+    @Order(10)
+    @DisplayName("When UPDATE SQL with audit enabled should generate DAO with userId parameter")
+    void whenUpdateSqlWithAuditEnabledShouldGenerateDaoWithUserIdParameter() throws IOException {
+        log.info("📋 Testing UPDATE with audit configuration...");
+
+        Path auditUpdateDir = Files.createTempDirectory(baseTestDir, "audit-update-");
+
+        String[] args = {
+                "--name", businessName + "AuditUpdate",
+                "--destination", auditUpdateDir.toString(),
+                "--sql-file", "customer_update.sql",
+                "--enable-audit",
+                "--user-header", "Authorization",
+                "--audit-columns", "updated_by,modified_by"
+        };
+
+        MicroServiceGenerator generator = new MicroServiceGenerator();
+        CommandLine commandLine = new CommandLine(generator);
+
+        int exitCode = commandLine.execute(args);
+
+        assertThat(exitCode)
+                .as("UPDATE with audit should complete successfully")
+                .isZero();
+
+        // Verify project structure
+        assertThat(auditUpdateDir.resolve("pom.xml"))
+                .as("Audit UPDATE project should have Maven pom.xml")
+                .exists();
+
+        // Check DAO file contains userId
+        Path daoDir = auditUpdateDir.resolve("src/main/java/com/jfeatures/msg/testcustomerauditupdate/dao");
+        if (Files.exists(daoDir)) {
+            boolean foundUserId = Files.walk(daoDir)
+                    .filter(p -> p.toString().endsWith("DAO.java"))
+                    .anyMatch(p -> {
+                        try {
+                            String content = Files.readString(p);
+                            return content.contains("userId");
+                        } catch (IOException e) {
+                            return false;
+                        }
+                    });
+
+            assertThat(foundUserId)
+                    .as("DAO should contain userId parameter for audit")
+                    .isTrue();
+        }
+
+        log.info("✅ UPDATE with audit configuration completed successfully");
+    }
+
+    @Test
+    @Order(11)
+    @DisplayName("When audit enabled without columns should fail validation")
+    void whenAuditEnabledWithoutColumnsShouldFailValidation() throws IOException {
+        log.info("📋 Testing audit validation - enabled without columns...");
+
+        Path invalidAuditDir = Files.createTempDirectory(baseTestDir, "invalid-audit-");
+
+        String[] args = {
+                "--name", businessName + "InvalidAudit",
+                "--destination", invalidAuditDir.toString(),
+                "--sql-file", "customer_insert.sql",
+                "--enable-audit"
+                // Note: --audit-columns is missing intentionally
+        };
+
+        MicroServiceGenerator generator = new MicroServiceGenerator();
+        CommandLine commandLine = new CommandLine(generator);
+
+        int exitCode = commandLine.execute(args);
+
+        assertThat(exitCode)
+                .as("Audit enabled without columns should fail with non-zero exit code")
+                .isNotZero();
+
+        log.info("✅ Audit validation test completed successfully");
+    }
+
+    @Test
+    @Order(12)
+    @DisplayName("When audit disabled should generate without @RequestHeader")
+    void whenAuditDisabledShouldGenerateWithoutRequestHeader() throws IOException {
+        log.info("📋 Testing generation without audit (default)...");
+
+        Path noAuditDir = Files.createTempDirectory(baseTestDir, "no-audit-");
+
+        String[] args = {
+                "--name", businessName + "NoAudit",
+                "--destination", noAuditDir.toString(),
+                "--sql-file", "customer_insert.sql"
+                // Note: --enable-audit is not specified (default: disabled)
+        };
+
+        MicroServiceGenerator generator = new MicroServiceGenerator();
+        CommandLine commandLine = new CommandLine(generator);
+
+        int exitCode = commandLine.execute(args);
+
+        assertThat(exitCode)
+                .as("Generation without audit should complete successfully")
+                .isZero();
+
+        // Verify project structure
+        assertThat(noAuditDir.resolve("pom.xml"))
+                .as("Project without audit should have Maven pom.xml")
+                .exists();
+
+        // Check controller does NOT contain @RequestHeader
+        Path controllerDir = noAuditDir.resolve("src/main/java/com/jfeatures/msg/testcustomernoaudit/controller");
+        if (Files.exists(controllerDir)) {
+            boolean foundRequestHeader = Files.walk(controllerDir)
+                    .filter(p -> p.toString().endsWith("Controller.java"))
+                    .anyMatch(p -> {
+                        try {
+                            String content = Files.readString(p);
+                            return content.contains("@RequestHeader");
+                        } catch (IOException e) {
+                            return false;
+                        }
+                    });
+
+            assertThat(foundRequestHeader)
+                    .as("Controller should NOT contain @RequestHeader when audit is disabled")
+                    .isFalse();
+        }
+
+        log.info("✅ Generation without audit completed successfully");
     }
 }

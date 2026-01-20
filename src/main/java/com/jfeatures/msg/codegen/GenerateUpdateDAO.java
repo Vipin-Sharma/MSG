@@ -4,6 +4,7 @@ import com.github.vertical_blank.sqlformatter.SqlFormatter;
 import com.jfeatures.msg.codegen.constants.CodeGenerationConstants;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.UpdateMetadata;
+import com.jfeatures.msg.codegen.domain.AuditConfiguration;
 import com.jfeatures.msg.codegen.util.FieldBuilders;
 import com.jfeatures.msg.codegen.util.MethodBuilders;
 import com.jfeatures.msg.codegen.util.JavaPackageNameBuilder;
@@ -40,7 +41,26 @@ public class GenerateUpdateDAO {
      * Follows clean code principles with single responsibility - one public method per class.
      */
     public static JavaFile createUpdateDAO(String businessPurposeOfSQL, UpdateMetadata updateMetadata) throws Exception {
-        
+        return createUpdateDAO(businessPurposeOfSQL, updateMetadata, AuditConfiguration.disabled());
+    }
+
+    /**
+     * Creates DAO with UPDATE method with optional audit support.
+     * When audit is enabled, the update method accepts a userId parameter and populates audit columns from it.
+     *
+     * @param businessPurposeOfSQL The business domain name (e.g., "Customer")
+     * @param updateMetadata The UPDATE metadata from SQL
+     * @param auditConfig Audit configuration for user context support
+     * @return Generated JavaFile containing the DAO class
+     * @throws Exception if file generation fails
+     */
+    public static JavaFile createUpdateDAO(String businessPurposeOfSQL, UpdateMetadata updateMetadata,
+                                           AuditConfiguration auditConfig) throws Exception {
+
+        if (auditConfig == null) {
+            auditConfig = AuditConfiguration.disabled();
+        }
+
         String jdbcTemplateInstanceFieldName = CodeGenerationConstants.JDBC_TEMPLATE_FIELD_NAME;
 
         // Generate SQL constant using text block for better readability
@@ -50,10 +70,11 @@ public class GenerateUpdateDAO {
 
         // Constructor using shared MethodBuilders utility
         MethodSpec constructorSpec = MethodBuilders.jdbcTemplateConstructor(jdbcTemplateInstanceFieldName);
-        
-        // Generate UPDATE method (single public method following clean code principles)
-        MethodSpec updateMethod = createUpdateMethod(businessPurposeOfSQL, updateMetadata, jdbcTemplateInstanceFieldName);
-        
+
+        // Generate UPDATE method with audit support
+        MethodSpec updateMethod = createUpdateMethod(businessPurposeOfSQL, updateMetadata,
+                jdbcTemplateInstanceFieldName, auditConfig);
+
         // Create DAO class definition manually to avoid deprecated helpers
         TypeSpec.Builder daoBuilder = TypeSpec.classBuilder(businessPurposeOfSQL + "UpdateDAO")
                 .addModifiers(Modifier.PUBLIC)
@@ -65,7 +86,7 @@ public class GenerateUpdateDAO {
                 .addField(sqlConstant)
                 .addMethod(updateMethod)
                 .build();
-        
+
         JavaFile javaFile = JavaFile.builder(JavaPackageNameBuilder.buildJavaPackageName(businessPurposeOfSQL, "dao"), daoClass)
                 .build();
 
@@ -74,18 +95,19 @@ public class GenerateUpdateDAO {
     }
     
     /**
-     * Creates the main UPDATE method.
+     * Creates the main UPDATE method with optional audit support.
      */
-    private static MethodSpec createUpdateMethod(String businessPurposeOfSQL, UpdateMetadata updateMetadata, String jdbcTemplateFieldName) {
-        
+    private static MethodSpec createUpdateMethod(String businessPurposeOfSQL, UpdateMetadata updateMetadata,
+                                                String jdbcTemplateFieldName, AuditConfiguration auditConfig) {
+
         TypeName updateDtoType = JavaPoetTypeNameBuilder.buildJavaPoetTypeNameForClass(businessPurposeOfSQL, "dto", "UpdateDTO");
-        
+
         // Build parameter specifications
         List<ParameterSpec> parameterSpecs = new ArrayList<>();
         parameterSpecs.add(ParameterSpec.builder(updateDtoType, "updateDto")
                 .addAnnotation(ClassName.get("jakarta.validation", "Valid"))
                 .build());
-        
+
         // Add WHERE parameters
         List<String> whereParamNames = new ArrayList<>();
         for (int i = 0; i < updateMetadata.whereColumns().size(); i++) {
@@ -93,13 +115,18 @@ public class GenerateUpdateDAO {
             Class<?> paramType = SQLServerDataTypeEnum.getClassForType(column.getColumnTypeName());
             String paramName = generateWhereParamName(column, i);
             whereParamNames.add(paramName);
-            
+
             parameterSpecs.add(ParameterSpec.builder(paramType, paramName).build());
         }
-        
+
+        // Add userId parameter if audit is enabled
+        if (auditConfig.enabled()) {
+            parameterSpecs.add(ParameterSpec.builder(String.class, "userId").build());
+        }
+
         // Build parameter map construction code
-        CodeBlock paramMapCode = buildParameterMapCode(updateMetadata, whereParamNames);
-        
+        CodeBlock paramMapCode = buildParameterMapCode(updateMetadata, whereParamNames, auditConfig);
+
         // Build method body using SQL constant (clean code practice)
         CodeBlock methodBody = CodeBlock.builder()
                 .addStatement("$T<String, Object> paramMap = new $T<>()", Map.class, HashMap.class)
@@ -113,14 +140,28 @@ public class GenerateUpdateDAO {
                 .addStatement("log.info(\"Updated {} rows for {}\", rowsUpdated, $S)", businessPurposeOfSQL)
                 .addStatement("return rowsUpdated")
                 .build();
-        
-        return MethodSpec.methodBuilder("update" + businessPurposeOfSQL)
+
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("update" + businessPurposeOfSQL)
                 .addModifiers(Modifier.PUBLIC)
                 .addParameters(parameterSpecs)
                 .returns(int.class)
-                .addCode(methodBody)
-                .addJavadoc("Updates $L record(s) in the database.\n@param updateDto The data to update\n@return Number of rows updated", businessPurposeOfSQL.toLowerCase())
-                .build();
+                .addCode(methodBody);
+
+        // Add JavaDoc
+        if (auditConfig.enabled()) {
+            methodBuilder.addJavadoc("Updates $L record(s) in the database with audit tracking.\n" +
+                            "@param updateDto The data to update\n" +
+                            "@param userId The user ID for audit columns\n" +
+                            "@return Number of rows updated",
+                    businessPurposeOfSQL.toLowerCase());
+        } else {
+            methodBuilder.addJavadoc("Updates $L record(s) in the database.\n" +
+                            "@param updateDto The data to update\n" +
+                            "@return Number of rows updated",
+                    businessPurposeOfSQL.toLowerCase());
+        }
+
+        return methodBuilder.build();
     }
     
     /**
@@ -158,23 +199,32 @@ public class GenerateUpdateDAO {
     
     /**
      * Builds the code block for constructing the parameter map.
+     * When audit is enabled, audit columns are mapped from userId instead of the DTO.
      */
-    private static CodeBlock buildParameterMapCode(UpdateMetadata updateMetadata, List<String> whereParamNames) {
+    private static CodeBlock buildParameterMapCode(UpdateMetadata updateMetadata, List<String> whereParamNames,
+                                                   AuditConfiguration auditConfig) {
         CodeBlock.Builder codeBuilder = CodeBlock.builder();
-        
-        // Add SET parameters from DTO
+
+        // Add SET parameters - audit columns from userId, others from DTO
         for (ColumnMetadata column : updateMetadata.setColumns()) {
             String paramName = CaseUtils.toCamelCase(column.getColumnName(), false, '_');
-            String getterMethod = "get" + CaseUtils.toCamelCase(column.getColumnName(), true, '_');
-            codeBuilder.addStatement("paramMap.put($S, updateDto.$N())", paramName, getterMethod);
+
+            if (auditConfig.isAuditColumn(column.getColumnName())) {
+                // Audit column - map from userId parameter
+                codeBuilder.addStatement("paramMap.put($S, userId)", paramName);
+            } else {
+                // Regular column - map from DTO
+                String getterMethod = "get" + CaseUtils.toCamelCase(column.getColumnName(), true, '_');
+                codeBuilder.addStatement("paramMap.put($S, updateDto.$N())", paramName, getterMethod);
+            }
         }
-        
+
         // Add WHERE parameters
         for (int i = 0; i < whereParamNames.size(); i++) {
             String paramName = whereParamNames.get(i);
             codeBuilder.addStatement("paramMap.put($S, $N)", paramName, paramName);
         }
-        
+
         return codeBuilder.build();
     }
     

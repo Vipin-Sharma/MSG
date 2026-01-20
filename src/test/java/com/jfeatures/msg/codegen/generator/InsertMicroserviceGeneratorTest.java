@@ -7,10 +7,12 @@ import static org.mockito.Mockito.lenient;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.InsertMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.InsertMetadataExtractor;
+import com.jfeatures.msg.codegen.domain.AuditConfiguration;
 import com.jfeatures.msg.codegen.domain.DatabaseConnection;
 import com.jfeatures.msg.codegen.domain.GeneratedMicroservice;
 import com.jfeatures.msg.codegen.util.SqlStatementType;
 import java.util.List;
+import java.util.Set;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -302,7 +304,231 @@ class InsertMicroserviceGeneratorTest {
             RuntimeException.class,
             () -> generator.generateInsertMicroservice(sql, businessDomainName, databaseConnection)
         );
-        
+
         assertEquals("Database connection failed", exception.getMessage());
+    }
+
+    // ========== AUDIT CONFIGURATION TESTS ==========
+
+    @Test
+    void testGenerateInsertMicroservice_WithAuditEnabled_GeneratesCorrectly() throws Exception {
+        // Given
+        String sql = "INSERT INTO customers (customer_name, email, created_by) VALUES (?, ?, ?)";
+        String businessDomainName = "Customer";
+        AuditConfiguration auditConfig = new AuditConfiguration(
+                true, "X-User-ID", Set.of("created_by"));
+
+        // Setup metadata with audit column
+        ColumnMetadata col1 = new ColumnMetadata();
+        col1.setColumnName("customer_name");
+        col1.setColumnTypeName("varchar");
+        col1.setColumnType(12);
+        col1.setColumnClassName("java.lang.String");
+
+        ColumnMetadata col2 = new ColumnMetadata();
+        col2.setColumnName("email");
+        col2.setColumnTypeName("varchar");
+        col2.setColumnType(12);
+        col2.setColumnClassName("java.lang.String");
+
+        ColumnMetadata auditCol = new ColumnMetadata();
+        auditCol.setColumnName("created_by");
+        auditCol.setColumnTypeName("varchar");
+        auditCol.setColumnType(12);
+        auditCol.setColumnClassName("java.lang.String");
+
+        InsertMetadata auditMetadata = mock(InsertMetadata.class);
+        when(auditMetadata.tableName()).thenReturn("customers");
+        when(auditMetadata.insertColumns()).thenReturn(List.of(col1, col2, auditCol));
+        when(auditMetadata.originalSql()).thenReturn(sql);
+
+        try (var mockedConstruction = mockConstruction(InsertMetadataExtractor.class, (mock, context) -> {
+            when(mock.extractInsertMetadata(sql)).thenReturn(auditMetadata);
+        })) {
+
+            // When
+            GeneratedMicroservice result = generator.generateInsertMicroservice(
+                    sql, businessDomainName, databaseConnection, auditConfig);
+
+            // Then
+            assertNotNull(result);
+            assertEquals(businessDomainName, result.businessDomainName());
+            assertEquals(SqlStatementType.INSERT, result.statementType());
+
+            // Verify the generated code contains audit-related elements
+            String controllerCode = result.controllerFile().toString();
+            assertTrue(controllerCode.contains("@RequestHeader") || controllerCode.contains("userId"),
+                    "Controller should contain audit header handling");
+
+            String daoCode = result.daoFile().toString();
+            assertTrue(daoCode.contains("userId"),
+                    "DAO should contain userId parameter");
+        }
+    }
+
+    @Test
+    void testGenerateInsertMicroservice_WithAuditDisabled_GeneratesWithoutAudit() throws Exception {
+        // Given
+        String sql = "INSERT INTO customers (customer_name, email) VALUES (?, ?)";
+        String businessDomainName = "Customer";
+        AuditConfiguration auditConfig = AuditConfiguration.disabled();
+
+        try (var mockedConstruction = mockConstruction(InsertMetadataExtractor.class, (mock, context) -> {
+            when(mock.extractInsertMetadata(sql)).thenReturn(insertMetadata);
+        })) {
+
+            // When
+            GeneratedMicroservice result = generator.generateInsertMicroservice(
+                    sql, businessDomainName, databaseConnection, auditConfig);
+
+            // Then
+            assertNotNull(result);
+            String controllerCode = result.controllerFile().toString();
+            assertFalse(controllerCode.contains("@RequestHeader"),
+                    "Controller should NOT contain @RequestHeader when audit disabled");
+        }
+    }
+
+    @Test
+    void testGenerateInsertMicroservice_WithNullAuditConfig_DefaultsToDisabled() throws Exception {
+        // Given
+        String sql = "INSERT INTO customers (customer_name, email) VALUES (?, ?)";
+        String businessDomainName = "Customer";
+
+        try (var mockedConstruction = mockConstruction(InsertMetadataExtractor.class, (mock, context) -> {
+            when(mock.extractInsertMetadata(sql)).thenReturn(insertMetadata);
+        })) {
+
+            // When - call with null audit config
+            GeneratedMicroservice result = generator.generateInsertMicroservice(
+                    sql, businessDomainName, databaseConnection, null);
+
+            // Then
+            assertNotNull(result);
+            String controllerCode = result.controllerFile().toString();
+            assertFalse(controllerCode.contains("@RequestHeader"),
+                    "Controller should NOT contain @RequestHeader when audit config is null");
+        }
+    }
+
+    @Test
+    void testGenerateInsertMicroservice_WithMultipleAuditColumns_FiltersCorrectly() throws Exception {
+        // Given
+        String sql = "INSERT INTO customers (customer_name, created_by, updated_by) VALUES (?, ?, ?)";
+        String businessDomainName = "Customer";
+        AuditConfiguration auditConfig = new AuditConfiguration(
+                true, "X-User-ID", Set.of("created_by", "updated_by"));
+
+        // Setup metadata with multiple audit columns
+        ColumnMetadata col1 = new ColumnMetadata();
+        col1.setColumnName("customer_name");
+        col1.setColumnTypeName("varchar");
+        col1.setColumnType(12);
+        col1.setColumnClassName("java.lang.String");
+
+        ColumnMetadata auditCol1 = new ColumnMetadata();
+        auditCol1.setColumnName("created_by");
+        auditCol1.setColumnTypeName("varchar");
+        auditCol1.setColumnType(12);
+        auditCol1.setColumnClassName("java.lang.String");
+
+        ColumnMetadata auditCol2 = new ColumnMetadata();
+        auditCol2.setColumnName("updated_by");
+        auditCol2.setColumnTypeName("varchar");
+        auditCol2.setColumnType(12);
+        auditCol2.setColumnClassName("java.lang.String");
+
+        InsertMetadata multiAuditMetadata = mock(InsertMetadata.class);
+        when(multiAuditMetadata.tableName()).thenReturn("customers");
+        when(multiAuditMetadata.insertColumns()).thenReturn(List.of(col1, auditCol1, auditCol2));
+        when(multiAuditMetadata.originalSql()).thenReturn(sql);
+
+        try (var mockedConstruction = mockConstruction(InsertMetadataExtractor.class, (mock, context) -> {
+            when(mock.extractInsertMetadata(sql)).thenReturn(multiAuditMetadata);
+        })) {
+
+            // When
+            GeneratedMicroservice result = generator.generateInsertMicroservice(
+                    sql, businessDomainName, databaseConnection, auditConfig);
+
+            // Then
+            assertNotNull(result);
+
+            // DTO should NOT contain audit columns
+            String dtoCode = result.dtoFile().toString();
+            assertFalse(dtoCode.contains("createdBy") && dtoCode.contains("private"),
+                    "DTO should not have audit columns as fields");
+
+            // DAO should map audit columns from userId
+            String daoCode = result.daoFile().toString();
+            assertTrue(daoCode.contains("userId"),
+                    "DAO should reference userId for audit columns");
+        }
+    }
+
+    @Test
+    void testGenerateInsertMicroservice_WithCustomHeaderName_UsesCorrectHeader() throws Exception {
+        // Given
+        String sql = "INSERT INTO customers (customer_name, created_by) VALUES (?, ?)";
+        String businessDomainName = "Customer";
+        AuditConfiguration auditConfig = new AuditConfiguration(
+                true, "Authorization", Set.of("created_by"));
+
+        ColumnMetadata col1 = new ColumnMetadata();
+        col1.setColumnName("customer_name");
+        col1.setColumnTypeName("varchar");
+        col1.setColumnType(12);
+        col1.setColumnClassName("java.lang.String");
+
+        ColumnMetadata auditCol = new ColumnMetadata();
+        auditCol.setColumnName("created_by");
+        auditCol.setColumnTypeName("varchar");
+        auditCol.setColumnType(12);
+        auditCol.setColumnClassName("java.lang.String");
+
+        InsertMetadata customHeaderMetadata = mock(InsertMetadata.class);
+        when(customHeaderMetadata.tableName()).thenReturn("customers");
+        when(customHeaderMetadata.insertColumns()).thenReturn(List.of(col1, auditCol));
+        when(customHeaderMetadata.originalSql()).thenReturn(sql);
+
+        try (var mockedConstruction = mockConstruction(InsertMetadataExtractor.class, (mock, context) -> {
+            when(mock.extractInsertMetadata(sql)).thenReturn(customHeaderMetadata);
+        })) {
+
+            // When
+            GeneratedMicroservice result = generator.generateInsertMicroservice(
+                    sql, businessDomainName, databaseConnection, auditConfig);
+
+            // Then
+            assertNotNull(result);
+            String controllerCode = result.controllerFile().toString();
+            assertTrue(controllerCode.contains("Authorization"),
+                    "Controller should use custom header name 'Authorization'");
+        }
+    }
+
+    @Test
+    void testGenerateInsertMicroservice_BackwardCompatibility_WithoutAuditConfig() throws Exception {
+        // Given - call the original method without AuditConfiguration
+        String sql = "INSERT INTO customers (customer_name, email, phone) VALUES (?, ?, ?)";
+        String businessDomainName = "Customer";
+
+        try (var mockedConstruction = mockConstruction(InsertMetadataExtractor.class, (mock, context) -> {
+            when(mock.extractInsertMetadata(sql)).thenReturn(insertMetadata);
+        })) {
+
+            // When - call original method (backward compatibility)
+            GeneratedMicroservice result = generator.generateInsertMicroservice(
+                    sql, businessDomainName, databaseConnection);
+
+            // Then
+            assertNotNull(result);
+            assertEquals(businessDomainName, result.businessDomainName());
+
+            // Should behave like audit disabled
+            String controllerCode = result.controllerFile().toString();
+            assertFalse(controllerCode.contains("@RequestHeader"),
+                    "Original method should behave like audit disabled");
+        }
     }
 }

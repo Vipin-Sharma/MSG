@@ -4,10 +4,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.UpdateMetadata;
+import com.jfeatures.msg.codegen.domain.AuditConfiguration;
 import com.squareup.javapoet.JavaFile;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -207,12 +209,191 @@ class GenerateUpdateDAOTest {
     @Test
     void testCreateUpdateDAO_GeneratesCorrectImports() throws Exception {
         JavaFile javaFile = GenerateUpdateDAO.createUpdateDAO("Customer", validMetadata);
-        
+
         String code = javaFile.toString();
         // Based on research: check for key imports
         assertTrue(code.contains("import jakarta.validation.Valid"));
         assertTrue(code.contains("import lombok.extern.slf4j.Slf4j"));
         assertTrue(code.contains("import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate"));
         assertTrue(code.contains("import org.springframework.stereotype.Component"));
+    }
+
+    // ========== AUDIT CONFIGURATION TESTS ==========
+
+    @Test
+    void testCreateUpdateDAO_WithAuditEnabled_AddsUserIdParameter() throws Exception {
+        // Create metadata with audit column
+        ColumnMetadata updatedByColumn = new ColumnMetadata();
+        updatedByColumn.setColumnName("updated_by");
+        updatedByColumn.setColumnTypeName("VARCHAR");
+        updatedByColumn.setColumnType(Types.VARCHAR);
+        updatedByColumn.setIsNullable(0);
+
+        UpdateMetadata metadataWithAudit = new UpdateMetadata(
+                "customers",
+                Arrays.asList(nameColumn, updatedByColumn),
+                Collections.singletonList(idColumn),
+                "UPDATE customers SET customer_name = ?, updated_by = ? WHERE customer_id = ?"
+        );
+
+        AuditConfiguration auditConfig = new AuditConfiguration(
+                true, "X-User-ID", Set.of("updated_by"));
+
+        JavaFile javaFile = GenerateUpdateDAO.createUpdateDAO("Customer", metadataWithAudit, auditConfig);
+
+        String code = javaFile.toString();
+
+        // Verify userId parameter is present in method signature
+        assertTrue(code.contains("String userId"),
+                "Method should have userId parameter");
+
+        // Verify audit column is mapped from userId, not from DTO
+        assertTrue(code.contains("paramMap.put(\"updatedBy\", userId)"),
+                "Audit column should be mapped from userId");
+
+        // Verify regular columns still come from DTO
+        assertTrue(code.contains("updateDto.getCustomerName()"),
+                "Regular columns should still come from DTO");
+    }
+
+    @Test
+    void testCreateUpdateDAO_WithAuditDisabled_NoUserIdParameter() throws Exception {
+        AuditConfiguration auditConfig = AuditConfiguration.disabled();
+
+        JavaFile javaFile = GenerateUpdateDAO.createUpdateDAO("Customer", validMetadata, auditConfig);
+
+        String code = javaFile.toString();
+
+        // Verify userId parameter is NOT present
+        assertFalse(code.contains("String userId"),
+                "Should NOT have userId parameter when audit disabled");
+
+        // Verify all columns come from DTO
+        assertTrue(code.contains("updateDto.getCustomerName()"));
+        assertTrue(code.contains("updateDto.getStatus()"));
+    }
+
+    @Test
+    void testCreateUpdateDAO_WithMultipleAuditColumns_MapsAllFromUserId() throws Exception {
+        // Create metadata with multiple audit columns
+        ColumnMetadata modifiedByColumn = new ColumnMetadata();
+        modifiedByColumn.setColumnName("modified_by");
+        modifiedByColumn.setColumnTypeName("VARCHAR");
+        modifiedByColumn.setColumnType(Types.VARCHAR);
+        modifiedByColumn.setIsNullable(0);
+
+        ColumnMetadata updatedByColumn = new ColumnMetadata();
+        updatedByColumn.setColumnName("updated_by");
+        updatedByColumn.setColumnTypeName("VARCHAR");
+        updatedByColumn.setColumnType(Types.VARCHAR);
+        updatedByColumn.setIsNullable(0);
+
+        UpdateMetadata metadataWithAudit = new UpdateMetadata(
+                "customers",
+                Arrays.asList(nameColumn, modifiedByColumn, updatedByColumn),
+                Collections.singletonList(idColumn),
+                "UPDATE customers SET customer_name = ?, modified_by = ?, updated_by = ? WHERE customer_id = ?"
+        );
+
+        AuditConfiguration auditConfig = new AuditConfiguration(
+                true, "X-User-ID", Set.of("modified_by", "updated_by"));
+
+        JavaFile javaFile = GenerateUpdateDAO.createUpdateDAO("Customer", metadataWithAudit, auditConfig);
+
+        String code = javaFile.toString();
+
+        // Verify both audit columns are mapped from userId
+        assertTrue(code.contains("paramMap.put(\"modifiedBy\", userId)"),
+                "modified_by should be mapped from userId");
+        assertTrue(code.contains("paramMap.put(\"updatedBy\", userId)"),
+                "updated_by should be mapped from userId");
+
+        // Verify regular columns still come from DTO
+        assertTrue(code.contains("updateDto.getCustomerName()"));
+    }
+
+    @Test
+    void testCreateUpdateDAO_WithNullAuditConfig_DefaultsToDisabled() throws Exception {
+        JavaFile javaFile = GenerateUpdateDAO.createUpdateDAO("Customer", validMetadata, null);
+
+        String code = javaFile.toString();
+
+        // Should behave like audit disabled
+        assertFalse(code.contains("String userId"),
+                "Should NOT have userId parameter when config is null");
+    }
+
+    @Test
+    void testCreateUpdateDAO_BackwardCompatibility_NoAuditConfig() throws Exception {
+        // Test that the original method without AuditConfiguration still works
+        JavaFile javaFile = GenerateUpdateDAO.createUpdateDAO("Customer", validMetadata);
+
+        String code = javaFile.toString();
+
+        // Should behave like audit disabled
+        assertFalse(code.contains("String userId"),
+                "Default should NOT have userId parameter");
+
+        // All columns should come from DTO
+        assertTrue(code.contains("updateDto.getCustomerName()"));
+        assertTrue(code.contains("updateDto.getStatus()"));
+    }
+
+    @Test
+    void testCreateUpdateDAO_WithAuditEnabled_GeneratesCorrectJavaDoc() throws Exception {
+        ColumnMetadata updatedByColumn = new ColumnMetadata();
+        updatedByColumn.setColumnName("updated_by");
+        updatedByColumn.setColumnTypeName("VARCHAR");
+        updatedByColumn.setColumnType(Types.VARCHAR);
+        updatedByColumn.setIsNullable(0);
+
+        UpdateMetadata metadataWithAudit = new UpdateMetadata(
+                "customers",
+                Arrays.asList(nameColumn, updatedByColumn),
+                Collections.singletonList(idColumn),
+                "UPDATE customers SET customer_name = ?, updated_by = ? WHERE customer_id = ?"
+        );
+
+        AuditConfiguration auditConfig = new AuditConfiguration(
+                true, "X-User-ID", Set.of("updated_by"));
+
+        JavaFile javaFile = GenerateUpdateDAO.createUpdateDAO("Customer", metadataWithAudit, auditConfig);
+
+        String code = javaFile.toString();
+
+        // Verify JavaDoc mentions audit tracking
+        assertTrue(code.contains("audit tracking") || code.contains("audit"),
+                "JavaDoc should mention audit tracking when audit is enabled");
+        assertTrue(code.contains("@param userId"),
+                "JavaDoc should document userId parameter");
+    }
+
+    @Test
+    void testCreateUpdateDAO_CaseInsensitiveAuditColumnMatching() throws Exception {
+        // Create metadata with audit column in different case
+        ColumnMetadata updatedByColumn = new ColumnMetadata();
+        updatedByColumn.setColumnName("UPDATED_BY"); // Uppercase
+        updatedByColumn.setColumnTypeName("VARCHAR");
+        updatedByColumn.setColumnType(Types.VARCHAR);
+        updatedByColumn.setIsNullable(0);
+
+        UpdateMetadata metadataWithAudit = new UpdateMetadata(
+                "customers",
+                Arrays.asList(nameColumn, updatedByColumn),
+                Collections.singletonList(idColumn),
+                "UPDATE customers SET customer_name = ?, UPDATED_BY = ? WHERE customer_id = ?"
+        );
+
+        AuditConfiguration auditConfig = new AuditConfiguration(
+                true, "X-User-ID", Set.of("updated_by")); // lowercase in config
+
+        JavaFile javaFile = GenerateUpdateDAO.createUpdateDAO("Customer", metadataWithAudit, auditConfig);
+
+        String code = javaFile.toString();
+
+        // Verify the audit column is still mapped from userId (case-insensitive match)
+        assertTrue(code.contains("paramMap.put(\"updatedBy\", userId)") ||
+                   code.contains("paramMap.put(\"UPDATEDBY\", userId)"),
+                "Should match audit columns case-insensitively");
     }
 }

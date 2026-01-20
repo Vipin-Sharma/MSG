@@ -35,9 +35,14 @@ mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator"
 
 # Common SQL file patterns in src/main/resources/
 # - sample_parameterized_sql.sql (SELECT → GET APIs)
-# - sample_insert_parameterized.sql (INSERT → POST APIs)  
+# - sample_insert_parameterized.sql (INSERT → POST APIs)
 # - sample_update_parameterized.sql (UPDATE → PUT APIs)
 # - sample_delete_parameterized.sql (DELETE → DELETE APIs)
+
+# Generation with audit/user context support
+mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
+  -Dexec.args="--name Customer --destination ./output --sql-file sample_insert_parameterized.sql \
+               --enable-audit --user-header X-User-ID --audit-columns created_by,updated_by"
 
 # Debug mode for troubleshooting
 mvn -X exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
@@ -84,8 +89,9 @@ public class GenerateInsertDAO {
 
 ### Testing Approach
 - **Reality-Based Testing**: Observe actual generated code behavior, then test
-- **Current Coverage**: 89% with 531 tests
+- **Current Coverage**: 89%+ with 1050+ tests (unit + E2E)
 - **Test Command**: `mvn test && mvn jacoco:report`
+- **E2E Tests**: `mvn test -Pe2e-tests` (requires Docker for database)
 
 ### Critical Security Issues for AI Awareness
 1. **Hardcoded credentials** in `DataSourceConfig.java` (use environment variables)
@@ -98,6 +104,61 @@ public class GenerateInsertDAO {
 - **Modifying metadata extraction**: Ensure proper JDBC resource handling
 - **Code generation fixes**: Use JavaPoet type-safe construction
 - **Testing**: Reality-based approach with comprehensive coverage
+
+## Audit/User Context Feature
+
+MSG supports optional audit tracking for INSERT and UPDATE operations, allowing generated APIs to capture user context from HTTP headers.
+
+### CLI Options
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--enable-audit` | Enable audit/user context support | `false` |
+| `--user-header` | HTTP header name for user identification | `X-User-ID` |
+| `--audit-columns` | Comma-separated list of audit column names | Required when audit enabled |
+
+### How It Works
+1. **Controller**: Adds `@RequestHeader` parameter to capture user ID from HTTP header
+2. **DAO**: Maps audit columns from `userId` parameter instead of DTO
+3. **DTO**: Excludes audit columns (they come from header, not request body)
+
+### Example Usage
+```bash
+# INSERT with audit - created_by populated from X-User-ID header
+mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
+  -Dexec.args="--name Customer --destination ./output --sql-file customer_insert.sql \
+               --enable-audit --audit-columns created_by"
+
+# UPDATE with custom header - updated_by populated from Authorization header
+mvn exec:java -Dexec.mainClass="com.jfeatures.msg.codegen.MicroServiceGenerator" \
+  -Dexec.args="--name Customer --destination ./output --sql-file customer_update.sql \
+               --enable-audit --user-header Authorization --audit-columns updated_by,modified_by"
+```
+
+### Generated Code Example
+```java
+// Controller with audit
+@PostMapping
+public ResponseEntity<String> insertCustomer(
+        @Valid @RequestBody CustomerInsertDTO insertRequest,
+        @RequestHeader(value = "X-User-ID", required = true) String userId) {
+    int rowsAffected = customerInsertDAO.insertCustomer(insertRequest, userId);
+    return ResponseEntity.ok("Inserted " + rowsAffected + " row(s)");
+}
+
+// DAO with audit column mapping
+public int insertCustomer(CustomerInsertDTO insertRequest, String userId) {
+    Map<String, Object> sqlParamMap = new HashMap<>();
+    sqlParamMap.put("customerName", insertRequest.getCustomerName());
+    sqlParamMap.put("createdBy", userId);  // Audit column from userId
+    return namedParameterJdbcTemplate.update(INSERT_SQL, sqlParamMap);
+}
+```
+
+### Key Files for Audit Feature
+- **Configuration**: `src/main/java/com/jfeatures/msg/codegen/domain/AuditConfiguration.java`
+- **Constants**: `src/main/java/com/jfeatures/msg/codegen/constants/ProjectConstants.java`
+- **Insert Flow**: `GenerateInsertController.java`, `GenerateInsertDAO.java`, `InsertMicroserviceGenerator.java`
+- **Update Flow**: `GenerateUpdateController.java`, `GenerateUpdateDAO.java`, `UpdateMicroserviceGenerator.java`
 
 ## Important Context
 - **Database**: SQL Server with hardcoded sakila database

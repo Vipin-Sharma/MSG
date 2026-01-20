@@ -4,6 +4,7 @@ import com.github.vertical_blank.sqlformatter.SqlFormatter;
 import com.jfeatures.msg.codegen.constants.CodeGenerationConstants;
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.InsertMetadata;
+import com.jfeatures.msg.codegen.domain.AuditConfiguration;
 import com.jfeatures.msg.codegen.util.FieldBuilders;
 import com.jfeatures.msg.codegen.util.MethodBuilders;
 import com.jfeatures.msg.codegen.util.JavaPackageNameBuilder;
@@ -41,7 +42,22 @@ public class GenerateInsertDAO {
      * Single responsibility: Generate INSERT data access object.
      */
     public static JavaFile createInsertDAO(String businessPurposeOfSQL, InsertMetadata insertMetadata) throws IOException {
-        
+        return createInsertDAO(businessPurposeOfSQL, insertMetadata, AuditConfiguration.disabled());
+    }
+
+    /**
+     * Creates INSERT DAO with insert method using NamedParameterJdbcTemplate, with optional audit support.
+     * When audit is enabled, the insert method accepts a userId parameter and populates audit columns from it.
+     *
+     * @param businessPurposeOfSQL The business domain name (e.g., "Customer")
+     * @param insertMetadata The INSERT metadata from SQL
+     * @param auditConfig Audit configuration for user context support
+     * @return Generated JavaFile containing the DAO class
+     * @throws IOException if file generation fails
+     */
+    public static JavaFile createInsertDAO(String businessPurposeOfSQL, InsertMetadata insertMetadata,
+                                           AuditConfiguration auditConfig) throws IOException {
+
         if (businessPurposeOfSQL == null || businessPurposeOfSQL.trim().isEmpty()) {
             throw new IllegalArgumentException("Business purpose of SQL cannot be null or empty");
         }
@@ -51,26 +67,30 @@ public class GenerateInsertDAO {
         if (insertMetadata.insertColumns().isEmpty()) {
             throw new IllegalArgumentException("Insert metadata must have at least one column");
         }
-        
+        if (auditConfig == null) {
+            auditConfig = AuditConfiguration.disabled();
+        }
+
         String jdbcTemplateFieldName = CodeGenerationConstants.JDBC_TEMPLATE_FIELD_NAME;
-        
+
         // Use shared builders for constructor and field generation
         MethodSpec constructorSpec = MethodBuilders.jdbcTemplateConstructor(jdbcTemplateFieldName);
         FieldSpec jdbcTemplateFieldSpec = FieldBuilders.jdbcTemplateField(jdbcTemplateFieldName);
-        
+
         // Generate INSERT SQL with named parameters
         String insertSql = generateInsertSql(insertMetadata);
         String formattedSql = SqlFormatter.format(insertSql);
-        
+
         // Use shared field builder for SQL definition
         FieldSpec sqlFieldSpec = FieldBuilders.sqlField(formattedSql, CodeGenerationConstants.SQL_FIELD_NAME);
-        
+
         // DTO type
         TypeName insertDtoTypeName = JavaPoetTypeNameBuilder.buildJavaPoetTypeNameForClass(businessPurposeOfSQL, "dto", "InsertDTO");
-        
-        // INSERT method
-        MethodSpec insertMethodSpec = createInsertMethod(businessPurposeOfSQL, insertMetadata, insertDtoTypeName, jdbcTemplateFieldName);
-        
+
+        // INSERT method (with audit support)
+        MethodSpec insertMethodSpec = createInsertMethod(businessPurposeOfSQL, insertMetadata, insertDtoTypeName,
+                jdbcTemplateFieldName, auditConfig);
+
         // DAO class
         TypeSpec dao = TypeSpec.classBuilder(businessPurposeOfSQL + "InsertDAO")
                 .addModifiers(Modifier.PUBLIC)
@@ -81,12 +101,12 @@ public class GenerateInsertDAO {
                 .addMethod(insertMethodSpec)
                 .addJavadoc("Data Access Object for $L INSERT operations.\\nFollows Vipin's Principle: Single responsibility - INSERT operations only.", businessPurposeOfSQL.toLowerCase())
                 .build();
-        
+
         JavaFile javaFile = JavaFile.builder(JavaPackageNameBuilder.buildJavaPackageName(businessPurposeOfSQL, "dao"), dao)
                 .build();
-        
+
         log.info(javaFile.toString());
-        
+
         return javaFile;
     }
     
@@ -115,34 +135,57 @@ public class GenerateInsertDAO {
         return sqlBuilder.toString();
     }
     
-    private static MethodSpec createInsertMethod(String businessPurposeOfSQL, InsertMetadata insertMetadata, 
-                                               TypeName insertDtoType, String jdbcTemplateFieldName) {
-        
-        // Method parameter
-        ParameterSpec dtoParameter = ParameterSpec.builder(insertDtoType, "insertRequest")
-                .build();
-        
+    private static MethodSpec createInsertMethod(String businessPurposeOfSQL, InsertMetadata insertMetadata,
+                                               TypeName insertDtoType, String jdbcTemplateFieldName,
+                                               AuditConfiguration auditConfig) {
+
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("insert" + businessPurposeOfSQL)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(int.class);
+
+        // Add DTO parameter
+        methodBuilder.addParameter(ParameterSpec.builder(insertDtoType, "insertRequest").build());
+
+        // Add userId parameter if audit is enabled
+        if (auditConfig.enabled()) {
+            methodBuilder.addParameter(ParameterSpec.builder(String.class, "userId").build());
+        }
+
         // Build parameter mapping code
         CodeBlock.Builder paramMappingBuilder = CodeBlock.builder()
                 .addStatement("$T<$T, $T> sqlParamMap = new $T()", Map.class, String.class, Object.class, HashMap.class);
-        
+
         for (ColumnMetadata column : insertMetadata.insertColumns()) {
             String fieldName = CaseUtils.toCamelCase(column.getColumnName(), false, '_');
-            String getterMethod = "get" + CaseUtils.toCamelCase(column.getColumnName(), true, '_');
-            
-            paramMappingBuilder.addStatement("sqlParamMap.put($S, insertRequest.$L())", 
-                    fieldName, getterMethod);
+
+            if (auditConfig.isAuditColumn(column.getColumnName())) {
+                // Audit column - get from userId parameter
+                paramMappingBuilder.addStatement("sqlParamMap.put($S, userId)", fieldName);
+            } else {
+                // Regular column - get from DTO
+                String getterMethod = "get" + CaseUtils.toCamelCase(column.getColumnName(), true, '_');
+                paramMappingBuilder.addStatement("sqlParamMap.put($S, insertRequest.$L())",
+                        fieldName, getterMethod);
+            }
         }
-        
-        // Return insert method
-        return MethodSpec.methodBuilder("insert" + businessPurposeOfSQL)
-                .addModifiers(Modifier.PUBLIC)
-                .addParameter(dtoParameter)
-                .returns(int.class)
-                .addCode(paramMappingBuilder.build())
-                .addStatement("return $N.update(" + CodeGenerationConstants.SQL_FIELD_NAME + ", sqlParamMap)", jdbcTemplateFieldName)
-                .addJavadoc("Inserts a new $L record into the database.\\n@param insertRequest the $L data to insert\\n@return number of rows affected", 
-                           businessPurposeOfSQL.toLowerCase(), businessPurposeOfSQL.toLowerCase())
-                .build();
+
+        methodBuilder.addCode(paramMappingBuilder.build());
+        methodBuilder.addStatement("return $N.update(" + CodeGenerationConstants.SQL_FIELD_NAME + ", sqlParamMap)", jdbcTemplateFieldName);
+
+        // Add JavaDoc
+        if (auditConfig.enabled()) {
+            methodBuilder.addJavadoc("Inserts a new $L record into the database with audit tracking.\\n" +
+                            "@param insertRequest the $L data to insert\\n" +
+                            "@param userId the user ID for audit columns\\n" +
+                            "@return number of rows affected",
+                    businessPurposeOfSQL.toLowerCase(), businessPurposeOfSQL.toLowerCase());
+        } else {
+            methodBuilder.addJavadoc("Inserts a new $L record into the database.\\n" +
+                            "@param insertRequest the $L data to insert\\n" +
+                            "@return number of rows affected",
+                    businessPurposeOfSQL.toLowerCase(), businessPurposeOfSQL.toLowerCase());
+        }
+
+        return methodBuilder.build();
     }
 }

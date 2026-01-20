@@ -4,12 +4,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.jfeatures.msg.codegen.dbmetadata.ColumnMetadata;
 import com.jfeatures.msg.codegen.dbmetadata.UpdateMetadata;
+import com.jfeatures.msg.codegen.domain.AuditConfiguration;
 import com.jfeatures.msg.test.TestUtils;
 import com.squareup.javapoet.JavaFile;
 import java.io.IOException;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -310,11 +312,131 @@ class GenerateUpdateControllerTest {
         assertEquals("QuarterlySalesReportUpdateController", javaFile.typeSpec.name);
 
         String code = javaFile.toString();
-        
+
         assertTrue(code.contains("ResponseEntity"));
         assertTrue(code.contains("update"));
         assertTrue(code.contains("QuarterlySalesReport"));
         assertTrue(code.contains("updateDto"));
         assertTrue(code.contains("DAO"));
+    }
+
+    // ========== AUDIT CONFIGURATION TESTS ==========
+
+    @Test
+    void testCreateUpdateController_WithAuditEnabled_AddsRequestHeaderParameter() throws IOException {
+        AuditConfiguration auditConfig = new AuditConfiguration(
+                true, "X-User-ID", Set.of("updated_by", "modified_by"));
+
+        JavaFile javaFile = GenerateUpdateController.createUpdateController("Product", validUpdateMetadata, auditConfig);
+
+        String code = javaFile.toString();
+
+        // Verify @RequestHeader annotation is present
+        assertTrue(code.contains("@RequestHeader"), "Should contain @RequestHeader annotation");
+        assertTrue(code.contains("value = \"X-User-ID\""), "Should specify header name");
+        assertTrue(code.contains("required = true"), "Header should be required");
+
+        // Verify userId parameter is present
+        assertTrue(code.contains("String userId"), "Should have userId parameter");
+
+        // Verify @Parameter annotation for Swagger documentation
+        assertTrue(code.contains("@Parameter"), "Should have Swagger @Parameter annotation");
+        assertTrue(code.contains("description = \"User ID for audit purposes\""), "Should have description");
+
+        // Verify DAO call includes userId
+        assertTrue(code.contains("updateProduct(updateDto, id, categoryId, userId)"), "DAO call should include userId");
+    }
+
+    @Test
+    void testCreateUpdateController_WithAuditDisabled_NoRequestHeaderParameter() throws IOException {
+        AuditConfiguration auditConfig = AuditConfiguration.disabled();
+
+        JavaFile javaFile = GenerateUpdateController.createUpdateController("Product", validUpdateMetadata, auditConfig);
+
+        String code = javaFile.toString();
+
+        // Verify @RequestHeader is NOT present
+        assertFalse(code.contains("@RequestHeader"), "Should NOT contain @RequestHeader when audit disabled");
+        assertFalse(code.contains("String userId"), "Should NOT have userId parameter when audit disabled");
+
+        // Verify standard DAO call without userId
+        assertTrue(code.contains("updateProduct(updateDto, id, categoryId)"), "DAO call should NOT include userId");
+        assertFalse(code.contains("updateProduct(updateDto, id, categoryId, userId)"), "DAO call should NOT have userId");
+    }
+
+    @Test
+    void testCreateUpdateController_WithCustomHeaderName_UsesCorrectHeader() throws IOException {
+        AuditConfiguration auditConfig = new AuditConfiguration(
+                true, "Authorization", Set.of("updated_by"));
+
+        JavaFile javaFile = GenerateUpdateController.createUpdateController("Product", validUpdateMetadata, auditConfig);
+
+        String code = javaFile.toString();
+
+        // Verify custom header name is used
+        assertTrue(code.contains("value = \"Authorization\""), "Should use custom header name");
+        assertFalse(code.contains("value = \"X-User-ID\""), "Should NOT use default header");
+    }
+
+    @Test
+    void testCreateUpdateController_WithNullAuditConfig_DefaultsToDisabled() throws IOException {
+        JavaFile javaFile = GenerateUpdateController.createUpdateController("Product", validUpdateMetadata, null);
+
+        String code = javaFile.toString();
+
+        // Should behave like audit disabled
+        assertFalse(code.contains("@RequestHeader"), "Should NOT contain @RequestHeader when config is null");
+        assertTrue(code.contains("updateProduct(updateDto, id, categoryId)"), "Should use standard DAO call");
+    }
+
+    @Test
+    void testCreateUpdateController_WithAuditEnabled_GeneratesCorrectImports() throws IOException {
+        AuditConfiguration auditConfig = new AuditConfiguration(
+                true, "X-User-ID", Set.of("updated_by"));
+
+        JavaFile javaFile = GenerateUpdateController.createUpdateController("Product", validUpdateMetadata, auditConfig);
+
+        String code = javaFile.toString();
+
+        // Verify required imports are present
+        assertTrue(code.contains("import org.springframework.web.bind.annotation.RequestHeader"),
+                "Should import RequestHeader");
+        assertTrue(code.contains("import io.swagger.v3.oas.annotations.Parameter"),
+                "Should import Parameter annotation");
+    }
+
+    @Test
+    void testCreateUpdateController_BackwardCompatibility_NoAuditConfig() throws IOException {
+        // Test that the original method without AuditConfiguration still works
+        JavaFile javaFile = GenerateUpdateController.createUpdateController("Product", validUpdateMetadata);
+
+        String code = javaFile.toString();
+
+        // Should behave like audit disabled
+        assertFalse(code.contains("@RequestHeader"), "Default should NOT contain @RequestHeader");
+        assertTrue(code.contains("updateProduct(updateDto, id, categoryId)"), "Default should use standard DAO call");
+    }
+
+    @Test
+    void testCreateUpdateController_WithAuditEnabled_GeneratesCorrectJavaDoc() throws IOException {
+        UpdateMetadata singleWhereMetadata = new UpdateMetadata(
+                "users",
+                Arrays.asList(nameSetColumn),
+                Collections.singletonList(idWhereColumn),
+                "UPDATE users SET product_name = ? WHERE id = ?"
+        );
+
+        AuditConfiguration auditConfig = new AuditConfiguration(
+                true, "X-User-ID", Set.of("updated_by"));
+
+        JavaFile javaFile = GenerateUpdateController.createUpdateController("User", singleWhereMetadata, auditConfig);
+
+        String code = javaFile.toString();
+
+        // Verify JavaDoc mentions audit tracking
+        assertTrue(code.contains("audit tracking") || code.contains("audit"),
+                "JavaDoc should mention audit tracking when audit is enabled");
+        assertTrue(code.contains("@param userId"),
+                "JavaDoc should document userId parameter");
     }
 }
